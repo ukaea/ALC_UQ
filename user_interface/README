@@ -1,0 +1,69 @@
+Scripts for use by the ALC DAKOTA cloud infrastructure:
+
+Basic Idea:
+
+To run DAKOTA one needs a DAKOTA input file as well as a containerised code
+capable of reading in the varied parameters that DAKOTA provides. This tool
+aims at hiding away the complexities of interacting with DAKOTA by providing
+an interface to a simpler netcdf format.
+
+To use this the user must first write a script to create a netcdf file 
+containing descriptions of their uncertain data. example_sample.py and
+example_scan.py give demonstrations of different ways to create and populate
+such a file when performing Monte-Carlo sampling and parameter scans
+respectively. The resulting netcdf file is what the user provides to the tool.
+They must also create an interface to their containerised code which reads
+this format. Read examples are also provided in the above scripts.
+
+On the back-end, main.py is run to convert the users netcdf file to a 
+DAKOTA input file. Then DAKOTA is called using this input file. Copies
+of the users netcdf file are copied to work directories and the varied values 
+from the DAKOTA parameters file are appended to these copies so that the users
+code can read them. The users containerised code is then called.
+
+The work directories which should then contain the code output for each
+iteration are saved allowing the code output to be collated and stored. 
+
+Files:
+
+container.py : A simple container class which has parents and children.
+	       Used to create a tree structure which mimics the Dakota input
+	       file structure. This is used by dakota_class to construct
+	       the Dakota input file. 
+
+dakota_file.py : The class for interfacing with the user input files. 
+	         At present this supports netcdf files only but may be
+		 expanded to other file types later.
+
+dakota_class.py : The class for building the DAKOTA input file.
+
+definitions.py : Defines the allowed variable types which can be added to 
+	         the netcdf file and what variables are required and optional
+		 for each type. 
+
+main.py : This is the main script for creating the DAKOTA input file based
+	  on the users input file. This needs to be called prior to 
+	  submission to the cloud. 
+
+interface.py : This is the interface script that DAKOTA calls to interact
+	       with the users code. It reads the DAKOTA parameters file with
+	       the varied inputs and appends an entry called 'values' to each
+	       entry in a copy of the original users netcdf file. 
+	       It then calls the users code which must be able to read the
+	       netcdf file. 
+
+# Test scripts
+
+mycode.py : A simple python script that serves as a test user code. It just
+	    sums some arrays and writes the sum to a file which is saved.
+
+example_sample.py : An example script demonstrating the ways that users
+		    can create and add variables to an input netcdf file
+		    for use by this tool. This script gives examples based
+		    on Monte Carlo sampling.
+
+example_scan.py : As above except the examples are geared towards parameter
+		  scans.
+
+
+

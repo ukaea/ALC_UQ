@@ -1,0 +1,15 @@
+This folder contains two example scripts demonstrating how users can use the
+python scripts provided to create a netcdf file of uncertain data that can be 
+given to the ALC UQ cloud deployment tool.
+
+example_sample.py - An example script showing how to set up a monte-carlo
+                    sampling run with various kinds of uncertain data
+
+example_scan.py   - An example script showing how to set up a mulit-dimensional
+		    parameter scan run.
+
+DAKOTA_VARIED_EXAMPLE.nc - This is an example of the netcdf produced by example_sample.py
+			   after DAKOTA has written varied values to it.
+			   Each variable now has an additional 'values' data item containing
+			   the varied data for the current iteration.
+   			   Users code needs to be able to read a file like thie.

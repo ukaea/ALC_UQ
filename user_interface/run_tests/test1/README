@@ -1,0 +1,67 @@
+This folder runs a simple DAKOTA workflow locally. It also contains a netcdf file
+containing varied data corresponding to the example_sample.py case. The varied data is contained
+within the 'values' entries for each variable.  This example is here named DAKOTA_VARIED_EXAMPLE.nc but 
+in a real run it would have the same name as the input netcdf; DAKOTA.nc. The 'values' entry is just added.
+
+To run this workflow simply execute the following command in this directory:
+
+./run_test1.sh 
+
+This will execute the following steps:
+
+1) Copy all the needed python scripts from the above directory into this directory and the
+files_for_dakota directory which contains the subset of these scripts which dakota will use.
+
+2) Runs the example_sample.py script to generate a mock user input netcdf file with some 
+uncertain data.
+
+3) Runs the main.py script with this netcdf file to generate a DAKOTA input file
+
+4) Runs DAKOTA with this input file on a simple 'code' which sums some sampled values
+and prints their output to a file (DAKOTA_OUTPUT.dat)
+
+After the run there should be 4 work directories with names like workdir_VVebUQ.1 containing
+such output files. They will also each contain a copy of the user netcdf file DAKOTA.nc which has
+been updated with 'values' entries containing the varied data for each variable.
+
+Running clean.sh will restore the directory to its initial clean state. 
+
+# To test your own user code --------------------------------------------------------------------
+
+If you want to test your own scripts for making an input netcdf file and reading varied data from it
+you can modify the files in this directory to do this. You will need to download DAKOTA and have it
+visible on your PATH in order for this to work. You will also need the directory
+
+<DAKOTA VERSION>/share/dakota/Python/dakota/interfacing
+
+on your PYTHONPATH
+
+1) Modify interface_test.sh to copy your python script for making an input netcdf to this 
+directory instead of example_sample.py:
+
+delete line 
+       
+       cp ../example_sample.py .
+
+Replace with a line to copy your own code
+
+2) Modify interface_test.sh to run this code instead to generate your netcdf file:
+
+replace
+
+	python example_sample.py
+
+with 
+        python <yourcode.py>
+
+3) Modify the file files_for_dakota/interface_test.py to run your code for reading the varied
+data from the updated netcdf file.
+
+Replace the line:
+
+	os.system('python mycode.py')
+
+With a line to call your interface code. 
+
+
+
