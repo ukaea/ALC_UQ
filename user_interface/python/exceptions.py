@@ -59,3 +59,10 @@ class CSVError(Error):
     def __init__( self, message ):
 
         self.message = message
+
+class SettingsError(Error):
+    """Raised when an error occurs adding MC settings to dakota_file class."""
+    
+    def __init__( self, message ):
+
+        self.message = message
