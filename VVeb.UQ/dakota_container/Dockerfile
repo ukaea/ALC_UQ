@@ -33,9 +33,6 @@ ADD ./wrapdocker /usr/local/bin/wrapdocker
 RUN chmod +x /usr/local/bin/wrapdocker
 VOLUME /var/lib/docker
 
-# --- Dakota wrappers from J.Buchanan
-COPY dakota_wrappers/ /dakota_wrappers/
-
 # --- Run waiting script
 WORKDIR /dakota_dir/
 CMD ["wrapdocker"]

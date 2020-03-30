@@ -9,10 +9,12 @@ if ($#my_args ne 1) {exit 1;}
 # --- Container arguments
 my $my_args_tmp = `cat arguments_for_dakota_script.txt`;
 my @my_args2 = split(' ',$my_args_tmp);
-if ($#my_args2 ne 2) {exit 2;}
+if ($#my_args2 ne 4) {exit 2;}
 my $container_name = $my_args2[0];
 my $run_dir        = $my_args2[1];
 my $image_name     = $my_args2[2];
+my $file_type      = $my_args2[3];
+my $dakota_dir     = $my_args2[4];
 # --- Initialise some variables
 my @split_tmp = ();
 my $command = "";
@@ -24,9 +26,9 @@ $pwd =~ s/\s+//g;
 @split_tmp = split("/",$pwd);
 my $dir = $split_tmp[$#split_tmp];
 # --- Preprocessing (ie. convert dakota params file back to netcdf)
-`python3 interface.py dakota_params dakota_results`;
+`python3 /dakota_user_interface/python/interface.py dakota_params dakota_results DAKOTA.nc $file_type`;
 # --- Run container for each dir
-$command = 'docker container run --name '.$container_name.'_'.$dir.' -v '.$run_dir.'/'.$dir.':/work_dir/ -d '.$image_name;
+$command = 'docker container run --name '.$container_name.'_'.$dir.' -v '.$run_dir.'/'.$dir.':/work_dir/ -v '.$dakota_dir.':/dakota_user_interface/ -d '.$image_name;
 $output = `$command`;
 $command = 'printf "new container: '.$output.'" >> /VVebUQ_runs/terminal_output.txt';
 `$command`;

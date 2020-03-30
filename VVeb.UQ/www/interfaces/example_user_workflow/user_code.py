@@ -1,10 +1,10 @@
 # Include dakota folder
 import sys
-sys.path.insert(1, '/dakota_utils/')
+sys.path.insert(1, '/dakota_user_interface/python/')
 
 import numpy as np
 import xarray as xr
-import exceptions
+#import exceptions
 from dakota_file import DakotaFile
 
 # Create a new instance of the 

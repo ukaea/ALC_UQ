@@ -6,8 +6,7 @@ RUN pip3 install netCDF4 xarray
 # --- The way this is run is important!
 # --- All the data/codes necessary must be in a separate directory
 #ADD mycode.py /data_dir/
-ADD *.py /data_dir/
-COPY ./dakota_utils/ /dakota_utils/
+ADD user_code.py /data_dir/
 # --- The code MUST be run in a directory named exactly /work_dir/
 # --- This is because this directory will be mounted to an external directory in the app (ie. available outside the container)
 # --- Hence, before running your code, you must copy/move all your data/codes into this work_dir directory, as below
