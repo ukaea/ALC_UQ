@@ -47,7 +47,8 @@ a
 
 body
 {
-  background-image:	url("../Logos/fast_cam.png"); background-size: cover;
+  /*background-image:	url("../Logos/fast_cam.png"); background-size: cover;*/
+  background-image:	url("../Logos/magic_pixel_back.png"); background-size: cover;
 }
 
 
