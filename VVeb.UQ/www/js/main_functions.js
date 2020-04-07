@@ -287,9 +287,18 @@ function action_wrapper()
     selected_image = document.getElementById('image_selector').value;
     document.getElementById("waiting_gif").style.visibility="visible";
     document.getElementById("waiting_message").innerHTML="<br/>Please wait while dakota launches containers for your jobs.<br/>This may take a moment depending on the number of runs...<br/>";
+    // --- Number of CPUs available for the run
+    n_cpu = execute_command('nproc');
+    // --- Input file format
+    input_file_name = document.getElementById('file_selector').value;
+    filename_split = input_file_name.split('.');
+    format = filename_split[filename_split.length-1];
     // --- Send form
     var formdata = new FormData();
     formdata.append("docker_image_run", selected_image);
+    formdata.append("input_file_name", input_file_name);
+    formdata.append("input_file_type", format);
+    formdata.append("n_cpu", n_cpu);
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open("POST", "php/create_runs.php",true);
     // --- We do this async because we want to catch the terminal output while the request runs...
@@ -581,7 +590,7 @@ function set_image_selector(selected_image)
     image_select_change('select_image');
   }
 }
-function download_docker_example()
+function download_user_example()
 {
   execute_command('cd ../interfaces ; zip -r example_user_workflow.zip ./example_user_workflow ; cd -');
   link = document.createElement("a");
@@ -783,11 +792,6 @@ function file_select(selected_option)
     setCookie('selected_file','new_file',7);
   }else
   { 
-    if (selected_option.value != "select_file")
-    { 
-      document.getElementById("file_comments").innerHTML="Selected file: "+selected_option.value;
-      execute_command('cp '+selected_option.value+' /VVebUQ_runs/vvebuq_input.nc');
-    }
     setCookie('selected_file',selected_option.value,7);
   }
 }
@@ -839,7 +843,7 @@ function reload_file_selector()
 function get_existing_files()
 { 
   existing_files = [];
-  output = execute_command('ls -p /VVebUQ_runs/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -v "vvebuq_input.nc"');
+  output = execute_command('ls -p /VVebUQ_runs/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt"');
   output = output.split("\n");
   for (i=0 ; i<output.length; i++)
   { 
@@ -853,7 +857,7 @@ function get_existing_files()
 function check_input_file()
 {
   file_present = "false";
-  output = execute_command('ls /VVebUQ_runs/ | grep "vvebuq_input.nc"');
+  output = execute_command('ls /VVebUQ_runs/');
   output = output.replace("\n","");
   if (output != "")
   {
@@ -902,7 +906,7 @@ function completeHandler(event)
   document.getElementById("progressBar").value = 0;
   document.getElementById("progressBar").style.visibility="hidden";
   reload_file_selector();
-  last_file = execute_command('ls -ptr /VVebUQ_runs/ | grep -v "/" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -v "vvebuq_input.nc" | tail -n 1');
+  last_file = execute_command('ls -ptr /VVebUQ_runs/ | grep -v "/" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | tail -n 1');
   last_file = last_file.replace("\n","");
   file_select_change(last_file);
 }

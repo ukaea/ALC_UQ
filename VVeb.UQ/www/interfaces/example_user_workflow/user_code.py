@@ -1,34 +1,18 @@
-# Include dakota folder
-import sys
-sys.path.insert(1, '/dakota_user_interface/python/')
+# --- Read file
+filename = 'input_mc.csv'
+file_read = open(filename, 'r')
+values = []
+for line in file_read:
+    array_tmp = line.split()
+    values.append(float(array_tmp[0]))
+file_read.close()
 
-import numpy as np
-import xarray as xr
-#import exceptions
-from dakota_file import DakotaFile
+# --- Do some state-of-the-art calculations
+result = 0.0
+for i in range(len(values)):
+  result = result + values[i]
 
-# Create a new instance of the 
-my_netcdf = DakotaFile()
-
-filename = 'DAKOTA.nc'
-my_netcdf.read(filename)
-
-# We can read one of the variables in the netcdf file back into a dictionary of data
-# We shall read test_normal2 which was originally written as a dataset
-
-variable_dict = my_netcdf.get_variable_as_dict('test_normal2')
-
-if 'values' in variable_dict.keys():
-
-    values = variable_dict['values']
-    results = values.sum()
-    
-    file_out = open('DAKOTA_OUTPUT.dat','w')
-    file_out.write('Sum of values is:')
-    file_out.write(str(results))
-    file_out.close()
-
-else:
-
-    print('ERROR: values entry missing from variable dict!')
-    raise Exception
+file_out = open('user_output.dat','w')
+file_out.write('Sum of values is:')
+file_out.write(str(result))
+file_out.close()

@@ -96,7 +96,7 @@
                    Particularly, the WORKDIR must be called /work_dir/ and it must be left empty (because it will be mounted externally).
                    Here is a very simple example of a Docker image with the correct configuration:
                 </p>
-                <button onclick="download_docker_example();">Docker example</button>
+                <button onclick="download_user_example();">user example</button>
               </div>
             </div>
           </div>
@@ -115,13 +115,14 @@
                 </select><br/>
                 <p id="file_comments"></p><br/>
                 <form action="php/upload.php" method="post" enctype="multipart/form-data" id="upload_form">
-                  <p>Upload a netcdf .nc file with values and errors.</p>
+		  <p>Upload a file with values and errors.<br/>The file must be either NETCDF (.nc) or CSV (.csv) format</p>
                   <div id="choose_files">
                     choose files :
                     <input class="uploadForm"
                            type="file"
                            name="fileToUpload[]"
                            id="fileToUpload"
+			   accept=".csv,.nc"
                            onchange="fileChosen()"
                            multiple="multiple">
                   </div>
@@ -136,7 +137,7 @@
               <!-- Netcdf example -->
               <div style="display: table-cell; text-align: left;">
                 <p>The input file must contain data with corresponding errors and the number of samples to be run. Here is a simple example of how to generate such an iput file.</p><br/>
-                <a href="interfaces/netcdf_simple_example.py">netcdf_simple_example.py</a><br/>
+                <button onclick="download_user_example();">user example</button>
                 <p>This will be the only thing passed to your container. Any other input you require must come from within the container itself.</p>
               </div>
             </div>

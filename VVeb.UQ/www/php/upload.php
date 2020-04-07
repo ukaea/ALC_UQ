@@ -40,7 +40,6 @@ for($i=0 ; $i<$n_files ; $i++)
     }
   }		  
   $new_name = '/VVebUQ_runs/'.$new_name;
-  $default_name = '/VVebUQ_runs/vvebuq_input.nc';
  
   // --- Define temporary target file here (it will be moved after upload)
   $target_file = basename($_FILES["fileToUpload"]["name"][$i]);
@@ -61,7 +60,6 @@ for($i=0 ; $i<$n_files ; $i++)
   {
       // --- If our file was uploaded to the temporary place, rename it.
       rename($target_file, $new_name);
-      shell_exec('cp '.$new_name.' '.$default_name);
   } else {
       echo "Sorry, there was an error uploading your file.<br />";
       echo "You will be redirected to the main page in a few seconds.<br />";
