@@ -592,10 +592,10 @@ function set_image_selector(selected_image)
 }
 function download_user_example()
 {
-  execute_command('cd ../interfaces ; zip -r example_user_workflow.zip ./example_user_workflow ; cd -');
+  execute_command('cd ../ ; zip -r example_user_workflow.zip ./example_user_workflow ; cd -');
   link = document.createElement("a");
   link.download = "download_docker_example";
-  link.href = "./interfaces/example_user_workflow.zip";
+  link.href = "./example_user_workflow.zip";
   link.click();
 }
 
