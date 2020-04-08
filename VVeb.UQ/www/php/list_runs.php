@@ -7,4 +7,3 @@ foreach ($split_list as $run)
   echo($clean_run_name."\n");
 }
 ?>
-
