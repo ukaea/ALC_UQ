@@ -220,6 +220,7 @@ function action_wrapper()
     hide_waiting_div();
     return;
   }
+
   // --- Launch Dakota container
   if (action_specification == "launch_dakota")
   {
@@ -245,7 +246,8 @@ function action_wrapper()
     };
     xmlhttp.send(formdata);
   }
-  // --- Launch Code container
+
+  // --- Pull Code Docker image
   if (action_specification == "pull_code")
   { 
     Docker_image = document.getElementById("docker_image").value;
@@ -281,7 +283,8 @@ function action_wrapper()
     };
     xmlhttp.send(formdata);
   }
-  // --- Launch Code container
+
+  // --- Main function: Launch VVUQ runs
   if (action_specification == "main_run")
   {
     selected_image = document.getElementById('image_selector').value;
@@ -320,6 +323,8 @@ function action_wrapper()
     };
     xmlhttp.send(formdata);
   }
+
+  // --- Remove containers belonging to specified run
   if (action_specification == "remove_containers")
   {
     select_run = document.getElementById('run_selector').value;
@@ -341,6 +346,8 @@ function action_wrapper()
       document.getElementById("waiting_message").innerHTML="<br/>The selected run is not valid!<br/>";
     }
   }
+
+  // --- Remove containers belonging to specified run and remove the run-directory where this was executed (ie. remove all run data)
   if ( (action_specification == "purge_run") || (action_specification == "purge_result") )
   {
     if (action_specification == "purge_run")

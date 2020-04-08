@@ -1,18 +1,11 @@
 <?php
 
 
-// --- Prepare printout
-echo "<div style=\"background:white;color:black;\"><br />";
-
 // --- Get number of files
 $n_files = count($_FILES["fileToUpload"]["name"]);
 if($n_files == 0) 
 {
-  echo "Sorry, there was an error uploading your file.<br />";
-echo " file: ".$_FILES["fileToUpload"]["name"]."<br/>";
-  echo "It seems you did not select any files to upload.<br />";
-  echo "Use exit button to get back to main page...<br />";
-  echo "</div>";
+  echo '{"error":"It seems you did not select any files to upload."}';
   exit();
 }
 
@@ -70,8 +63,7 @@ for($i=0 ; $i<$n_files ; $i++)
 }
 
 // --- Now exit with a convenient message...
-echo "Your files have been uploaded.<br />";
-echo "</div>";
+echo '{"success":"Your files have been uploaded."}';
 
 // --- Go Home! (Said Nigel Fromage)
 #header("Location: {$_SERVER['HTTP_REFERER']}");
