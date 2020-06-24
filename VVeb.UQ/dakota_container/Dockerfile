@@ -5,7 +5,7 @@ MAINTAINER Stan Pamela <stanislas.pamela@ukaea.uk>
 
 # --- Packages and environment
 RUN yum update -y \
- && yum install -y gcc-c++ gcc-gfortran gdb make lapack-devel blas-devel openmpi-devel zlib-devel wget perl perl-Data-Dumper libicu-devel hdf5-openmpi-devel compat-openmpi16 \
+ && yum install -y gcc-c++ gcc-gfortran gdb zip unzip make lapack-devel blas-devel openmpi-devel zlib-devel wget perl perl-Data-Dumper libicu-devel hdf5-openmpi-devel compat-openmpi16 \
 # --- Install Docker
  && yum install -y http://vault.centos.org/centos/7.3.1611/extras/x86_64/Packages/container-selinux-2.9-4.el7.noarch.rpm \
  && yum install -y yum-utils device-mapper-persistent-data lvm2 \

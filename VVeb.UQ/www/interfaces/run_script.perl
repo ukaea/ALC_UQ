@@ -9,13 +9,14 @@ if ($#my_args ne 1) {exit 1;}
 # --- Container arguments
 my $my_args_tmp = `cat arguments_for_dakota_script.txt`;
 my @my_args2 = split(' ',$my_args_tmp);
-if ($#my_args2 ne 5) {exit 2;}
+if ($#my_args2 ne 6) {exit 2;}
 my $container_name = $my_args2[0];
 my $run_dir        = $my_args2[1];
 my $image_name     = $my_args2[2];
 my $filename       = $my_args2[3];
 my $file_type      = $my_args2[4];
-my $dakota_dir     = $my_args2[5];
+my $data_filename  = $my_args2[5];
+my $dakota_dir     = $my_args2[6];
 # --- Initialise some variables
 my @split_tmp = ();
 my $command = "";
@@ -28,6 +29,8 @@ $pwd =~ s/\s+//g;
 my $dir = $split_tmp[$#split_tmp];
 # --- Preprocessing (ie. convert dakota params file back to netcdf)
 `python3 /dakota_user_interface/python/interface.py dakota_params dakota_results $filename $file_type`;
+# --- Unzip data file if present
+if ($data_filename ne "none") {`unzip $data_filename`;}
 # --- Run container for each dir
 $command = 'docker container run --name '.$container_name.'_'.$dir.' -v '.$run_dir.'/'.$dir.':/work_dir/ -v '.$dakota_dir.':/dakota_user_interface/ -d '.$image_name;
 $output = `$command`;

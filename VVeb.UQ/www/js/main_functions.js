@@ -59,6 +59,11 @@ window.onload = function()
   selected_file = getCookie('selected_file');
   file_select_change(selected_file);
 
+  // --- Make sure the data-file drop-down is on the correct option
+  reload_data_file_selector();
+  selected_data_file = getCookie('selected_data_file');
+  data_file_select_change(selected_data_file);
+
   // --- Make sure the file drop-down is on the correct option
   reload_result_selector();
   selected_result = getCookie('selected_result');
@@ -296,11 +301,14 @@ function action_wrapper()
     input_file_name = document.getElementById('file_selector').value;
     filename_split = input_file_name.split('.');
     format = filename_split[filename_split.length-1];
+    // --- Data input file
+    input_data_file_name = document.getElementById('data_file_selector').value;
     // --- Send form
     var formdata = new FormData();
     formdata.append("docker_image_run", selected_image);
     formdata.append("input_file_name", input_file_name);
     formdata.append("input_file_type", format);
+    formdata.append("input_data_file_name", input_data_file_name);
     formdata.append("n_cpu", n_cpu);
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open("POST", "php/create_runs.php",true);
@@ -850,7 +858,7 @@ function reload_file_selector()
 function get_existing_files()
 { 
   existing_files = [];
-  output = execute_command('ls -p /VVebUQ_runs/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt"');
+  output = execute_command('ls -p /VVebUQ_runs/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -E ".csv|.ncd"');
   output = output.split("\n");
   for (i=0 ; i<output.length; i++)
   { 
@@ -864,7 +872,8 @@ function get_existing_files()
 function check_input_file()
 {
   file_present = "false";
-  output = execute_command('ls /VVebUQ_runs/');
+  //output = execute_command('ls /VVebUQ_runs/');
+  output = execute_command('ls -p /VVebUQ_runs/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -E ".csv|.ncd"');
   output = output.replace("\n","");
   if (output != "")
   {
@@ -913,7 +922,7 @@ function completeHandler(event)
   document.getElementById("progressBar").value = 0;
   document.getElementById("progressBar").style.visibility="hidden";
   reload_file_selector();
-  last_file = execute_command('ls -ptr /VVebUQ_runs/ | grep -v "/" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | tail -n 1');
+  last_file = execute_command('ls -ptr /VVebUQ_runs/ | grep -v "/" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -E ".csv|.ncd" | tail -n 1');
   last_file = last_file.replace("\n","");
   file_select_change(last_file);
 }
@@ -924,6 +933,165 @@ function errorHandler(event)
 function abortHandler(event)
 {
   document.getElementById("progress_status").innerHTML = "Upload Aborted";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// --------------------------------------------------------------------
+// --------------------------------------------------------------------
+// --------------------------------------------------------------------
+// --- Upload Data file functions
+function data_file_select(selected_option)
+{ 
+  document.getElementById("upload_data_form").style.visibility="hidden";
+  document.getElementById("data_file_comments").innerHTML="";
+  if (selected_option.value == "new_data_file")
+  { 
+    document.getElementById("upload_data_form").style.visibility="visible";
+    setCookie('selected_data_file','new_data_file',7);
+  }else
+  { 
+    setCookie('selected_data_file',selected_option.value,7);
+  }
+}
+function data_file_select_change(optionValToSelect)
+{ 
+  selectElement = document.getElementById('data_file_selector');
+  selectOptions = selectElement.options;
+  for (var opt, j = 0; opt = selectOptions[j]; j++)
+  { 
+    if (opt.value == optionValToSelect)
+    { 
+      selectElement.selectedIndex = j;
+      data_file_select(selectElement);
+      break;
+    }
+  }
+}
+function reload_data_file_selector()
+{ 
+  // --- Clean up selector
+  selector = document.getElementById("data_file_selector");
+  child = selector.lastElementChild;
+  while (child)
+  { 
+    selector.removeChild(child); 
+    child = selector.lastElementChild;
+  }
+  
+  // --- Re-add the basic messages
+  new_file = document.createElement('option');
+  new_file.setAttribute("value","select_data_file");
+  new_file.innerHTML = "Select file";
+  selector.appendChild(new_file);
+  new_file = document.createElement('option');
+  new_file.setAttribute("value","new_data_file");
+  new_file.innerHTML = "New file";
+  selector.appendChild(new_file);
+
+  // --- Add the other runs available
+  existing_files = get_existing_data_files();
+  for (i=0 ; i<existing_files.length ; ++i)
+  {
+    new_file = document.createElement('option');
+    new_file.setAttribute("value",existing_files[i]);
+    new_file.innerHTML = existing_files[i];
+    selector.appendChild(new_file);
+  }
+}
+function get_existing_data_files()
+{ 
+  existing_files = [];
+  output = execute_command('ls -p /VVebUQ_runs/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep ".zip"');
+  output = output.split("\n");
+  for (i=0 ; i<output.length; i++)
+  { 
+    if (output[i] != "")
+    { 
+      existing_files.push(output[i]);
+    }
+  }
+  return existing_files;
+}
+function check_input_data_file()
+{
+  file_present = "false";
+  //output = execute_command('ls /VVebUQ_runs/');
+  output = execute_command('ls -p /VVebUQ_runs/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep ".zip"');
+  output = output.replace("\n","");
+  if (output != "")
+  {
+    file_present = "true";
+  }
+  return file_present;
+}
+function dataFileChosen()
+{
+  // --- Make folder button visible
+  document.getElementById("data_upload_comments").innerHTML="Please click to begin upload:";
+  document.getElementById("data_upload_div").style.visibility="visible";
+  document.getElementById("data_upload_button").style.visibility = "visible";
+  document.getElementById("data_progressBar").style.visibility="visible";
+}
+function send_data_upload()
+{
+  document.getElementById("data_upload_button").style.visibility = "hidden";
+  document.getElementById("data_upload_comments").innerHTML = "upload in progress...";
+
+  var n_files = document.getElementById("dataFileToUpload").files.length;
+  var formdata = new FormData();
+  for (k=0;k<n_files;k++)
+  {
+    var file = document.getElementById("dataFileToUpload").files[k];
+    formdata.append("dataFileToUpload[]", file);
+  }
+  var ajax = new XMLHttpRequest();
+  ajax.upload.addEventListener("progress", data_progressHandler, false);
+  ajax.addEventListener("load", data_completeHandler, false);
+  ajax.addEventListener("error", data_errorHandler, false);
+  ajax.addEventListener("abort", data_abortHandler, false);
+  ajax.open("POST", "php/upload_data_file.php");
+  ajax.send(formdata);
+}
+function data_progressHandler(event)
+{
+  var percent = (event.loaded / event.total) * 100;
+  document.getElementById("data_progressBar").value = Math.round(percent);
+  document.getElementById("data_progress_status").innerHTML = "upload in progress: " + Math.round(percent) + "%";
+}
+function data_completeHandler(event)
+{
+  document.getElementById("data_progress_status").innerHTML = "";
+  document.getElementById("data_upload_comments").innerHTML=event.target.responseText;
+  document.getElementById("data_progressBar").value = 0;
+  document.getElementById("data_progressBar").style.visibility="hidden";
+  reload_data_file_selector();
+  last_file = execute_command('ls -ptr /VVebUQ_runs/ | grep -v "/" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep ".zip" | tail -n 1');
+  last_file = last_file.replace("\n","");
+  data_file_select_change(last_file);
+}
+function data_errorHandler(event)
+{
+  document.getElementById("data_progress_status").innerHTML = "Upload Failed";
+}
+function data_abortHandler(event)
+{
+  document.getElementById("data_progress_status").innerHTML = "Upload Aborted";
 }
 
 

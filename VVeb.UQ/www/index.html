@@ -107,7 +107,7 @@
           <div style="width: 100%; display: table;">
             <div style="display: table-row">
               <!-- Input file -->
-              <div style="width: 70%; display: table-cell; text-align: left;">
+              <div style="width: 35%; display: table-cell; text-align: left;">
                 <p>Choose an input file.</p>
                 <select id="file_selector" onchange="file_select(this)">
                   <option value="select_file">Select file</option>
@@ -132,6 +132,34 @@
                   <button id="upload_button" onclick="send_upload();"> upload </button><br/>
                   <progress id="progressBar" value="0" max="100" style="width:300px;"></progress>
                   <p id="progress_status"></p>
+                <span>
+              </div>
+              <!-- Input data -->
+              <div style="width: 35%; display: table-cell; text-align: left;">
+                <p>Choose additional data.</p>
+                <select id="data_file_selector" onchange="data_file_select(this)">
+                  <option value="select_data_file">Select file</option>
+                  <option value="new_data_file">New file</option>
+                </select><br/>
+                <p id="data_file_comments"></p><br/>
+                <form action="php/upload_data_file.php" method="post" enctype="multipart/form-data" id="upload_data_form">
+			<p>Upload a zip file that contains files and folders needed by your container.<br/>The file must be in ZIP (.zip) format.<br/>The file will be unzipped in the top directory of each of your runs.</p>
+                  <div id="choose_data_files">
+                    choose files :
+                    <input class="uploadForm"
+                           type="file"
+                           name="dataFileToUpload[]"
+                           id="dataFileToUpload"
+			   accept=".zip"
+                           onchange="dataFileChosen()"
+                           multiple="multiple">
+                  </div>
+                  <p id="data_upload_comments"></p><br/>
+                </form>
+                <span id="data_upload_div" style="visibility: hidden;">
+                  <button id="data_upload_button" onclick="send_data_upload();"> upload </button><br/>
+                  <progress id="data_progressBar" value="0" max="100" style="width:300px;"></progress>
+                  <p id="data_progress_status"></p>
                 <span>
               </div>
               <!-- Netcdf example -->
