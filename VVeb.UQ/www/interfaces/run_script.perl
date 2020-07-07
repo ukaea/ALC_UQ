@@ -32,7 +32,7 @@ my $dir = $split_tmp[$#split_tmp];
 # --- Unzip data file if present
 if ($data_filename ne "none") {`unzip $data_filename`;}
 # --- Run container for each dir
-$command = 'docker container run --name '.$container_name.'_'.$dir.' -v '.$run_dir.'/'.$dir.':/work_dir/ -v '.$dakota_dir.':/dakota_user_interface/ -d '.$image_name;
+$command = 'docker container run --privileged --name '.$container_name.'_'.$dir.' -v '.$run_dir.'/'.$dir.':/tmp/work_dir/ -v '.$dakota_dir.':/dakota_user_interface/ -d '.$image_name;
 $output = `$command`;
 $command = 'printf "new container: '.$output.'" >> /VVebUQ_runs/terminal_output.txt';
 `$command`;
