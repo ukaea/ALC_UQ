@@ -7,9 +7,9 @@ RUN pip3 install netCDF4 xarray
 # --- All the data/codes necessary must be in a separate directory
 #ADD mycode.py /data_dir/
 ADD user_code.py /data_dir/
-# --- The code MUST be run in a directory named exactly /work_dir/
+# --- The code MUST be run in a directory named exactly /tmp/work_dir/
 # --- This is because this directory will be mounted to an external directory in the app (ie. available outside the container)
 # --- Hence, before running your code, you must copy/move all your data/codes into this work_dir directory, as below
-WORKDIR /work_dir/
+WORKDIR /tmp/work_dir/
 CMD ["/bin/bash","-c","mv ../data_dir/* . ; python3 user_code.py"]
 
