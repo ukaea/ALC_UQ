@@ -671,18 +671,17 @@ function cloud_select(selected_option)
       cloud_select_change('run_locally');
       return;
     }
-    // --- Good to go with Prominence
-    document.getElementById("prominence_token_button").style.visibility="visible";
-    setCookie('selected_cloud','use_prominence',7);
     // --- Check if Prominence Token already exists
     existing_token = check_for_existing_token();
     if (existing_token == '')
     {
-      document.getElementById("cloud_comments").innerHTML="No Prominence Token Found";
+      document.getElementById("cloud_comments").innerHTML="No Prominence Token Found, request new one!";
     }else
     {
-      document.getElementById("cloud_comments").innerHTML="Prominence Token Already Valid";
+      document.getElementById("cloud_comments").innerHTML="Current Prominence Token still valid,<br/>no need for new token,<br/>proceed to following step...";
     }
+    document.getElementById("prominence_token_button").style.visibility="visible";
+    setCookie('selected_cloud','use_prominence',7);
   }else
   { 
     setCookie('selected_cloud','run_locally',7);
@@ -719,6 +718,19 @@ function cloud_select_change(optionValToSelect)
 function check_for_existing_token()
 {
   existing_token = '';
+  prominence_token = execute_command('docker exec dakota_container bash -c \'cat $HOME/.prominence/token\'');
+  prominence_token = prominence_token.split('{"access_token": "');
+  if (prominence_token.length == 2)
+  {
+    prominence_token = prominence_token[1].split('"')[0];
+    command = 'docker exec -t dakota_container bash -c \'curl -i -H "Authorization: Bearer '+prominence_token+'" $PROMINENCE_OIDC_URL/userinfo\'';
+    token_valid = execute_command(command);
+    token_valid = token_valid.split('200 OK');
+    if (token_valid.length == 2)
+    {
+      existing_token = 'yes';
+    }
+  }
   return existing_token;
 }
 function request_prominence_token()
