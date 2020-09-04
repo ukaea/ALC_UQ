@@ -28,6 +28,11 @@ ENV PATH="${INSTALL_DIR}/bin:${INSTALL_DIR}/share/dakota/test:${INSTALL_DIR}/gui
 ENV PYTHONPATH="${PYTHONPATH}:${INSTALL_DIR}/share/dakota/Python"
 ENV LD_LIBRARY_PATH="/usr/lib64/openmpi/lib/:${LD_LIBRARY_PATH}"
 
+# --- Install Prominence
+RUN pip3 install prominence
+ENV PROMINENCE_URL=https://host-130-246-215-158.nubes.stfc.ac.uk/prominence/v1
+ENV PROMINENCE_OIDC_URL=https://host-130-246-215-158.nubes.stfc.ac.uk
+
 # --- Get Docker in place
 ADD ./wrapdocker /usr/local/bin/wrapdocker
 RUN chmod +x /usr/local/bin/wrapdocker

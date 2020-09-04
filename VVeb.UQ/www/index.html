@@ -60,6 +60,7 @@
         <!-- Tab links -->
         <div class="tab">
           <button class="tablinks" onclick="openTab(event, 'Set-up')"  id="TAB_Set-up">Set-up</button>
+          <button class="tablinks" onclick="openTab(event, 'Cloud')"   id="TAB_Cloud">Cloud</button>
           <button class="tablinks" onclick="openTab(event, 'Inputs')"  id="TAB_Inputs">Inputs</button>
           <button class="tablinks" onclick="openTab(event, 'Run')"     id="TAB_Run">Run</button>
           <button class="tablinks" onclick="openTab(event, 'Results')" id="TAB_Results">Results</button>
@@ -98,6 +99,27 @@
                 </p>
                 <button onclick="download_user_example();">user example</button>
               </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Cloud Tab -->
+        <div id="Cloud" class="tabcontent">
+          <div style="width: 100%; display: table;">
+            <div style="display: table-row">
+              <!-- Cloud selector -->
+              <div style="width: 30%; display: table-cell; text-align: left;">
+                <p>Choose where to run.</p>
+                <select id="cloud_selector" onchange="cloud_select(this)">
+                  <option value="run_locally">Run locally</option>
+                  <option value="use_prominence">Use Prominence</option>
+                </select>
+              </div>
+              <!-- Docker image example -->
+              <div style="display: table-cell; text-align: left;">
+                <p id="cloud_comments"></p>
+              </div>
+	      <button id="prominence_token_button" onclick="request_prominence_token();">Request New<br/>Prominence Token</button><br/>
             </div>
           </div>
         </div>

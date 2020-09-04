@@ -49,6 +49,10 @@ window.onload = function()
   selected_image = getCookie('selected_image');
   set_image_selector(selected_image);
 
+  // --- Make sure the cloud drop-down is on the correct option
+  selected_cloud = getCookie('selected_cloud');
+  set_cloud_selector(selected_cloud);
+
   // --- Make sure the run drop-down is on the correct option
   reload_run_selector();
   selected_run = getCookie('selected_run');
@@ -239,6 +243,39 @@ function action_wrapper()
     formdata.append("container_name", container_name);
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open("POST", "php/launch_dakota.php",true);
+    // --- We do this async because we want to catch the terminal output while the request runs...
+    xmlhttp.onreadystatechange = function ()
+    {
+      if(this.readyState == 4 && this.status == 200)
+      {
+        empty_terminal_output();
+        hide_waiting_div();
+        return;
+      }
+    };
+    xmlhttp.send(formdata);
+  }
+
+  // --- Request new Prominence Token
+  if (action_specification == "request_prominence_token")
+  {
+    // --- First check which VVUQ container is running
+    vvuq_container = check_vvuq_container();
+    if (vvuq_container != "dakota")
+    {
+      // --- Only VVUQ available at the moment
+      document.getElementById("waiting_message").innerHTML="<br/>Only Dakota available at the moment, aborting...<br/>";
+      return;
+    }
+    // --- Some info, including the Prominence URL
+    prominence_url = execute_command('docker exec dakota_container bash -c \'echo $PROMINENCE_OIDC_URL\'');
+    document.getElementById("waiting_gif").style.visibility="visible";
+    document.getElementById("waiting_message").innerHTML='<br/>Please copy the token provided by Prominence<br/>and follow this link:<br/><a href="'+prominence_url+'/device" target="_blank">'+prominence_url+'/device</a><br/>';
+    // --- Send form
+    var formdata = new FormData();
+    formdata.append("vvuq_container", vvuq_container);
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("POST", "php/request_prominence_token.php",true);
     // --- We do this async because we want to catch the terminal output while the request runs...
     xmlhttp.onreadystatechange = function ()
     {
@@ -614,7 +651,83 @@ function download_user_example()
   link.click();
 }
 
-
+// --------------------------------------------------------------------
+// --------------------------------------------------------------------
+// --------------------------------------------------------------------
+// --- Cloud selection functions
+function cloud_select(selected_option)
+{ 
+  document.getElementById("prominence_token_button").style.visibility="hidden";
+  document.getElementById("cloud_comments").innerHTML="";
+  if (selected_option.value == "use_prominence")
+  {
+    // --- First check the VVUQ container is running
+    vvuq_container_running = check_vvuq_container();
+    if (vvuq_container_running == "")
+    {
+      show_waiting_div();
+      document.getElementById("waiting_message").innerHTML="<br/>You have not launched the VVUQ software needed to run! (go to 1st Tab)<br/>";
+      document.getElementById("action_wrapper_button").style.visibility="hidden";
+      cloud_select_change('run_locally');
+      return;
+    }
+    // --- Good to go with Prominence
+    document.getElementById("prominence_token_button").style.visibility="visible";
+    setCookie('selected_cloud','use_prominence',7);
+    // --- Check if Prominence Token already exists
+    existing_token = check_for_existing_token();
+    if (existing_token == '')
+    {
+      document.getElementById("cloud_comments").innerHTML="No Prominence Token Found";
+    }else
+    {
+      document.getElementById("cloud_comments").innerHTML="Prominence Token Already Valid";
+    }
+  }else
+  { 
+    setCookie('selected_cloud','run_locally',7);
+  }
+}
+function set_cloud_selector(selected_cloud)
+{
+  // --- That's the simple cases
+  if ( (selected_cloud == '') || (selected_cloud == 'run_locally') )
+  {
+    cloud_select_change('run_locally');
+    return;
+  }
+  if (selected_cloud == 'use_prominence')
+  { 
+    cloud_select_change(selected_cloud);
+    return;
+  }
+}
+function cloud_select_change(optionValToSelect)
+{
+  selectElement = document.getElementById('cloud_selector');
+  selectOptions = selectElement.options;
+  for (var opt, j = 0; opt = selectOptions[j]; j++)
+  {
+    if (opt.value == optionValToSelect)
+    {
+      selectElement.selectedIndex = j;
+      cloud_select(selectElement);
+      break;
+    }
+  }
+}
+function check_for_existing_token()
+{
+  existing_token = '';
+  return existing_token;
+}
+function request_prominence_token()
+{
+  // --- Go to run
+  show_waiting_div();
+  document.getElementById("waiting_message").innerHTML="<br/>This will request a new Prominence Token.<br/>Are you sure you want to action this request?<br/>";
+  action_specification = "request_prominence_token";
+}
 
 
 
