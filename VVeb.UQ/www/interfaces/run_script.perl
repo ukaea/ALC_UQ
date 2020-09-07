@@ -30,7 +30,7 @@ my $dir = $split_tmp[$#split_tmp];
 # --- Preprocessing (ie. convert dakota params file back to netcdf)
 `python3 /dakota_user_interface/python/interface.py dakota_params dakota_results $filename $file_type`;
 # --- Unzip data file if present
-if ($data_filename ne "none") {`unzip $data_filename`;}
+if ( ($data_filename ne "none") and ($data_filename ne "select_data_file") ) {`unzip $data_filename`;}
 # --- Run container for each dir
 $command = 'docker container run --privileged --name '.$container_name.'_'.$dir.' -v '.$run_dir.'/'.$dir.':/tmp/work_dir/ -v '.$dakota_dir.':/dakota_user_interface/ -d '.$image_name;
 $output = `$command`;

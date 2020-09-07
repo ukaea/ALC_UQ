@@ -33,6 +33,9 @@ $run_dir = str_replace("\n", '', $run_dir);
 $name_split = preg_split('/VVeb.UQ/', $run_dir);
 $dakota_dir = $name_split[0].'user_interface/';
 
+// --- Are we running with Prominence or locally?
+$use_prominence = $_POST["use_prominence"];
+
 // --- Produce files in run directory of container
 $work_dir        = '/VVebUQ_runs';
 $base_dir        = $work_dir.'/'.$workdir_name;
@@ -45,12 +48,12 @@ shell_exec('mkdir -p '.$base_dir);
 shell_exec('mkdir -p '.$files_dir);
 shell_exec('cp '.$input_file.' '.$files_dir.'/'.$filename);
 shell_exec('cp '.$data_input_file.' '.$files_dir.'/'.$data_filename);
-shell_exec('cp ../interfaces/run_script.perl '.$base_dir.'/');
-shell_exec('chmod +x '.$base_dir.'/run_script.perl');
-shell_exec('printf \''.$container_name.' '.$mount_dir.' '.$image_name.' '.$filename.' '.$file_type.' '.$data_filename.' '.$dakota_dir.'\' > '.$args_file);
+shell_exec('cp ../interfaces/run_script.py '.$base_dir.'/');
+shell_exec('chmod +x '.$base_dir.'/run_script.py');
+shell_exec('printf \''.$container_name.' '.$mount_dir.' '.$image_name.' '.$filename.' '.$file_type.' '.$data_filename.' '.$dakota_dir.' '.$use_prominence.'\' > '.$args_file);
 
 // --- Produce Dakota input file based on netcdf file provided by user
-$command = 'docker exec -w '.$base_dir.' -t dakota_container python3 /dakota_user_interface/python/main.py -d run_script.perl -c '.$n_cpu.' -i '.$input_file.' -o '.$base_dir.'/dakota_run.in -t '.$file_type;
+$command = 'docker exec -w '.$base_dir.' -t dakota_container python3 /dakota_user_interface/python/main.py -d run_script.py -c '.$n_cpu.' -i '.$input_file.' -o '.$base_dir.'/dakota_run.in -t '.$file_type;
 shell_exec($command);
 
 // --- Run Container

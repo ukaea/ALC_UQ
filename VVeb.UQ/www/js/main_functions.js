@@ -340,12 +340,15 @@ function action_wrapper()
     format = filename_split[filename_split.length-1];
     // --- Data input file
     input_data_file_name = document.getElementById('data_file_selector').value;
+    // --- Using Prominence?
+    selected_cloud = document.getElementById('cloud_selector');
     // --- Send form
     var formdata = new FormData();
     formdata.append("docker_image_run", selected_image);
     formdata.append("input_file_name", input_file_name);
     formdata.append("input_file_type", format);
     formdata.append("input_data_file_name", input_data_file_name);
+    formdata.append("use_prominence", selected_cloud.value);
     formdata.append("n_cpu", n_cpu);
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open("POST", "php/create_runs.php",true);
