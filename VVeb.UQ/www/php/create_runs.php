@@ -61,6 +61,37 @@ $command = 'docker exec -w '.$base_dir.' -t dakota_container dakota -i ./dakota_
 shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
 shell_exec($command.' &> /VVebUQ_runs/terminal_output.txt');
 
+// --- When using Prominence, the dakota commands prepares all the .json jobs, which are submitted as a workflow
+if ($use_prominence == 'true')
+{
+  // --- Get job files
+  $prominence_job_file = `ls $base_dir/workdir_VVebUQ*.json`;
+  $prominence_job_file = preg_split('/\s+/', $prominence_job_file);
+  $prominence_jobs = array();
+  foreach($prominence_job_file as &$file)
+  {
+    $filename = $file;
+    if (is_dir($filename)) continue;
+    if (! file_exists($filename)) continue;
+    $job = `cat $filename`;
+    $job_json = json_decode($job);
+    array_push($prominence_jobs, $job_json);
+  }
+  // --- Create workflow
+  $workflow = array( "name" => $workdir_name, "jobs" => $prominence_jobs);
+  $workflow_json = json_encode($workflow);
+  $workflow_filename = $base_dir.'/prominence_workflow.json';
+  file_put_contents($workflow_filename, $workflow_json);
+  // --- Submit workflow
+  $command = 'docker exec -w '.$base_dir.' -t dakota_container prominence run '.$workflow_filename;
+  shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
+  $prominence_output = shell_exec($command);
+  shell_exec('printf \''.$prominence_output.'\n\' &> /VVebUQ_runs/terminal_output.txt');
+  $workflow_id = explode('Workflow created with id ', $prominence_output);
+  $workflow_id = trim($workflow_id[1]);
+  shell_exec('printf \''.$workflow_id.'\n\' >> '.$base_dir.'/prominence_workflow_id.txt');
+}
+
 // --- Go Home! (Said Nigel Fromage)
 header("Location: {$_SERVER['HTTP_REFERER']}");
 exit;
