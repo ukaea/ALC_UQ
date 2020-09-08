@@ -20,7 +20,7 @@ if ($vvuq_container == 'dakota')
 }
 
 // --- Go Home! (Said Nigel Fromage)
-header("Location: {$_SERVER['HTTP_REFERER']}");
+header("Refresh: 0; Location: {$_SERVER['HTTP_REFERER']}");
 exit;
 
 ?>

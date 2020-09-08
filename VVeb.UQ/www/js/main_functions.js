@@ -283,6 +283,7 @@ function action_wrapper()
       {
         empty_terminal_output();
         hide_waiting_div();
+	location.reload();
         return;
       }
     };
@@ -341,14 +342,16 @@ function action_wrapper()
     // --- Data input file
     input_data_file_name = document.getElementById('data_file_selector').value;
     // --- Using Prominence?
+    use_prominence = 'false';
     selected_cloud = document.getElementById('cloud_selector');
+    if (selected_cloud.value == 'use_prominence') {use_prominence = 'true';}
     // --- Send form
     var formdata = new FormData();
     formdata.append("docker_image_run", selected_image);
     formdata.append("input_file_name", input_file_name);
     formdata.append("input_file_type", format);
     formdata.append("input_data_file_name", input_data_file_name);
-    formdata.append("use_prominence", selected_cloud.value);
+    formdata.append("use_prominence", use_prominence);
     formdata.append("n_cpu", n_cpu);
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open("POST", "php/create_runs.php",true);
