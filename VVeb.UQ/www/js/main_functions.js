@@ -389,7 +389,7 @@ function action_wrapper()
       if (use_prominence)
       {
         // --- First get the Prominence workflow id
-        prominence_id_file = '/VVebUQ_runs/'+dir_name+'/prominence_workflow_id.txt';
+        prominence_id_file = '/VVebUQ_runs/'+select_run+'/prominence_workflow_id.txt';
         prominence_id = execute_command('cat '+prominence_id_file);
         prominence_id = prominence_id.replace(/\n|\r/g, "");
         if (prominence_id != '')
@@ -435,7 +435,7 @@ function action_wrapper()
       if (use_prominence)
       {
         // --- First get the Prominence workflow id
-        prominence_id_file = '/VVebUQ_runs/'+dir_name+'/prominence_workflow_id.txt';
+        prominence_id_file = '/VVebUQ_runs/'+select_run+'/prominence_workflow_id.txt';
         prominence_id = execute_command('cat '+prominence_id_file);
         prominence_id = prominence_id.replace(/\n|\r/g, "");
         if (prominence_id != '')
@@ -1360,12 +1360,72 @@ function result_select(selected_option)
     count_runs = execute_command(command);
     count_runs = count_runs.split("\n");
     count_runs = count_runs.length - 1; // -1 because the last one is just "" after the last "\n"
+    // --- This is the default method: just look at the mounted directory
     command = 'ls -p /VVebUQ_runs/'+run_name+'/workdir_VVebUQ.1/';
     command = command + ' | grep -v "arguments_for_dakota_script.txt"';
-    command = command + ' | grep -v "dakota_params.in"';
-    command = command + ' | grep -v "dakota_params.out"';
+    command = command + ' | grep -v "dakota_params"';
     command = command + ' | grep -v "generate_netcdf_based_on_dakota_params.py"';
     fullcontent = execute_command(command);
+    // --- When using Prominence, we first need to download a directory to check its content
+    use_prominence = false;
+    if (document.getElementById('cloud_selector').value == 'use_prominence') {use_prominence = true;}
+    if (use_prominence)
+    {
+      // --- First get the Prominence workflow id
+      prominence_id_file = '/VVebUQ_runs/'+run_name+'/prominence_workflow_id.txt';
+      prominence_id = execute_command('cat '+prominence_id_file);
+      prominence_id = prominence_id.replace(/\n|\r/g, "");
+      if (prominence_id != '')
+      {
+        command = 'docker exec -t dakota_container prominence list jobs '+prominence_id+' --all';
+        containers = execute_command(command);
+        if (containers.split(/\r/).length > 2)
+        {
+          if (containers.split(/\r/)[1].replace(/\n|\r/g, "") != '')
+          {
+            // --- NAMEs are usually very long, cut them
+            format = containers.split(/\r/)[0];
+            ID_position = format.split(/\s+/);
+            for (i=0 ; i< ID_position.length ; i++)
+            {
+              if (ID_position[i] == 'ID')
+              {
+                ID_position = i+1; // not sure why +1...
+                break;
+              }
+            }
+            // --- Just get the first job
+            containers_lines = containers.split(/\r/);
+            for (i=1 ; i< containers_lines.length ; i++)
+            {
+              if (containers_lines[i] == '') {continue;}
+              prominence_job_id = containers_lines[i].split(/\s+/)[ID_position];
+              break;
+            }
+            // --- Record new containers list
+            command = 'docker exec -t dakota_container bash -c \'rm /dakota_dir/workdir_VVebUQ.*.tgz\'';
+            success = execute_command(command);
+            command = 'docker exec -t dakota_container bash -c \'prominence download '+prominence_job_id+'\'';
+            success = execute_command(command);
+            if ( (success.includes('workdir_VVebUQ')) && (success.includes('Downloading file')) )
+            {
+              command = 'docker exec -t dakota_container bash -c \'tar -xvzf /dakota_dir/workdir_VVebUQ.*.tgz\'';
+              success = execute_command(command);
+              command = 'docker exec -t dakota_container bash -c \'rm /dakota_dir/workdir_VVebUQ.*.tgz\'';
+              success = execute_command(command);
+              command = 'docker exec -t dakota_container bash -c \'ls /dakota_dir/workdir_VVebUQ.*/';
+              command = command + ' | grep -v "arguments_for_dakota_script.txt"';
+              command = command + ' | grep -v "dakota_params"';
+              command = command + ' | grep -v "generate_netcdf_based_on_dakota_params.py"';
+              command = command + '\'';
+              fullcontent = execute_command(command);
+              command = 'docker exec -t dakota_container bash -c \'rm -f /dakota_dir/workdir_VVebUQ.*\'';
+              execute_command(command);
+            }
+          }
+        }
+      }
+    }
     split_content = fullcontent.split("\n");
     new_list = document.createElement("ul");
     for (i = 0; i<split_content.length; i++)
@@ -1516,7 +1576,62 @@ function unselect_result_file(file_id)
 function download_entire_run()
 {
   selected_result = document.getElementById('result_selector').value;
-  execute_command('cd /VVebUQ_runs/ ; zip -r '+selected_result+'.zip ./'+selected_result+' ; cd -');
+  // --- When using Prominence, we first need to download each tarball from ECHO
+  use_prominence = false;
+  if (document.getElementById('cloud_selector').value == 'use_prominence') {use_prominence = true;}
+  if (use_prominence)
+  {
+    // --- First get the Prominence workflow id
+    prominence_id_file = '/VVebUQ_runs/'+selected_result+'/prominence_workflow_id.txt';
+    prominence_id = execute_command('cat '+prominence_id_file);
+    prominence_id = prominence_id.replace(/\n|\r/g, "");
+    if (prominence_id != '')
+    {
+      command = 'docker exec -t dakota_container prominence list jobs '+prominence_id+' --all';
+      containers = execute_command(command);
+      if (containers.split(/\r/).length > 2)
+      {
+        if (containers.split(/\r/)[1].replace(/\n|\r/g, "") != '')
+        {
+          // --- NAMEs are usually very long, cut them
+          format = containers.split(/\r/)[0];
+          ID_position = format.split(/\s+/);
+          for (i=0 ; i< ID_position.length ; i++)
+          {
+            if (ID_position[i] == 'ID')
+            {
+              ID_position = i+1; // not sure why +1...
+              break;
+            }
+          }
+          // --- First remove existing files
+          command = 'docker exec -t dakota_container bash -c \'rm /dakota_dir/workdir_VVebUQ.*.tgz\'';
+          success = execute_command(command);
+          // --- Download each job
+          containers_lines = containers.split(/\r/);
+          for (i=1 ; i< containers_lines.length ; i++)
+          {
+            if (containers_lines[i] == '') {continue;}
+            prominence_job_id = containers_lines[i].split(/\s+/)[ID_position];
+            command = 'docker exec -t dakota_container bash -c \'prominence download '+prominence_job_id+'\'';
+            success = execute_command(command);
+          }
+          // --- zip everything together
+          command = 'docker exec -t dakota_container bash -c \'cd /dakota_dir/ ; zip '+selected_result+'.zip workdir_VVebUQ.*.tgz\'';
+          success = execute_command(command);
+          // --- Remove tarballs
+          command = 'docker exec -t dakota_container bash -c \'rm /dakota_dir/workdir_VVebUQ.*.tgz\'';
+          success = execute_command(command);
+          // --- Copy zip in right place
+          command = 'docker exec -t dakota_container bash -c \'mv /dakota_dir/'+selected_result+'.zip /VVebUQ_runs/\'';
+          success = execute_command(command);
+        }
+      }
+    }
+  }else
+  {
+    execute_command('cd /VVebUQ_runs/ ; zip -r '+selected_result+'.zip ./'+selected_result+' ; cd -');
+  }
   execute_command('mkdir -p ../downloads ; mv /VVebUQ_runs/'+selected_result+'.zip ../downloads/');
   link = document.createElement("a");
   link.download = 'download_'+selected_result;
@@ -1525,6 +1640,14 @@ function download_entire_run()
 }
 function download_selected_files()
 {
+  // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
+  use_prominence = false;
+  if (document.getElementById('cloud_selector').value == 'use_prominence') {use_prominence = true;}
+  if (use_prominence)
+  {
+    download_entire_run();
+    return;
+  }
   selected_result = document.getElementById('result_selector').value;
   zip_command = 'zip -rg '+selected_result+'.zip ';
   new_list = document.getElementById("retrieve_files_list");

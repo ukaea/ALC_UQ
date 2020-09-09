@@ -120,17 +120,17 @@ if (use_prominence == 'true'):
     # --- Get Prominence token to check session is valid
     token = get_prominence_token()
     headers = {'Authorization':'Bearer %s' % token}
-    # --- Create zip of directory
-    zipped_dir = my_run+'___'+my_dir+'.zip'
-    interactive_command('zip -r '+zipped_dir+' ../'+my_dir)
+    # --- Create tarball of directory
+    tarball = my_run+'___'+my_dir+'.tar.gz'
+    interactive_command('tar -cvzf '+tarball+' ../'+my_dir)
     # --- Get url from Prominence for this upload
-    url = get_prominence_upload_url(zipped_dir, headers)
+    url = get_prominence_upload_url(tarball, headers)
     if (url is None):
         print('Prominence: Unable to obtain upload URL')
         sys.exit()
     # --- Upload zipped file to Prominence
     try:
-        with open(zipped_dir, 'rb') as file_obj:
+        with open(tarball, 'rb') as file_obj:
             response = requests.put(url, data=file_obj, timeout=60)
     except Exception as exc:
         print('Prominence: Unable to upload tarball due to', exc)
@@ -139,7 +139,7 @@ if (use_prominence == 'true'):
         print('Prominence: Unable to upload tarball due to status error: ', response.status_code)
         sys.exit()
     # --- Remove zipped file now that it's uploaded
-    os.remove(zipped_dir)
+    os.remove(tarball)
     # --- Create json file to define job for Prominence
     resources = {}
     resources['cpus'] = 1
@@ -153,7 +153,7 @@ if (use_prominence == 'true'):
     task['runtime'] = 'udocker'
     task['workdir'] = '/tmp/work_dir'
     artifact1 = {}
-    artifact1['url'] = zipped_dir
+    artifact1['url'] = tarball
     artifact1['mountpoint'] = '%s:/tmp/work_dir' % my_dir
     job = {}
     job['name'] = '%s' % my_dir
