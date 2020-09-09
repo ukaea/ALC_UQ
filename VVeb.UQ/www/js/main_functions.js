@@ -343,8 +343,7 @@ function action_wrapper()
     input_data_file_name = document.getElementById('data_file_selector').value;
     // --- Using Prominence?
     use_prominence = 'false';
-    selected_cloud = document.getElementById('cloud_selector');
-    if (selected_cloud.value == 'use_prominence') {use_prominence = 'true';}
+    if (document.getElementById('cloud_selector').value == 'use_prominence') {use_prominence = 'true';}
     // --- Send form
     var formdata = new FormData();
     formdata.append("docker_image_run", selected_image);
@@ -384,10 +383,27 @@ function action_wrapper()
       document.getElementById("waiting_gif").style.visibility="visible";
       document.getElementById("action_wrapper_button").style.visibility="hidden";
       document.getElementById("waiting_message").innerHTML="<br/>Please wait while the containers are being deleted.<br/>This may take a moment depending on the number of containers...<br/>";
-      run_name = select_run.split("workdir_");
-      run_name = "VVebUQ_CONTAINER_" + run_name[1];
-      command = 'for i in `docker ps -aqf name='+run_name+' --format="{{.ID}}"` ; do docker rm -f $i ; done ';
-      execute_command(command);
+      // --- Are we using Prominence?
+      use_prominence = false;
+      if (document.getElementById('cloud_selector').value == 'use_prominence') {use_prominence = true;}
+      if (use_prominence)
+      {
+        // --- First get the Prominence workflow id
+        prominence_id_file = '/VVebUQ_runs/'+dir_name+'/prominence_workflow_id.txt';
+        prominence_id = execute_command('cat '+prominence_id_file);
+        prominence_id = prominence_id.replace(/\n|\r/g, "");
+        if (prominence_id != '')
+        {
+          command = 'docker exec -t dakota_container prominence delete '+prominence_id;
+          execute_command(command);
+        }
+      }else
+      {
+        run_name = select_run.split("workdir_");
+        run_name = "VVebUQ_CONTAINER_" + run_name[1];
+        command = 'for i in `docker ps -aqf name='+run_name+' --format="{{.ID}}"` ; do docker rm -f $i ; done ';
+        execute_command(command);
+      }
       set_run_selector(select_run);
       hide_waiting_div();
       return;
@@ -413,10 +429,27 @@ function action_wrapper()
       document.getElementById("waiting_gif").style.visibility="visible";
       document.getElementById("action_wrapper_button").style.visibility="hidden";
       document.getElementById("waiting_message").innerHTML="<br/>Please wait while the run is being deleted.<br/>This may take a moment depending on the number of containers...<br/>";
-      run_name = select_run.split("workdir_");
-      run_name = "VVebUQ_CONTAINER_" + run_name[1];
-      command = 'for i in `docker ps -aqf name='+run_name+' --format="{{.ID}}"` ; do docker rm -f $i ; done ';
-      execute_command(command);
+      // --- Are we using Prominence?
+      use_prominence = false;
+      if (document.getElementById('cloud_selector').value == 'use_prominence') {use_prominence = true;}
+      if (use_prominence)
+      {
+        // --- First get the Prominence workflow id
+        prominence_id_file = '/VVebUQ_runs/'+dir_name+'/prominence_workflow_id.txt';
+        prominence_id = execute_command('cat '+prominence_id_file);
+        prominence_id = prominence_id.replace(/\n|\r/g, "");
+        if (prominence_id != '')
+        {
+          command = 'docker exec -t dakota_container prominence delete '+prominence_id;
+          execute_command(command);
+        }
+      }else
+      {
+        run_name = select_run.split("workdir_");
+        run_name = "VVebUQ_CONTAINER_" + run_name[1];
+        command = 'for i in `docker ps -aqf name='+run_name+' --format="{{.ID}}"` ; do docker rm -f $i ; done ';
+        execute_command(command);
+      }
       command = 'rm -rf /VVebUQ_runs/'+select_run;
       execute_command(command);
       reload_run_selector();
@@ -796,13 +829,83 @@ function run_select(selected_option)
   document.getElementById("run_comments").innerHTML="";
   if (selected_option.value != "select_run")
   {
+    // --- Get run name
     setCookie('selected_run',selected_option.value,7);
-    // --- print the docker containers corresponding to job
-    run_name = selected_option.value;
-    run_name = run_name.split("workdir_");
+    dir_name = selected_option.value;
+    run_name = dir_name.split("workdir_");
     run_name = "VVebUQ_CONTAINER_" + run_name[1];
-    command = 'docker ps -aqf name='+run_name+' --format="table {{.Image}}\\t{{.ID}}\\t{{.RunningFor}}\\t{{.Status}}" ';
-    containers = execute_command(command);
+    // --- Using Prominence?
+    use_prominence = false;
+    if (document.getElementById('cloud_selector').value == 'use_prominence') {use_prominence = true;}
+    if (use_prominence)
+    {
+      // --- First get the Prominence workflow id
+      prominence_id_file = '/VVebUQ_runs/'+dir_name+'/prominence_workflow_id.txt';
+      prominence_id = execute_command('cat '+prominence_id_file);
+      prominence_id = prominence_id.replace(/\n|\r/g, "");
+      if (prominence_id == '')
+      {
+        containers = '';
+      }else
+      {
+        // --- Get list of jobs from that workflow
+        command = 'docker exec -t dakota_container prominence list jobs '+prominence_id+' --all';
+        containers = execute_command(command);
+        if (containers.split(/\r/).length > 2)
+        {
+          if (containers.split(/\r/)[1].replace(/\n|\r/g, "") != '')
+          {
+            // --- NAMEs are usually very long, cut them
+            format = containers.split(/\r/)[0];
+            NAME_length = format.split('NAME')[1];
+            next_print = NAME_length.split(/\s+/)[1];
+            NAME_length = NAME_length.split(next_print)[0].length;
+            NAME_position = format.split(/\s+/);
+            for (i=0 ; i< NAME_position.length ; i++)
+            {
+              if (NAME_position[i] == 'NAME')
+              {
+                NAME_position = i;
+                break;
+              }
+            }
+            first_line = containers.split(/\r/)[1];
+            full_name = first_line.split(/\s+/)[NAME_position+1]; // not sure why +1...
+            workflow_name = full_name.split(/\//)[0];
+            workflow_name_length = workflow_name.length + 1;
+            subjob_name = full_name.split(/\//)[1];
+            // --- Create new NAME+spaces with less spaces
+            NAME_old = 'NAME'
+            for (i=0 ; i< NAME_length ; i++) {NAME_old = NAME_old+' '}
+            NAME_new = 'NAME'
+            for (i=0 ; i< NAME_length-workflow_name_length ; i++) {NAME_new = NAME_new+' '}
+            // --- Replace NAME+spaces in format line
+            containers_lines = containers.split(/\r/);
+            containers_new = containers_lines[0].replace(NAME_old,NAME_new);
+            // --- Remove workflow identifier from job NAME
+            for (i=1 ; i< containers_lines.length ; i++)
+            {
+              if (containers_lines[i] == '') {continue;}
+              containers_new = containers_new + containers_lines[i].replace(workflow_name+'\/',"");
+            }
+            // --- Record new containers list
+            containers = containers_new;
+          }else
+          {
+            containers = containers_new;
+          }
+        }else
+        {
+          containers = containers_new;
+        }
+      }
+    // --- Otherwise, just look at docker containers
+    }else
+    {
+      command = 'docker ps -aqf name='+run_name+' --format="table {{.Image}}\\t{{.ID}}\\t{{.RunningFor}}\\t{{.Status}}" ';
+      containers = execute_command(command);
+    }
+    // --- print the docker containers corresponding to job
     containers = "<pre>" + containers + "</pre>";
     document.getElementById("run_comments").innerHTML = containers;
   }else

@@ -122,7 +122,7 @@ if (use_prominence == 'true'):
     headers = {'Authorization':'Bearer %s' % token}
     # --- Create zip of directory
     zipped_dir = my_run+'___'+my_dir+'.zip'
-    interactive_command('zip -r '+zipped_dir+' .')
+    interactive_command('zip -r '+zipped_dir+' ../'+my_dir)
     # --- Get url from Prominence for this upload
     url = get_prominence_upload_url(zipped_dir, headers)
     if (url is None):
@@ -156,7 +156,7 @@ if (use_prominence == 'true'):
     artifact1['url'] = zipped_dir
     artifact1['mountpoint'] = '%s:/tmp/work_dir' % my_dir
     job = {}
-    job['name'] = 'dakota-%s' % my_dir
+    job['name'] = '%s' % my_dir
     job['name'] = job['name'].replace('.', '_')
     job['tasks'] = [task]
     job['resources'] = resources

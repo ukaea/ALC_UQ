@@ -10,5 +10,5 @@ ADD user_code.py /data_dir/
 # --- This is because this directory will be mounted to an external directory in the app (ie. available outside the container)
 # --- Hence, before running your code, you must copy/move all your data/codes into this work_dir directory, as below
 WORKDIR /tmp/work_dir/
-CMD ["/bin/bash","-c","mv ../data_dir/* . ; python3 user_code.py"]
+CMD ["/bin/bash","-c","mv ../../data_dir/* . ; python3 user_code.py"]
 

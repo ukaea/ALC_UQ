@@ -89,7 +89,9 @@ if ($use_prominence == 'true')
   shell_exec('printf \''.$prominence_output.'\n\' &> /VVebUQ_runs/terminal_output.txt');
   $workflow_id = explode('Workflow created with id ', $prominence_output);
   $workflow_id = trim($workflow_id[1]);
-  shell_exec('printf \''.$workflow_id.'\n\' >> '.$base_dir.'/prominence_workflow_id.txt');
+  shell_exec('printf \''.$workflow_id.'\' > '.$base_dir.'/prominence_workflow_id.txt');
+  // --- Prominence might take a few seconds internally to get everything ready, wait
+  sleep(5);
 }
 
 // --- Go Home! (Said Nigel Fromage)
