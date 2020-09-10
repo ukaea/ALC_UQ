@@ -20,6 +20,14 @@ if (! isset($_POST["action"]))
   clean_exit("You did not specify any action");
 }
 
+// --- Request Prominence Token
+if (trim($_POST["action"]) == 'request_prominence_token')
+{
+  if (! isset($_POST["vvuq_container"]))       {$_POST["vvuq_container"] = "dakota";}
+  include('request_prominence_token.php');
+  exit();
+}
+
 // --- Launch new run
 if (trim($_POST["action"]) == 'launch_run')
 {
@@ -30,6 +38,7 @@ if (trim($_POST["action"]) == 'launch_run')
   if (! isset($_POST["input_data_file_name"])) {$_POST["input_data_file_name"] = "none";}
   if (! isset($_POST["use_prominence"]))       {$_POST["use_prominence"] = "false";}
   include('create_runs.php');
+  exit();
 }
 
 
