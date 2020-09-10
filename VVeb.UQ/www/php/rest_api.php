@@ -41,7 +41,12 @@ if (trim($_POST["action"]) == 'launch_run')
   exit();
 }
 
-
+// --- List runs
+if (trim($_POST["action"]) == 'list_runs')
+{
+  include("list_runs.php");
+  exit();
+}
 
 
 
