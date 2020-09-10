@@ -6,7 +6,7 @@ $date = $date_full[mday]."-".$date_full[month]."-".$date_full[year];
 $date = $date."---".$date_full[hours]."-".$date_full[minutes]."-".$date_full[seconds];
 
 // --- Get Image name
-$image_name = $_POST["docker_image_run"];
+$image_name = trim($_POST["docker_image_run"]);
 $container_name = $image_name;
 $container_name = str_replace('/','_',$container_name);
 $container_name = str_replace(':','_',$container_name);
@@ -14,18 +14,18 @@ $workdir_name   = 'workdir_'.$date.'_'.$container_name;
 $container_name = 'VVebUQ_CONTAINER_'.$date.'_'.$container_name;
 
 // --- Get the number of cpu available (THIS NEEDS TO BE GENERALISED PROPERLY!!!)
-$n_cpu = (int)$_POST["n_cpu"];
+$n_cpu = (int)trim($_POST["n_cpu"]);
 
 // --- Get the file name
-$filename = $_POST["input_file_name"];
+$filename = trim($_POST["input_file_name"]);
 
 // --- Get the format of the input file
-$file_ext = $_POST["input_file_type"];
+$file_ext = trim($_POST["input_file_type"]);
 $file_type = 'netcdf';
 if ($file_ext == 'csv') {$file_type = 'csv';}
 
 // --- Get the file name
-$data_filename = $_POST["input_data_file_name"];
+$data_filename = trim($_POST["input_data_file_name"]);
 
 // --- Get run-dir
 $run_dir = shell_exec('cat config.in');
@@ -34,7 +34,7 @@ $name_split = preg_split('/VVeb.UQ/', $run_dir);
 $dakota_dir = $name_split[0].'user_interface/';
 
 // --- Are we running with Prominence or locally?
-$use_prominence = $_POST["use_prominence"];
+$use_prominence = trim($_POST["use_prominence"]);
 
 // --- Produce files in run directory of container
 $work_dir        = '/VVebUQ_runs';
@@ -54,6 +54,7 @@ shell_exec('printf \''.$container_name.' '.$mount_dir.' '.$image_name.' '.$filen
 
 // --- Produce Dakota input file based on netcdf file provided by user
 $command = 'docker exec -w '.$base_dir.' -t dakota_container python3 /dakota_user_interface/python/main.py -d run_script.py -c '.$n_cpu.' -i '.$input_file.' -o '.$base_dir.'/dakota_run.in -t '.$file_type;
+echo $command;
 shell_exec($command);
 
 // --- Run Container
