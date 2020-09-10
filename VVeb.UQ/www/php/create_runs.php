@@ -64,6 +64,13 @@ shell_exec($command.' &> /VVebUQ_runs/terminal_output.txt');
 // --- When using Prominence, the dakota commands prepares all the .json jobs, which are submitted as a workflow
 if ($use_prominence == 'true')
 {
+  // --- Upload Dakota user interface
+  $command = 'docker exec -t dakota_container tar -cvzf dakota_user_interface.tgz /dakota_user_interface';
+  shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
+  shell_exec($command.' &> /VVebUQ_runs/terminal_output.txt');
+  $command = 'docker exec -t dakota_container prominence upload --filename=dakota_user_interface.tgz --name=dakota_user_interface.tgz';
+  shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
+  shell_exec($command.' &> /VVebUQ_runs/terminal_output.txt');
   // --- Get job files
   $prominence_job_file = `ls $base_dir/workdir_VVebUQ*.json`;
   $prominence_job_file = preg_split('/\s+/', $prominence_job_file);

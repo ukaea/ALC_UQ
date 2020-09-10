@@ -155,12 +155,15 @@ if (use_prominence == 'true'):
     artifact1 = {}
     artifact1['url'] = tarball
     artifact1['mountpoint'] = '%s:/tmp/work_dir' % my_dir
+    artifact2 = {}
+    artifact2['url'] = 'dakota_user_interface.tgz'
+    artifact2['mountpoint'] = 'user_interface:/dakota_user_interface'
     job = {}
     job['name'] = '%s' % my_dir
     job['name'] = job['name'].replace('.', '_')
     job['tasks'] = [task]
     job['resources'] = resources
-    job['artifacts'] = [artifact1]
+    job['artifacts'] = [artifact1,artifact2]
     job['outputDirs'] = [my_dir]
     with open('../%s.json' % my_dir, 'w') as outfile:
         json.dump(job, outfile)
