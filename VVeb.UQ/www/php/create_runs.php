@@ -2,7 +2,7 @@
 
 // --- Get date
 $date_full = getdate();
-$date = $date_full[mday]."-".$date_full[month]."-".$date_full[year];
+$date = $date_full[year]."-".$date_full[mon]."-".$date_full[mday];
 $date = $date."---".$date_full[hours]."-".$date_full[minutes]."-".$date_full[seconds];
 
 // --- Get Image name
@@ -54,7 +54,6 @@ shell_exec('printf \''.$container_name.' '.$mount_dir.' '.$image_name.' '.$filen
 
 // --- Produce Dakota input file based on netcdf file provided by user
 $command = 'docker exec -w '.$base_dir.' -t dakota_container python3 /dakota_user_interface/python/main.py -d run_script.py -c '.$n_cpu.' -i '.$input_file.' -o '.$base_dir.'/dakota_run.in -t '.$file_type;
-echo $command;
 shell_exec($command);
 
 // --- Run Container

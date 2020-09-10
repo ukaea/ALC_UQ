@@ -1,10 +1,5 @@
 <?php
 
-// --- Get date
-$date_full = getdate();
-$date = $date_full[mday]."-".$date_full[month]."-".$date_full[year];
-$date = $date."---".$date_full[hours]."-".$date_full[minutes]."-".$date_full[seconds];
-
 // --- Get Image name
 $vvuq_container = $_POST["vvuq_container"];
 
