@@ -902,8 +902,10 @@ function run_select(selected_option)
     // --- Otherwise, just look at docker containers
     }else
     {
-      command = 'docker ps -aqf name='+run_name+' --format="table {{.Image}}\\t{{.ID}}\\t{{.RunningFor}}\\t{{.Status}}" ';
-      containers = execute_command(command);
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.open("GET", "php/get_run_status.php?run_name="+run_name, false);
+      xmlhttp.send();
+      containers = xmlhttp.responseText;
     }
     // --- print the docker containers corresponding to job
     containers = "<pre>" + containers + "</pre>";
@@ -930,13 +932,13 @@ function run_select_change(optionValToSelect)
 function get_previous_runs()
 {
   previous_runs = [];
-  output = execute_command('ls /VVebUQ_runs/ | grep workdir');
+  output = execute_command('php list_runs.php');
   output = output.split("\n");
   for (i=0 ; i<output.length; i++)
   {
     if (output[i] != "")
     {
-      previous_runs.push(output[i]);
+      previous_runs.push('workdir_'+output[i]);
     }
   }
   return previous_runs;

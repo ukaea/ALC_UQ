@@ -15,13 +15,22 @@ if (isset($_FILES["dataFileToUpload"]["name"][0]))
 }
 
 // --- All other cases should have an action
-if (! isset($_POST["action"]))
+if ( (! isset($_POST["action"])) && (! isset($_GET["action"])) )
 {
   clean_exit("You did not specify any action");
+}else
+{
+  if (isset($_POST["action"]))
+  {
+    $ACTION = trim($_POST["action"]);
+  }else
+  {
+    $ACTION = trim($_GET["action"]);
+  }
 }
 
 // --- Request Prominence Token
-if (trim($_POST["action"]) == 'request_prominence_token')
+if ($ACTION == 'request_prominence_token')
 {
   if (! isset($_POST["vvuq_container"]))       {$_POST["vvuq_container"] = "dakota";}
   include('request_prominence_token.php');
@@ -29,7 +38,7 @@ if (trim($_POST["action"]) == 'request_prominence_token')
 }
 
 // --- Launch new run
-if (trim($_POST["action"]) == 'launch_run')
+if ($ACTION == 'launch_run')
 {
   if (! isset($_POST["docker_image_run"]))     {clean_exit("Variable \"docker_image_run\" required");}
   if (! isset($_POST["n_cpu"]))                {clean_exit("Variable \"n_cpu\" required");}
@@ -42,11 +51,19 @@ if (trim($_POST["action"]) == 'launch_run')
 }
 
 // --- List runs
-if (trim($_POST["action"]) == 'list_runs')
+if ($ACTION == 'list_runs')
 {
   include("list_runs.php");
   exit();
 }
+
+// --- Get run status
+if ($ACTION == 'get_run_status')
+{
+  include("get_run_status.php");
+  exit();
+}
+
 
 
 
