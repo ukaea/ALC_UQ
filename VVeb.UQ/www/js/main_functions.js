@@ -337,13 +337,17 @@ function action_wrapper()
     document.getElementById("waiting_message").innerHTML="<br/>Please wait while dakota launches containers for your jobs.<br/>This may take a moment depending on the number of runs...<br/>";
     // --- Number of CPUs available for the run
     n_cpu = execute_command('nproc'); // by default, we use however many processors we have on the machine when running locally
-    selected_cpu = document.getElementById('cpu_selector').value;
-    if (selected_cpu == 'select_n_cpu')
+    selected_cloud = document.getElementById('cloud_selector').value;
+    if (selected_cloud == 'use_prominence')
     {
-      n_cpu = 1;
-    }else
-    {
-      n_cpu = selected_cpu;
+      selected_cpu = document.getElementById('cpu_selector').value;
+      if (selected_cpu == 'select_n_cpu')
+      {
+        n_cpu = 1;
+      }else
+      {
+        n_cpu = selected_cpu;
+      }
     }
     // --- Input file format
     input_file_name = document.getElementById('file_selector').value;
