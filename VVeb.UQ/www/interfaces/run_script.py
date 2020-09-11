@@ -157,7 +157,7 @@ if (use_prominence == 'true'):
     artifact1['mountpoint'] = '%s:/tmp/work_dir' % my_dir
     artifact2 = {}
     artifact2['url'] = 'dakota_user_interface.tgz'
-    artifact2['mountpoint'] = 'user_interface:/dakota_user_interface'
+    artifact2['mountpoint'] = 'dakota_user_interface:/dakota_user_interface'
     job = {}
     job['name'] = '%s' % my_dir
     job['name'] = job['name'].replace('.', '_')

@@ -60,15 +60,98 @@ if ($ACTION == 'list_runs')
 // --- Get run status
 if ($ACTION == 'get_run_status')
 {
+  // --- If the user did not specify a run-name, we use the most recent one
+  if (! isset($_GET["run_name"]))
+  {
+    $_GET["run_name"] = get_latest_run();
+  }
   include("get_run_status.php");
+  exit();
+}
+
+// --- List files inside run tasks
+if ($ACTION == 'list_run_files')
+{
+  // --- If the user did not specify a run-name, we use the most recent one
+  if (! isset($_GET["run_name"]))
+  {
+    $_GET["run_name"] = get_latest_run();
+  }
+  include("list_run_files.php");
   exit();
 }
 
 
 
-
-
 exit();
+
+
+
+
+
+
+function get_latest_run()
+{
+  $all_runs = shell_exec('php list_runs.php');
+  $all_runs = preg_split('/\R/',$all_runs);
+  $year_max = -1;
+  $month_max = -1;
+  $day_max = -1;
+  $hour_max = -1;
+  $min_max = -1;
+  $sec_max = -1;
+  $last_run = 0;
+  for ($i=0 ; $i<count($all_runs); $i++)
+  {
+    if (trim($all_runs[$i]) != '')
+    {
+      $run_tmp = trim($all_runs[$i]);
+      $date_full = explode("_",$run_tmp)[0];
+      $date = explode("---",$date_full)[0];
+      $time = explode("---",$date_full)[1];
+      $date = explode("-",$date);
+      $time = explode("-",$time);
+      $year = $date[0];
+      $month = $date[1];
+      $day = $date[2];
+      $hour = $time[0];
+      $min = $time[1];
+      $sec = $time[2];
+      if ($year >= $year_max)
+      {
+        $year_max = $year;
+        $last_run = $i;
+        continue;
+        if ($month >= $month_max)
+        {
+          $month_max = $month;
+          $last_run = $i;
+          continue;
+          if ($day >= $day_max)
+          {
+            $day_max = $day;
+            $last_run = $i;
+            continue;
+            if ($hour >= $hour_max)
+            {
+              $hour_max = $hour;
+              $last_run = $i;
+              continue;
+              if ($min >= $min_max)
+              {
+                $min_max = $min;
+                $last_run = $i;
+                continue;
+                if ($sec >= $sec_max)
+                {
+                  $sec_max = $sec;
+                  $last_run = $i;
+                  continue;
+      } } } } } }
+    }
+  }
+  return trim($all_runs[$last_run]);
+}
 
 
 

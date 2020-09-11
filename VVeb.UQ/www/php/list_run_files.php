@@ -1,31 +1,97 @@
 <?php
-$run_name = '/VVebUQ_runs/workdir_'.$_POST["run_name"];
-$all_sub_runs  = shell_exec('ls '.$run_name.' | grep workdir_VVebUQ');
+
+// --- Name of run directory
+$run_name = '/VVebUQ_runs/workdir_'.$_GET["run_name"];
+
+// --- Count number of sub-tasks in that run
+$all_sub_runs  = shell_exec('ls '.$run_name.' | grep workdir_VVebUQ | grep -v ".json"');
 $all_sub_runs  = preg_split("/\r\n|\n|\r/",$all_sub_runs);
-$all_sub_dirs  = shell_exec('ls -d '.$run_name.'/'.$all_sub_runs[0].'/*/');
-$all_sub_dirs  = preg_split("/\r\n|\n|\r/",$all_sub_dirs);
-$all_sub_files = shell_exec('ls -p '.$run_name.'/'.$all_sub_runs[0].'/ | grep -v /');
-$all_sub_files = preg_split("/\r\n|\n|\r/",$all_sub_files);
 $n_runs = count($all_sub_runs) - 1;
-echo("This run contains ".$n_runs." containers\n");
-if ( (count($all_sub_dirs) > 1) || (count($all_sub_files) > 1))
+
+$prominence_id_file = $run_name.'/prominence_workflow_id.txt';
+$use_prominence = file_exists($prominence_id_file);
+
+// --- Simple case with containers
+$all_files = array();
+if (! $use_prominence)
 {
-  echo("At first sight, each container contains\n");
-  if (count($all_sub_files) > 1)
+  // --- Get list of files and folders
+  $command = 'ls -p '.$run_name.'/'.$all_sub_runs[0].'/';
+  $command = $command.' | grep -v "arguments_for_dakota_script.txt"';
+  $command = $command.' | grep -v "dakota_params"';
+  $command = $command.' | grep -v "dakota_results"';
+  $all_files = shell_exec($command);
+  $all_files = preg_split("/\r\n|\n|\r/",$all_files);
+}else
+{
+  $prominence_id = shell_exec('cat '.$prominence_id_file);
+  $prominence_id = trim($prominence_id);
+  if ($prominence_id != '')
   {
-    echo("the following files:\n");
-    foreach ($all_sub_files as $file)
-    {                                 
-      if ($file != '') {echo(" - ".$file."\n");}
-    }
-  }
-  if (count($all_sub_dirs) > 1)
-  {
-    echo("and the following sub-folders:\n");
-    foreach ($all_sub_dirs as $subdir)
+    $command = 'docker exec -t dakota_container prominence list jobs '.$prominence_id.' --all';
+    $containers = shell_exec($command);
+    $containers_lines = preg_split('/\R/',$containers);
+    if (count($containers_lines) > 2)
     {
-      if ($subdir != '') {echo(" - ".$subdir."\n");}
+      $containers_2nd_line = str_replace('/\R/','',$containers_lines[1]);
+      if ($containers_2nd_line != '')
+      {
+        // --- Get format line
+        $format = $containers_lines[0];
+        $ID_position = preg_split('/\s+/',$format);
+        for ($i=0 ; $i< count($ID_position) ; $i++)
+        {
+          if ($ID_position[$i] == 'ID')
+          {
+            $ID_position = $i;
+            break;
+          }
+        }
+        // --- Just get the first job
+        for ($i=1 ; $i< count($containers_lines) ; $i++)
+        {
+          if ($containers_lines[$i] == '') {continue;}
+          $prominence_job_id = preg_split('/\s+/',$containers_lines[$i])[$ID_position];
+          break;
+        }
+        // --- Record new containers list
+        $command = 'docker exec -t dakota_container bash -c \'rm /dakota_dir/workdir_VVebUQ.*.tgz\'';
+        $success = shell_exec($command);
+        $command = 'docker exec -t dakota_container bash -c \'prominence download '.$prominence_job_id.'\'';
+        $success = shell_exec($command);
+        if ( (strpos($success,'workdir_VVebUQ') !== false) && (strpos($success,'Downloading file') !== false) )
+        {
+          $command = 'docker exec -t dakota_container bash -c \'tar -xvzf /dakota_dir/workdir_VVebUQ.*.tgz\'';
+          $success = shell_exec($command);
+          $command = 'docker exec -t dakota_container bash -c \'rm /dakota_dir/workdir_VVebUQ.*.tgz\'';
+          $success = shell_exec($command);
+          $command = 'docker exec -t dakota_container bash -c \'ls -p /dakota_dir/workdir_VVebUQ.*/';
+          $command = $command.' | grep -v "arguments_for_dakota_script.txt"';
+          $command = $command.' | grep -v "dakota_params"';
+          $command = $command.' | grep -v "dakota_results"';
+          $command = $command.'\'';
+	  $fullcontent = shell_exec($command);
+          $all_files = preg_split('/\R/',$fullcontent);
+          $command = 'docker exec -t dakota_container bash -c \'rm -f /dakota_dir/workdir_VVebUQ.*\'';
+          $success = shell_exec($command);
+        }
+      }
     }
   }
 }
+
+// --- Return everything
+echo("This run contains ".$n_runs." sub-tasks\n");
+if (count($all_files) > 2)
+{
+  echo("At first sight, each sub-task contains\n");
+  for ($i=0 ; $i<count($all_files) ; $i++)
+  {
+    if ($all_files[$i] != '') {echo("  ".$all_files[$i]."\n");}
+  }
+}else
+{
+  echo("At first sight, the sub-tasks do not contain anything\n");
+}
+
 ?>
