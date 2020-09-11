@@ -335,6 +335,7 @@ function action_wrapper()
     document.getElementById("waiting_message").innerHTML="<br/>Please wait while dakota launches containers for your jobs.<br/>This may take a moment depending on the number of runs...<br/>";
     // --- Number of CPUs available for the run
     n_cpu = execute_command('nproc');
+    //n_cpu = 1;
     // --- Input file format
     input_file_name = document.getElementById('file_selector').value;
     filename_split = input_file_name.split('.');

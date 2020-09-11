@@ -16,6 +16,12 @@ $container_name = 'VVebUQ_CONTAINER_'.$date.'_'.$container_name;
 // --- Get the number of cpu available (THIS NEEDS TO BE GENERALISED PROPERLY!!!)
 $n_cpu = (int)trim($_POST["n_cpu"]);
 
+// --- To keep safe, we always force Dakota in serial
+// --- This is because it can lead to containers being launched at the same time
+// --- without knowing about one another, which can result in the containers running
+// --- on the same cores. This can be very bad when you launch a lot of MPI containers at the same time...
+$n_cpu_dakota = 1;
+
 // --- Get the file name
 $filename = trim($_POST["input_file_name"]);
 
@@ -50,10 +56,10 @@ shell_exec('cp '.$input_file.' '.$files_dir.'/'.$filename);
 shell_exec('cp '.$data_input_file.' '.$files_dir.'/'.$data_filename);
 shell_exec('cp ../interfaces/run_script.py '.$base_dir.'/');
 shell_exec('chmod +x '.$base_dir.'/run_script.py');
-shell_exec('printf \''.$container_name.' '.$mount_dir.' '.$image_name.' '.$filename.' '.$file_type.' '.$data_filename.' '.$dakota_dir.' '.$use_prominence.'\' > '.$args_file);
+shell_exec('printf \''.$container_name.' '.$mount_dir.' '.$image_name.' '.$filename.' '.$file_type.' '.$data_filename.' '.$dakota_dir.' '.$use_prominence.' '.$n_cpu.'\' > '.$args_file);
 
 // --- Produce Dakota input file based on netcdf file provided by user
-$command = 'docker exec -w '.$base_dir.' -t dakota_container python3 /dakota_user_interface/python/main.py -d run_script.py -c '.$n_cpu.' -i '.$input_file.' -o '.$base_dir.'/dakota_run.in -t '.$file_type;
+$command = 'docker exec -w '.$base_dir.' -t dakota_container python3 /dakota_user_interface/python/main.py -d run_script.py -c '.$n_cpu_dakota.' -i '.$input_file.' -o '.$base_dir.'/dakota_run.in -t '.$file_type;
 shell_exec($command);
 
 // --- Run Container

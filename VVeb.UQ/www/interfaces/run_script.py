@@ -88,7 +88,7 @@ if (len(sys.argv) != 3):
 with open('arguments_for_dakota_script.txt') as args_file:
     data = args_file.read()
 my_args = data.split(' ')
-if (len(my_args) != 8):
+if (len(my_args) != 9):
     print('run_script: not enough arguments in arguments_for_dakota_script.txt')
     sys.exit()
 container_name = my_args[0]
@@ -99,6 +99,7 @@ file_type      = my_args[4]
 data_filename  = my_args[5]
 dakota_dir     = my_args[6]
 use_prominence = my_args[7]
+n_cpu          = my_args[8]
 
 # --- Preprocessing (ie. convert dakota params file back to netcdf)
 cmd = 'python3 /dakota_user_interface/python/interface.py dakota_params dakota_results %s %s' % (filename, file_type)
@@ -142,7 +143,7 @@ if (use_prominence == 'true'):
     os.remove(tarball)
     # --- Create json file to define job for Prominence
     resources = {}
-    resources['cpus'] = 1
+    resources['cpus'] = n_cpu
     resources['memory'] = 1
     resources['disk'] = 10
     resources['nodes'] = 1
