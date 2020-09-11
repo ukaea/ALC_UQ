@@ -143,7 +143,7 @@ if (use_prominence == 'true'):
     os.remove(tarball)
     # --- Create json file to define job for Prominence
     resources = {}
-    resources['cpus'] = n_cpu
+    resources['cpus'] = int(n_cpu)
     resources['memory'] = 1
     resources['disk'] = 10
     resources['nodes'] = 1
