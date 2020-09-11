@@ -1,14 +1,31 @@
 <?php
-$run_name = $_POST["run_name"];
-$run_dir = 'workdir_'.$_POST["run_name"];
-$files = $_POST["files"];
+
+// --- Get run directory
+$run_name = $_GET["run_name"];
+$dir_name  = 'workdir_'.$run_name;
+
+// --- Get names of selected files
+$files = $_GET["files"];
 $zip_command = 'zip -rg '.$run_name.'_selected.zip ';
 foreach ($files as $file)
 {
-  $filename = $run_dir.'/workdir_VVebUQ.*/'.$file;
-  $zip_command = $zip_command.' '.$filename;
+  if (trim($file) != '')
+  {
+    $filename = $dir_name.'/workdir_VVebUQ.*/'.trim($file);
+    $zip_command = $zip_command.' '.$filename;
+  }
 }
+
+// --- Remove file if it already exists, and create zip file of selected files
+shell_exec('cd /VVebUQ_runs/ ; rm -f '.$run_name.'_selected.zip ; cd -');
 shell_exec('cd /VVebUQ_runs/ ; '.$zip_command.' ; cd -');
+
+// --- Move zip file to downloads/
 shell_exec('mkdir -p ../downloads ; mv /VVebUQ_runs/'.$run_name.'_selected.zip ../downloads/');
-readfile('../downloads/'.$run_name.'_selected.zip');
+
+// --- We read file into output only for the restAPI
+if (! isset($_GET["get_back_to_js"]))
+{
+  readfile('../downloads/'.$run_name.'_selected.zip');
+}
 ?>

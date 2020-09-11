@@ -81,6 +81,54 @@ if ($ACTION == 'list_run_files')
   exit();
 }
 
+// --- List files inside run tasks
+if ($ACTION == 'download_run')
+{
+  // --- If the user did not specify a run-name, we use the most recent one
+  if (! isset($_GET["run_name"]))
+  {
+    $_GET["run_name"] = get_latest_run();
+  }
+  include("download_run.php");
+  exit();
+}
+
+// --- List files inside run tasks
+if ($ACTION == 'download_run_files')
+{
+  // --- If the user did not specify a run-name, we use the most recent one
+  if (! isset($_GET["run_name"]))
+  {
+    $_GET["run_name"] = get_latest_run();
+  }
+  include("download_run_files.php");
+  exit();
+}
+
+// --- List files inside run tasks
+if ($ACTION == 'delete_run')
+{
+  // --- If the user did not specify a run-name, we use the most recent one
+  if (! isset($_GET["run_name"]))
+  {
+    $_GET["run_name"] = get_latest_run();
+  }
+  include("delete_run.php");
+  exit();
+}
+
+// --- List files inside run tasks
+if ($ACTION == 'delete_run_data')
+{
+  // --- If the user did not specify a run-name, we use the most recent one
+  if (! isset($_GET["run_name"]))
+  {
+    $_GET["run_name"] = get_latest_run();
+  }
+  include("delete_run.php");
+  include("delete_run_data.php");
+  exit();
+}
 
 
 exit();

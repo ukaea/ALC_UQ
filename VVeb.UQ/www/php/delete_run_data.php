@@ -1,4 +1,4 @@
 <?php
-$run_name = '/VVebUQ_runs/workdir_'.$_POST["run_name"];
-shell_exec('rm -rf '.$run_name);
+$dir_name = 'workdir_'.$_GET["run_name"];
+shell_exec('rm -rf /VVebUQ_runs/'.$dir_name);
 ?>

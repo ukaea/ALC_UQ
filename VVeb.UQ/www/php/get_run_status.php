@@ -19,7 +19,9 @@ if (! $use_prominence)
 {
   $prominence_id = shell_exec('cat '.$prominence_id_file);
   $prominence_id = trim($prominence_id);
-  if ($prominence_id == '')
+  $prominence_job_has_been_deleted = '/VVebUQ_runs/'.$dir_name.'/prominence_workflow_has_been_deleted.txt';
+  $prominence_job_has_been_deleted = file_exists($prominence_job_has_been_deleted);
+  if ( ($prominence_id == '') || ($prominence_job_has_been_deleted) )
   {
     $containers = '';
   }else

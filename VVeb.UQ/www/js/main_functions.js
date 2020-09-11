@@ -383,27 +383,11 @@ function action_wrapper()
       document.getElementById("waiting_gif").style.visibility="visible";
       document.getElementById("action_wrapper_button").style.visibility="hidden";
       document.getElementById("waiting_message").innerHTML="<br/>Please wait while the containers are being deleted.<br/>This may take a moment depending on the number of containers...<br/>";
-      // --- Are we using Prominence?
-      use_prominence = false;
-      if (document.getElementById('cloud_selector').value == 'use_prominence') {use_prominence = true;}
-      if (use_prominence)
-      {
-        // --- First get the Prominence workflow id
-        prominence_id_file = '/VVebUQ_runs/'+select_run+'/prominence_workflow_id.txt';
-        prominence_id = execute_command('cat '+prominence_id_file);
-        prominence_id = prominence_id.replace(/\n|\r/g, "");
-        if (prominence_id != '')
-        {
-          command = 'docker exec -t dakota_container prominence delete '+prominence_id;
-          execute_command(command);
-        }
-      }else
-      {
-        run_name = select_run.split("workdir_");
-        run_name = "VVebUQ_CONTAINER_" + run_name[1];
-        command = 'for i in `docker ps -aqf name='+run_name+' --format="{{.ID}}"` ; do docker rm -f $i ; done ';
-        execute_command(command);
-      }
+      // --- Call php script
+      var xmlhttp = new XMLHttpRequest();
+      run_name = select_run.replace("workdir_","");
+      xmlhttp.open("GET", "php/delete_run.php?run_name="+run_name, false);
+      xmlhttp.send();
       set_run_selector(select_run);
       hide_waiting_div();
       return;
@@ -429,29 +413,15 @@ function action_wrapper()
       document.getElementById("waiting_gif").style.visibility="visible";
       document.getElementById("action_wrapper_button").style.visibility="hidden";
       document.getElementById("waiting_message").innerHTML="<br/>Please wait while the run is being deleted.<br/>This may take a moment depending on the number of containers...<br/>";
-      // --- Are we using Prominence?
-      use_prominence = false;
-      if (document.getElementById('cloud_selector').value == 'use_prominence') {use_prominence = true;}
-      if (use_prominence)
-      {
-        // --- First get the Prominence workflow id
-        prominence_id_file = '/VVebUQ_runs/'+select_run+'/prominence_workflow_id.txt';
-        prominence_id = execute_command('cat '+prominence_id_file);
-        prominence_id = prominence_id.replace(/\n|\r/g, "");
-        if (prominence_id != '')
-        {
-          command = 'docker exec -t dakota_container prominence delete '+prominence_id;
-          execute_command(command);
-        }
-      }else
-      {
-        run_name = select_run.split("workdir_");
-        run_name = "VVebUQ_CONTAINER_" + run_name[1];
-        command = 'for i in `docker ps -aqf name='+run_name+' --format="{{.ID}}"` ; do docker rm -f $i ; done ';
-        execute_command(command);
-      }
-      command = 'rm -rf /VVebUQ_runs/'+select_run;
-      execute_command(command);
+      run_name = select_run.replace("workdir_","");
+      // --- First delete run containers
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.open("GET", "php/delete_run.php?run_name="+run_name, false);
+      xmlhttp.send();
+      // --- And then delete data
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.open("GET", "php/delete_run_data.php?run_name="+run_name, false);
+      xmlhttp.send();
       reload_run_selector();
       set_run_selector("select_run");
       reload_result_selector();
@@ -1412,6 +1382,18 @@ function purge_result()
 }
 function select_result_file(file_id)
 {
+  // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
+  use_prominence = false;
+  selected_result = document.getElementById('result_selector').value;
+  prominence_id = execute_command('cat /VVebUQ_runs/'+selected_result+'/prominence_workflow_id.txt');
+  prominence_id = prominence_id.trim();
+  if ( (! prominence_id.includes('No such file or directory')) && (prominence_id != '') ) {use_prominence = true;}
+  if (use_prominence)
+  {
+    document.getElementById("retrieve_files_list").innerHTML = "Downloading selected files with Prominence is not yet possible.<br/>"
+	                                                     + "You will need to download the entire run at once.";
+    return;
+  }
   new_list = document.getElementById("retrieve_files_list");
   file_already_selected = 'false';
   all_files = new_list.getElementsByTagName('li');
@@ -1456,97 +1438,54 @@ function unselect_result_file(file_id)
 }
 function download_entire_run()
 {
+  // --- Get run name
   selected_result = document.getElementById('result_selector').value;
-  // --- When using Prominence, we first need to download each tarball from ECHO
-  use_prominence = false;
-  if (document.getElementById('cloud_selector').value == 'use_prominence') {use_prominence = true;}
-  if (use_prominence)
-  {
-    // --- First get the Prominence workflow id
-    prominence_id_file = '/VVebUQ_runs/'+selected_result+'/prominence_workflow_id.txt';
-    prominence_id = execute_command('cat '+prominence_id_file);
-    prominence_id = prominence_id.replace(/\n|\r/g, "");
-    if (prominence_id != '')
-    {
-      command = 'docker exec -t dakota_container prominence list jobs '+prominence_id+' --all';
-      containers = execute_command(command);
-      if (containers.split(/\r/).length > 2)
-      {
-        if (containers.split(/\r/)[1].replace(/\n|\r/g, "") != '')
-        {
-          // --- NAMEs are usually very long, cut them
-          format = containers.split(/\r/)[0];
-          ID_position = format.split(/\s+/);
-          for (i=0 ; i< ID_position.length ; i++)
-          {
-            if (ID_position[i] == 'ID')
-            {
-              ID_position = i+1; // not sure why +1...
-              break;
-            }
-          }
-          // --- First remove existing files
-          command = 'docker exec -t dakota_container bash -c \'rm /dakota_dir/workdir_VVebUQ.*.tgz\'';
-          success = execute_command(command);
-          // --- Download each job
-          containers_lines = containers.split(/\r/);
-          for (i=1 ; i< containers_lines.length ; i++)
-          {
-            if (containers_lines[i] == '') {continue;}
-            prominence_job_id = containers_lines[i].split(/\s+/)[ID_position];
-            command = 'docker exec -t dakota_container bash -c \'prominence download '+prominence_job_id+'\'';
-            success = execute_command(command);
-          }
-          // --- zip everything together
-          command = 'docker exec -t dakota_container bash -c \'cd /dakota_dir/ ; zip '+selected_result+'.zip workdir_VVebUQ.*.tgz\'';
-          success = execute_command(command);
-          // --- Remove tarballs
-          command = 'docker exec -t dakota_container bash -c \'rm /dakota_dir/workdir_VVebUQ.*.tgz\'';
-          success = execute_command(command);
-          // --- Copy zip in right place
-          command = 'docker exec -t dakota_container bash -c \'mv /dakota_dir/'+selected_result+'.zip /VVebUQ_runs/\'';
-          success = execute_command(command);
-        }
-      }
-    }
-  }else
-  {
-    execute_command('cd /VVebUQ_runs/ ; zip -r '+selected_result+'.zip ./'+selected_result+' ; cd -');
-  }
-  execute_command('mkdir -p ../downloads ; mv /VVebUQ_runs/'+selected_result+'.zip ../downloads/');
+  run_name = selected_result.replace('workdir_','');
+  // --- Call php script
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", "php/download_run.php?run_name="+run_name+"&get_back_to_js=true", false);
+  xmlhttp.send();
+  // --- Create artificial link to download target
   link = document.createElement("a");
-  link.download = 'download_'+selected_result;
-  link.href = './downloads/'+selected_result+'.zip';
+  link.download = run_name+'.zip';
+  link.href = './downloads/'+run_name+'.zip';
   link.click();
 }
 function download_selected_files()
 {
   // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
   use_prominence = false;
-  if (document.getElementById('cloud_selector').value == 'use_prominence') {use_prominence = true;}
+  selected_result = document.getElementById('result_selector').value;
+  prominence_id = execute_command('cat /VVebUQ_runs/'+selected_result+'/prominence_workflow_id.txt');
+  prominence_id = prominence_id.trim();
+  if ( (! prominence_id.includes('No such file or directory')) && (prominence_id != '') ) {use_prominence = true;}
   if (use_prominence)
   {
     download_entire_run();
     return;
   }
   selected_result = document.getElementById('result_selector').value;
-  zip_command = 'zip -rg '+selected_result+'.zip ';
-  new_list = document.getElementById("retrieve_files_list");
-  all_files = new_list.getElementsByTagName('li');
+  run_name = selected_result.replace('workdir_','');
+  // --- Get list of files in format for php script
+  file_list = document.getElementById("retrieve_files_list");
+  all_files = file_list.getElementsByTagName('li');
+  file_list_php = '';
   for (i = 0; i<all_files.length; i++)
   { 
     file_tmp = all_files[i];
     name_tmp = file_tmp.id;
     name_tmp = name_tmp.split("REMOVE_FILE_");
-    name_tmp = name_tmp[1];
-    full_name = selected_result+'/workdir_VVebUQ.*/'+name_tmp;
-    zip_command = zip_command +' '+full_name;
+    full_name = name_tmp[1];
+    file_list_php = file_list_php+'&files[]='+full_name;
   }
-  execute_command('cd /VVebUQ_runs/ ; '+zip_command+' ; cd -');
-  execute_command('mkdir -p ../downloads ; mv /VVebUQ_runs/'+selected_result+'.zip ../downloads/');
+  // --- Call php script
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", "php/download_run_files.php?run_name="+run_name+file_list_php+"&get_back_to_js=true", false);
+  xmlhttp.send();
+  // --- Create artificial link to download target
   link = document.createElement("a");
-  link.download = 'download_'+selected_result;
-  link.href = './downloads/'+selected_result+'.zip';
+  link.download = run_name+'_selected.zip';
+  link.href = './downloads/'+run_name+'_selected.zip';
   link.click();
 }
 
