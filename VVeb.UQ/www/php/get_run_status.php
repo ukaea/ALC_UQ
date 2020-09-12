@@ -10,6 +10,13 @@ $dir_name = "workdir_".$dir_name;
 $prominence_id_file = '/VVebUQ_runs/'.$dir_name.'/prominence_workflow_id.txt';
 $use_prominence = file_exists($prominence_id_file);
 
+// --- Before checking everything, check if job is stil being prepared
+if (file_exists('/VVebUQ_runs/'.$dir_name.'/JOB_BEING_PREPARED_FOR_SUBMISSION.txt'))
+{
+  echo "Your job is being prepared for submission...\n";
+  exit();
+}
+
 // --- Simple case with containers
 if (! $use_prominence)
 {

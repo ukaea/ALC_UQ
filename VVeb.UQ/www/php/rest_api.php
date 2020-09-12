@@ -40,13 +40,23 @@ if ($ACTION == 'request_prominence_token')
 // --- Launch new run
 if ($ACTION == 'launch_run')
 {
+  // --- Check all inputs are here
   if (! isset($_POST["docker_image_run"]))     {clean_exit("Variable \"docker_image_run\" required");}
   if (! isset($_POST["n_cpu"]))                {clean_exit("Variable \"n_cpu\" required");}
   if (! isset($_POST["input_file_name"]))      {clean_exit("Variable \"input_file_name\" required");}
   if (! isset($_POST["input_file_type"]))      {clean_exit("Variable \"input_file_type\" required");}
   if (! isset($_POST["input_data_file_name"])) {$_POST["input_data_file_name"] = "none";}
   if (! isset($_POST["use_prominence"]))       {$_POST["use_prominence"] = "false";}
-  include('create_runs.php');
+  // --- In order to allow the job submission as an async bash command
+  // --- the arguments must be passed as normal variables, not as $_POST
+  $arguments = $_POST["docker_image_run"];
+  $arguments = $arguments.' '.$_POST["n_cpu"];
+  $arguments = $arguments.' '.$_POST["input_file_name"];
+  $arguments = $arguments.' '.$_POST["input_file_type"];
+  $arguments = $arguments.' '.$_POST["input_data_file_name"];
+  $arguments = $arguments.' '.$_POST["use_prominence"];
+  shell_exec('php create_runs.php '.$arguments.' > /dev/null &');
+  echo "Your job is being prepared for submission...\n";
   exit();
 }
 
