@@ -32,15 +32,12 @@ def interactive_command(cmd):
 
 
 
+
 # ---------------
 # --- Main script
 # ---------------
 
 
-# --- Dakota arguments (should be 2: input and ouput file names)
-if (len(sys.argv) != 3):
-    print('run_script: not enough arguments')
-    sys.exit()
 
 # --- Extract arguments
 with open('arguments_for_dakota_script.txt') as args_file:
@@ -59,19 +56,23 @@ dakota_dir     = my_args[6]
 use_prominence = my_args[7]
 n_cpu          = my_args[8]
 
-# --- Preprocessing (ie. convert dakota params file back to netcdf)
-cmd = 'python3 /dakota_user_interface/python/interface.py dakota_params dakota_results %s %s' % (filename, file_type)
-process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-process.wait()
+# --- Get all task-directories
+try:
+    cmd = 'ls |grep "workdir_VVebUQ"'
+    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process.wait()
+    subdirs = str(process.stdout.read(),'utf-8')
+    subdirs = subdirs.splitlines()
+except  Exception as exc:
+    print('Failed to execute command:\n%s' % (cmd))
+    print('due to exception:', exc)
+    sys.exit()
 
-# --- Unzip data file if present
-if ( (data_filename != 'none') and (data_filename != 'select_data_file') ):
-    interactive_command('unzip -u '+data_filename)
-
-# --- Postprocessing (write fake output file to keep Dakota happy)
-with open(sys.argv[2], 'w') as output_file:
-    string = '%21s%17.15e f' % ("", 0.0)
-    output_file.write(string)
+# --- Run container for each dir
+for my_dir in subdirs:
+    if (my_dir.strip() != ''):
+        cmd = 'docker container run --privileged --name ' + container_name + '_' + my_dir + ' -v ' + run_dir + '/' + my_dir + ':/tmp/work_dir/ -v ' + dakota_dir + ':/dakota_user_interface/ -d ' + image_name
+        interactive_command(cmd)
 
 
 

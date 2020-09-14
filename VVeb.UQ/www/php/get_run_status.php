@@ -30,7 +30,7 @@ if (! $use_prominence)
   $prominence_job_has_been_deleted = file_exists($prominence_job_has_been_deleted);
   if ( ($prominence_id == '') || ($prominence_job_has_been_deleted) )
   {
-    $containers = '';
+    $containers = 'ID   NAME   CREATED               STATUS   ELAPSED      IMAGE   CMD';
   }else
   {
     // --- Get list of jobs from that workflow
@@ -81,11 +81,11 @@ if (! $use_prominence)
         $containers = $containers_new;
       }else
       {
-        $containers = '';
+        $containers = 'ID   NAME   CREATED               STATUS   ELAPSED      IMAGE   CMD';
       }
     }else
     {
-      $containers = '';
+      $containers = 'ID   NAME   CREATED               STATUS   ELAPSED      IMAGE   CMD';
     }
   }
 }

@@ -208,6 +208,11 @@ function get_latest_run()
       } } } } } }
     }
   }
+  if (trim($all_runs[$last_run]) == '')
+  {
+    echo "There are no jobs currently submitted or running\n";
+    exit();
+  }
   return trim($all_runs[$last_run]);
 }
 
