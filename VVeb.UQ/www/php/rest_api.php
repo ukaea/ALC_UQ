@@ -32,7 +32,7 @@ if ( (! isset($_POST["action"])) && (! isset($_GET["action"])) )
 // --- Request Prominence Token
 if ($ACTION == 'request_prominence_token')
 {
-  if (! isset($_POST["vvuq_container"]))       {$_POST["vvuq_container"] = "dakota";}
+  if (! isset($_POST["selected_vvuq"]))       {clean_exit("Variable \"selected_vvuq\" required (either dakota or easyvvuq)");}
   include('request_prominence_token.php');
   exit();
 }
@@ -42,6 +42,7 @@ if ($ACTION == 'launch_run')
 {
   // --- Check all inputs are here
   if (! isset($_POST["docker_image_run"]))     {clean_exit("Variable \"docker_image_run\" required");}
+  if (! isset($_POST["selected_vvuq"]))        {clean_exit("Variable \"selected_vvuq\" required");}
   if (! isset($_POST["n_cpu"]))                {clean_exit("Variable \"n_cpu\" required");}
   if (! isset($_POST["input_file_name"]))      {clean_exit("Variable \"input_file_name\" required");}
   if (! isset($_POST["input_file_type"]))      {clean_exit("Variable \"input_file_type\" required");}
@@ -50,6 +51,7 @@ if ($ACTION == 'launch_run')
   // --- In order to allow the job submission as an async bash command
   // --- the arguments must be passed as normal variables, not as $_POST
   $arguments = $_POST["docker_image_run"];
+  $arguments = $arguments.' '.$_POST["selected_vvuq"];
   $arguments = $arguments.' '.$_POST["n_cpu"];
   $arguments = $arguments.' '.$_POST["input_file_name"];
   $arguments = $arguments.' '.$_POST["input_file_type"];

@@ -1,6 +1,7 @@
 <?php
 
 // --- Name of run directory
+$dir_name = 'workdir_'.$_GET["run_name"];
 $run_name = '/VVebUQ_runs/workdir_'.$_GET["run_name"];
 
 // --- Count number of sub-tasks in that run
@@ -11,13 +12,18 @@ $n_runs = count($all_sub_runs) - 1;
 $prominence_id_file = $run_name.'/prominence_workflow_id.txt';
 $use_prominence = file_exists($prominence_id_file);
 
+// --- Before checking everything, check which vvuq software we're using
+$arguments = shell_exec('cat /VVebUQ_runs/'.$dir_name.'/arguments_for_vvuq_script.txt');
+$arguments = preg_split('/\s+/',trim($arguments));
+$selected_vvuq = trim($arguments[count($arguments)-1]);
+
 // --- Simple case with containers
 $all_files = array();
 if (! $use_prominence)
 {
   // --- Get list of files and folders
   $command = 'ls -p '.$run_name.'/'.$all_sub_runs[0].'/';
-  $command = $command.' | grep -v "arguments_for_dakota_script.txt"';
+  $command = $command.' | grep -v "arguments_for_vvuq_script.txt"';
   $command = $command.' | grep -v "dakota_params"';
   $command = $command.' | grep -v "dakota_results"';
   $all_files = shell_exec($command);
@@ -28,7 +34,7 @@ if (! $use_prominence)
   $prominence_id = trim($prominence_id);
   if ($prominence_id != '')
   {
-    $command = 'docker exec -t dakota_container prominence list jobs '.$prominence_id.' --all';
+    $command = 'docker exec -t '.$selected_vvuq.'_container prominence list jobs '.$prominence_id.' --all';
     $containers = shell_exec($command);
     $containers_lines = preg_split('/\R/',$containers);
     if (count($containers_lines) > 2)
@@ -55,24 +61,24 @@ if (! $use_prominence)
           break;
         }
         // --- Record new containers list
-        $command = 'docker exec -t dakota_container bash -c \'rm /dakota_dir/workdir_VVebUQ.*.tgz\'';
+        $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'rm /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
         $success = shell_exec($command);
-        $command = 'docker exec -t dakota_container bash -c \'prominence download '.$prominence_job_id.'\'';
+        $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'prominence download '.$prominence_job_id.'\'';
         $success = shell_exec($command);
         if ( (strpos($success,'workdir_VVebUQ') !== false) && (strpos($success,'Downloading file') !== false) )
         {
-          $command = 'docker exec -t dakota_container bash -c \'tar -xvzf /dakota_dir/workdir_VVebUQ.*.tgz\'';
+          $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'tar -xvzf /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
           $success = shell_exec($command);
-          $command = 'docker exec -t dakota_container bash -c \'rm /dakota_dir/workdir_VVebUQ.*.tgz\'';
+          $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'rm /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
           $success = shell_exec($command);
-          $command = 'docker exec -t dakota_container bash -c \'ls -p /dakota_dir/workdir_VVebUQ.*/';
-          $command = $command.' | grep -v "arguments_for_dakota_script.txt"';
+          $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'ls -p /'.$selected_vvuq.'_dir/workdir_VVebUQ.*/';
+          $command = $command.' | grep -v "arguments_for_vvuq_script.txt"';
           $command = $command.' | grep -v "dakota_params"';
           $command = $command.' | grep -v "dakota_results"';
           $command = $command.'\'';
 	  $fullcontent = shell_exec($command);
           $all_files = preg_split('/\R/',$fullcontent);
-          $command = 'docker exec -t dakota_container bash -c \'rm -f /dakota_dir/workdir_VVebUQ.*\'';
+          $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'rm -f /'.$selected_vvuq.'_dir/workdir_VVebUQ.*\'';
           $success = shell_exec($command);
         }
       }

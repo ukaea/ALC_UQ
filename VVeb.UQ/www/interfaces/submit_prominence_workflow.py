@@ -84,11 +84,11 @@ def get_prominence_upload_url(filename, headers):
 
 
 # --- Extract arguments
-with open('arguments_for_dakota_script.txt') as args_file:
+with open('arguments_for_vvuq_script.txt') as args_file:
     data = args_file.read()
 my_args = data.strip().split(' ')
-if (len(my_args) != 9):
-    print('run_script: not enough arguments in arguments_for_dakota_script.txt')
+if (len(my_args) != 10):
+    print('run_script: not enough arguments in arguments_for_vvuq_script.txt')
     sys.exit()
 container_name = my_args[0]
 run_dir        = my_args[1]
@@ -96,9 +96,10 @@ image_name     = my_args[2]
 filename       = my_args[3]
 file_type      = my_args[4]
 data_filename  = my_args[5]
-dakota_dir     = my_args[6]
+user_inter_dir = my_args[6]
 use_prominence = my_args[7]
 n_cpu          = my_args[8]
+selected_vvuq  = my_args[9]
 
 # --- Get paths
 path   = os.getcwd()
@@ -122,22 +123,22 @@ token = get_prominence_token()
 headers = {'Authorization':'Bearer %s' % token}
 
 # --- Upload Dakota user interface
-tarball = 'dakota_user_interface.tgz'
-interactive_command('tar -cvzf '+tarball+' /dakota_user_interface')
+tarball = 'vvuq_user_interface.tgz'
+interactive_command('tar -cvzf '+tarball+' /vvuq_user_interface')
 # --- Get url from Prominence for this upload
 url = get_prominence_upload_url(tarball, headers)
 if (url is None):
-    print('Prominence: Unable to obtain upload URL for dakota_user_interface')
+    print('Prominence: Unable to obtain upload URL for vvuq_user_interface')
     sys.exit()
 # --- Upload zipped file to Prominence
 try:
     with open(tarball, 'rb') as file_obj:
         response = requests.put(url, data=file_obj, timeout=60)
 except Exception as exc:
-    print('Prominence: Unable to upload dakota_user_interface tarball due to', exc)
+    print('Prominence: Unable to upload vvuq_user_interface tarball due to', exc)
     sys.exit()
 if (response.status_code != 200):
-    print('Prominence: Unable to upload dakota_user_interface tarball due to status error: ', response.status_code)
+    print('Prominence: Unable to upload vvuq_user_interface tarball due to status error: ', response.status_code)
     sys.exit()
 # --- Remove zipped file now that it's uploaded
 os.remove(tarball)
@@ -182,8 +183,8 @@ for my_dir in subdirs:
     artifact1['url'] = tarball
     artifact1['mountpoint'] = '%s:/tmp/work_dir' % my_dir
     artifact2 = {}
-    artifact2['url'] = 'dakota_user_interface.tgz'
-    artifact2['mountpoint'] = 'dakota_user_interface:/dakota_user_interface'
+    artifact2['url'] = 'vvuq_user_interface.tgz'
+    artifact2['mountpoint'] = 'vvuq_user_interface:/vvuq_user_interface'
     job = {}
     job['name'] = '%s' % my_dir
     job['name'] = job['name'].replace('.', '_')

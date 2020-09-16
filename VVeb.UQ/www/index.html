@@ -72,10 +72,15 @@
             <div style="display: table-row">
               <!-- VVUQ-app container launcher -->
               <div style="width: 20%; display: table-cell; text-align: left;">
+                <p>Choose VVUQ software</p>
+                <select id="vvuq_selector" onchange="vvuq_select(this)">
+                  <option value="dakota">Dakota</option>
+                  <option value="easyvvuq">VECMA's easyvvuq</option>
+                </select>
                 <p>Launch VVUQ app</p>
-                <form id="dakota_form" action="php/launch_dakota.php" method="post">
-                  <input type="button" value="launch" onclick="launch_dakota_container();"><br/>
-                  <p id="dakota_comments"></p>
+                <form id="vvuq_form" action="php/launch_vvuq.php" method="post">
+                  <input type="button" value="launch" onclick="launch_vvuq_container();"><br/>
+                  <p id="vvuq_comments"></p>
                 </form>
               </div>
               <!-- Code-container launcher -->

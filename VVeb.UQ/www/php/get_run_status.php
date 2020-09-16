@@ -17,6 +17,11 @@ if (file_exists('/VVebUQ_runs/'.$dir_name.'/JOB_BEING_PREPARED_FOR_SUBMISSION.tx
   exit();
 }
 
+// --- Before checking everything, check which vvuq software we're using
+$arguments = shell_exec('cat /VVebUQ_runs/'.$dir_name.'/arguments_for_vvuq_script.txt');
+$arguments = preg_split('/\s+/',trim($arguments));
+$selected_vvuq = trim($arguments[count($arguments)-1]);
+
 // --- Simple case with containers
 if (! $use_prominence)
 {
@@ -30,11 +35,11 @@ if (! $use_prominence)
   $prominence_job_has_been_deleted = file_exists($prominence_job_has_been_deleted);
   if ( ($prominence_id == '') || ($prominence_job_has_been_deleted) )
   {
-    $containers = 'ID   NAME   CREATED               STATUS   ELAPSED      IMAGE   CMD';
+    $containers = "ID   NAME   CREATED               STATUS   ELAPSED      IMAGE   CMD\n";
   }else
   {
     // --- Get list of jobs from that workflow
-    $command = 'docker exec -t dakota_container prominence list jobs '.$prominence_id.' --all';
+    $command = 'docker exec -t '.$selected_vvuq.'_container prominence list jobs '.$prominence_id.' --all';
     $containers = shell_exec($command);
     $containers_lines = preg_split('/\R/',$containers);
     if (count($containers_lines) > 2)
@@ -81,11 +86,11 @@ if (! $use_prominence)
         $containers = $containers_new;
       }else
       {
-        $containers = 'ID   NAME   CREATED               STATUS   ELAPSED      IMAGE   CMD';
+        $containers = "ID   NAME   CREATED               STATUS   ELAPSED      IMAGE   CMD\n";
       }
     }else
     {
-      $containers = 'ID   NAME   CREATED               STATUS   ELAPSED      IMAGE   CMD';
+      $containers = "ID   NAME   CREATED               STATUS   ELAPSED      IMAGE   CMD\n";
     }
   }
 }

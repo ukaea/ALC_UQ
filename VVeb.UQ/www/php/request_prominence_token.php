@@ -1,7 +1,7 @@
 <?php
 
-// --- Get Image name
-$vvuq_container = trim($_POST["vvuq_container"]).'_container';
+// --- Get VVUQ software
+$vvuq_container = strtolower(trim($_POST["selected_vvuq"])).'_container';
 
 // --- If we have been called from restAPI, need to print command to terminal
 if (isset($_POST["action"]))

@@ -40,11 +40,11 @@ def interactive_command(cmd):
 
 
 # --- Extract arguments
-with open('arguments_for_dakota_script.txt') as args_file:
+with open('arguments_for_vvuq_script.txt') as args_file:
     data = args_file.read()
 my_args = data.strip().split(' ')
-if (len(my_args) != 9):
-    print('run_script: not enough arguments in arguments_for_dakota_script.txt')
+if (len(my_args) != 10):
+    print('run_script: not enough arguments in arguments_for_vvuq_script.txt')
     sys.exit()
 container_name = my_args[0]
 run_dir        = my_args[1]
@@ -52,9 +52,10 @@ image_name     = my_args[2]
 filename       = my_args[3]
 file_type      = my_args[4]
 data_filename  = my_args[5]
-dakota_dir     = my_args[6]
+user_inter_dir = my_args[6]
 use_prominence = my_args[7]
 n_cpu          = my_args[8]
+selected_vvuq  = my_args[9]
 
 # --- Get all task-directories
 try:
@@ -71,7 +72,7 @@ except  Exception as exc:
 # --- Run container for each dir
 for my_dir in subdirs:
     if (my_dir.strip() != ''):
-        cmd = 'docker container run --privileged --name ' + container_name + '_' + my_dir + ' -v ' + run_dir + '/' + my_dir + ':/tmp/work_dir/ -v ' + dakota_dir + ':/dakota_user_interface/ -d ' + image_name
+        cmd = 'docker container run --privileged --name ' + container_name + '_' + my_dir + ' -v ' + run_dir + '/' + my_dir + ':/tmp/work_dir/ -v ' + user_inter_dir + ':/vvuq_user_interface/ -d ' + image_name
         interactive_command(cmd)
 
 

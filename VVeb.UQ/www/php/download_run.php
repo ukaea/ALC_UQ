@@ -8,6 +8,11 @@ $dir_name  = 'workdir_'.$run_name;
 $prominence_id_file = '/VVebUQ_runs/'.$dir_name.'/prominence_workflow_id.txt';
 $use_prominence = file_exists($prominence_id_file);
 
+// --- Before checking everything, check which vvuq software we're using
+$arguments = shell_exec('cat /VVebUQ_runs/'.$dir_name.'/arguments_for_vvuq_script.txt');
+$arguments = preg_split('/\s+/',trim($arguments));
+$selected_vvuq = trim($arguments[count($arguments)-1]);
+
 // --- Simple case with containers
 if (! $use_prominence)
 {
@@ -22,7 +27,7 @@ if (! $use_prominence)
     $containers = '';
   }else
   {
-    $command = 'docker exec -t dakota_container prominence list jobs '.$prominence_id.' --all';
+    $command = 'docker exec -t '.$selected_vvuq.'_container prominence list jobs '.$prominence_id.' --all';
     $containers = shell_exec($command);
     $containers_lines = preg_split('/\R/',$containers);
     if (count($containers_lines) > 2)
@@ -43,24 +48,24 @@ if (! $use_prominence)
           }
         }
         // --- First remove existing files
-        $command = 'docker exec -t dakota_container bash -c \'rm /dakota_dir/workdir_VVebUQ.*.tgz\'';
+        $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'rm /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
         $success = shell_exec($command);
         // --- Download each job
         for ($i=1; $i< count($containers_lines); $i++)
         {
           if (trim($containers_lines[$i]) == '') {continue;}
           $prominence_job_id = preg_split('/\s+/',$containers_lines[$i])[$ID_position];
-          $command = 'docker exec -t dakota_container bash -c \'prominence download '.$prominence_job_id.'\'';
+          $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'prominence download '.$prominence_job_id.'\'';
           $success = shell_exec($command);
         }
         // --- zip everything together
-        $command = 'docker exec -t dakota_container bash -c \'cd /dakota_dir/ ; rm -f '.$run_name.'.zip ; zip '.$run_name.'.zip workdir_VVebUQ.*.tgz\'';
+        $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'cd /'.$selected_vvuq.'_dir/ ; rm -f '.$run_name.'.zip ; zip '.$run_name.'.zip workdir_VVebUQ.*.tgz\'';
         $success = shell_exec($command);
         // --- Remove tarballs
-        $command = 'docker exec -t dakota_container bash -c \'rm /dakota_dir/workdir_VVebUQ.*.tgz\'';
+        $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'rm /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
         $success = shell_exec($command);
         // --- Move zip to right place
-        $command = 'docker exec -t dakota_container bash -c \'mv /dakota_dir/'.$run_name.'.zip /VVebUQ_runs/\'';
+        $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'mv /'.$selected_vvuq.'_dir/'.$run_name.'.zip /VVebUQ_runs/\'';
         $success = shell_exec($command);
       }
     }

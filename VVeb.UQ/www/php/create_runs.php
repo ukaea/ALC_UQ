@@ -7,6 +7,7 @@ $arguments = array();
 if (isset($_POST["docker_image_run"]))
 {
   $arguments["docker_image_run"]     = $_POST["docker_image_run"];
+  $arguments["selected_vvuq"]        = $_POST["selected_vvuq"];
   $arguments["n_cpu"]                = $_POST["n_cpu"];
   $arguments["input_file_name"]      = $_POST["input_file_name"];
   $arguments["input_file_type"]      = $_POST["input_file_type"];
@@ -14,13 +15,14 @@ if (isset($_POST["docker_image_run"]))
   $arguments["use_prominence"]       = $_POST["use_prominence"];
 }else
 {
-  if ($argc < 7) {exit();}
+  if ($argc < 8) {exit();}
   $arguments["docker_image_run"]     = $argv[1];
-  $arguments["n_cpu"]                = $argv[2];
-  $arguments["input_file_name"]      = $argv[3];
-  $arguments["input_file_type"]      = $argv[4];
-  $arguments["input_data_file_name"] = $argv[5];
-  $arguments["use_prominence"]       = $argv[6];
+  $arguments["selected_vvuq"]        = $argv[2];
+  $arguments["n_cpu"]                = $argv[3];
+  $arguments["input_file_name"]      = $argv[4];
+  $arguments["input_file_type"]      = $argv[5];
+  $arguments["input_data_file_name"] = $argv[6];
+  $arguments["use_prominence"]       = $argv[7];
 }
 
 // --- Get date
@@ -52,14 +54,14 @@ $file_ext = trim($arguments["input_file_type"]);
 $file_type = 'netcdf';
 if ($file_ext == 'csv') {$file_type = 'csv';}
 
-// --- Get the file name
+// --- Get the additional-data file name
 $data_filename = trim($arguments["input_data_file_name"]);
 
 // --- Get run-dir
 $run_dir = shell_exec('cat config.in');
 $run_dir = str_replace("\n", '', $run_dir);
 $name_split = preg_split('/VVeb.UQ/', $run_dir);
-$dakota_dir = $name_split[0].'user_interface/';
+$user_inter_dir = $name_split[0].'user_interface/';
 
 // --- Are we running with Prominence or locally?
 $use_prominence = trim($arguments["use_prominence"]);
@@ -68,55 +70,85 @@ $use_prominence = trim($arguments["use_prominence"]);
 $work_dir        = '/VVebUQ_runs';
 $base_dir        = $work_dir.'/'.$workdir_name;
 $mount_dir       = $run_dir.$workdir_name;
-$files_dir       = $base_dir.'/files_for_dakota';
+$files_dir       = $base_dir.'/files_for_'.$arguments["selected_vvuq"]; // either files_for_dakota or files_for_easyvvuq
 $input_file      = $work_dir.'/'.$filename;
 $data_input_file = $work_dir.'/'.$data_filename;
 shell_exec('mkdir -p '.$base_dir);
 shell_exec('mkdir -p '.$files_dir);
 shell_exec('cp '.$input_file.' '.$files_dir.'/'.$filename);
 shell_exec('cp '.$data_input_file.' '.$files_dir.'/'.$data_filename);
-shell_exec('cp ../interfaces/*.py '.$base_dir.'/');
+shell_exec('cp ../interfaces/* '.$base_dir.'/');
+shell_exec('mv '.$base_dir.'/run_script_'.$arguments["selected_vvuq"].'.py '.$base_dir.'/run_script.py');
 shell_exec('chmod +x '.$base_dir.'/*.py');
 
 // --- Set arguments to be found by run_script
-$arguments = '';
-$arguments = $arguments.' '.$container_name;
-$arguments = $arguments.' '.$mount_dir;
-$arguments = $arguments.' '.$image_name;
-$arguments = $arguments.' '.$filename;
-$arguments = $arguments.' '.$file_type;
-$arguments = $arguments.' '.$data_filename;
-$arguments = $arguments.' '.$dakota_dir;
-$arguments = $arguments.' '.$use_prominence;
-$arguments = $arguments.' '.$n_cpu;
-$args_file = $files_dir.'/arguments_for_dakota_script.txt';
-shell_exec('printf \''.$arguments.'\' > '.$args_file);
-$args_file = $base_dir.'/arguments_for_dakota_script.txt';
-shell_exec('printf \''.$arguments.'\' > '.$args_file);
+$arguments_file = '';
+$arguments_file = $arguments_file.' '.$container_name;
+$arguments_file = $arguments_file.' '.$mount_dir;
+$arguments_file = $arguments_file.' '.$image_name;
+$arguments_file = $arguments_file.' '.$filename;
+$arguments_file = $arguments_file.' '.$file_type;
+$arguments_file = $arguments_file.' '.$data_filename;
+$arguments_file = $arguments_file.' '.$user_inter_dir;
+$arguments_file = $arguments_file.' '.$use_prominence;
+$arguments_file = $arguments_file.' '.$n_cpu;
+$arguments_file = $arguments_file.' '.$arguments["selected_vvuq"];
+$args_file = $files_dir.'/arguments_for_vvuq_script.txt';
+shell_exec('printf \''.$arguments_file.'\' > '.$args_file);
+$args_file = $base_dir.'/arguments_for_vvuq_script.txt';
+shell_exec('printf \''.$arguments_file.'\' > '.$args_file);
 
 // --- Before starting, we create a flag file to inform that the job is being prepared
 shell_exec('echo "JOB_BEING_PREPARED_FOR_SUBMISSION" > '.$base_dir.'/JOB_BEING_PREPARED_FOR_SUBMISSION.txt');
 
-// --- Produce Dakota input file based on netcdf file provided by user
-$command = 'docker exec -w '.$base_dir.' -t dakota_container python3 /dakota_user_interface/python/main.py -d run_script.py -c '.$n_cpu_dakota.' -i '.$input_file.' -o '.$base_dir.'/dakota_run.in -t '.$file_type;
+// --- Prepare runs
+if ($arguments["selected_vvuq"] == 'dakota')
+{
+  $command_user_interface = 'python3 /vvuq_user_interface/python/main.py';
+  $out_file_user_interface = 'dakota_run.in';
+  $command_vvuq = 'dakota -i ./dakota_run.in -o dakota_run.out';
+}else
+{
+  $command_user_interface = './fake_user_interface_easyvvuq.py';
+  $out_file_user_interface = 'easyvvuq_main.py';
+  $command_vvuq = 'python3 easyvvuq_main.py';
+}
+// --- Produce VVUQ input file based on netcdf file provided by user
+$command = 'docker exec -w '.$base_dir.' -t '.$arguments["selected_vvuq"].'_container '.$command_user_interface.' -d run_script.py -c '.$n_cpu_dakota.' -i '.$input_file.' -o '.$base_dir.'/'.$out_file_user_interface.' -t '.$file_type;
 shell_exec($command);
-
 // --- Run VVUQ software with fake output, just to prepare the run-directories
-$command = 'docker exec -w '.$base_dir.' -t dakota_container dakota -i ./dakota_run.in -o dakota_run.out';
+$command = 'docker exec -w '.$base_dir.' -t '.$arguments["selected_vvuq"].'_container '.$command_vvuq;
 shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
 shell_exec($command.' &> /VVebUQ_runs/terminal_output.txt');
 
+// --- Rename directories if we used easyvvuq
+if ($arguments["selected_vvuq"] == 'easyvvuq')
+{
+  $run_directories = shell_exec('ls '.$base_dir.'/easyvvuq_campaign*/runs/ | grep Run_');
+  $run_directories = preg_split('/\s+/',$run_directories);
+  foreach ($run_directories as $run_dir_tmp)
+  {
+    if ($run_dir_tmp != '')
+    {
+      $run_dir_new = explode('Run_',$run_dir_tmp);
+      $run_dir_new = 'workdir_VVebUQ.'.$run_dir_new[1];
+      $command = 'mv '.$base_dir.'/easyvvuq_campaign*/runs/'.$run_dir_tmp.' '.$base_dir.'/'.$run_dir_new;
+      shell_exec($command);
+    }
+  }
+}
+	
 // --- Submit the workflow
 if ($use_prominence == 'true')
 {
-  $command = 'docker exec -w '.$base_dir.' -t dakota_container ./submit_prominence_workflow.py';
+  $command = 'docker exec -w '.$base_dir.' -t '.$arguments["selected_vvuq"].'_container ./submit_prominence_workflow.py';
   shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
   shell_exec($command.' &> /VVebUQ_runs/terminal_output.txt');
   // --- Prominence might take a few seconds internally to get everything ready, wait
   sleep(5);
 }else
 {
-  $command = 'docker exec -w '.$base_dir.' -t dakota_container ./submit_local_workflow.py';
+  $command = 'docker exec -w '.$base_dir.' -t '.$arguments["selected_vvuq"].'_container ./submit_local_workflow.py';
   shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
   shell_exec($command.' &> /VVebUQ_runs/terminal_output.txt');
 }

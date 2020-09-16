@@ -44,6 +44,10 @@ window.onload = function()
     document.getElementById(div_to_hide[i]).style.overflow="hidden";
   }
 
+  // --- Make sure the vvuq drop-down is on the correct option
+  selected_vvuq = getCookie('selected_vvuq');
+  set_vvuq_selector(selected_vvuq);
+
   // --- Make sure the image drop-down is on the correct option
   reload_image_selector();
   selected_image = getCookie('selected_image');
@@ -232,19 +236,28 @@ function action_wrapper()
     return;
   }
 
-  // --- Launch Dakota container
-  if (action_specification == "launch_dakota")
+  // --- Launch VVUQ container
+  if (action_specification == "launch_vvuq")
   {
+    // --- Which VVUQ software are we using?
+    selected_vvuq = document.getElementById('vvuq_selector').value;
+    if (selected_vvuq == 'dakota')
+    {
+      image_name = 'dakota_image'; //'spamela2/dakota_container:latest';
+      container_name = 'dakota_container';
+    }else
+    {
+      image_name = 'easyvvuq_image';
+      container_name = 'easyvvuq_container';
+    }
     document.getElementById("waiting_gif").style.visibility="visible";
-    document.getElementById("waiting_message").innerHTML="<br/>Please wait while the dakota image is retrieved and launched.<br/>This may take a minute or so...<br/>";
+    document.getElementById("waiting_message").innerHTML="<br/>Please wait while the "+selected_vvuq+" Docker image is retrieved and launched.<br/>This may take a minute or so...<br/>";
     // --- Send form
-    image_name = 'dakota_image'; //'spamela2/dakota_container:latest';
-    container_name = 'dakota_container';
     var formdata = new FormData();
     formdata.append("docker_image", image_name);
     formdata.append("container_name", container_name);
     var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("POST", "php/launch_dakota.php",true);
+    xmlhttp.open("POST", "php/launch_vvuq.php",true);
     // --- We do this async because we want to catch the terminal output while the request runs...
     xmlhttp.onreadystatechange = function ()
     {
@@ -261,21 +274,22 @@ function action_wrapper()
   // --- Request new Prominence Token
   if (action_specification == "request_prominence_token")
   {
-    // --- First check which VVUQ container is running
-    vvuq_container = check_vvuq_container();
-    if (vvuq_container != "dakota")
+    // --- Which VVUQ software are we using?
+    selected_vvuq = document.getElementById('vvuq_selector').value;
+    if (selected_vvuq == 'dakota')
     {
-      // --- Only VVUQ available at the moment
-      document.getElementById("waiting_message").innerHTML="<br/>Only Dakota available at the moment, aborting...<br/>";
-      return;
+      container_name = 'dakota_container';
+    }else
+    {
+      container_name = 'easyvvuq_container';
     }
     // --- Some info, including the Prominence URL
-    prominence_url = execute_command('docker exec dakota_container bash -c \'echo $PROMINENCE_OIDC_URL\'');
+    prominence_url = execute_command('docker exec '+container_name+' bash -c \'echo $PROMINENCE_OIDC_URL\'');
     document.getElementById("waiting_gif").style.visibility="visible";
     document.getElementById("waiting_message").innerHTML='<br/>Please copy the token provided by Prominence<br/>and follow this link:<br/><a href="'+prominence_url+'/device" target="_blank">'+prominence_url+'/device</a><br/>';
     // --- Send form
     var formdata = new FormData();
-    formdata.append("vvuq_container", vvuq_container);
+    formdata.append("selected_vvuq", selected_vvuq);
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open("POST", "php/request_prominence_token.php",true);
     // --- We do this async because we want to catch the terminal output while the request runs...
@@ -334,7 +348,7 @@ function action_wrapper()
   {
     selected_image = document.getElementById('image_selector').value;
     document.getElementById("waiting_gif").style.visibility="visible";
-    document.getElementById("waiting_message").innerHTML="<br/>Please wait while dakota launches containers for your jobs.<br/>This may take a moment depending on the number of runs...<br/>";
+    document.getElementById("waiting_message").innerHTML="<br/>Please wait while containers are launched for your jobs.<br/>This may take a moment depending on the number of runs...<br/>";
     // --- Number of CPUs available for the run
     n_cpu = execute_command('nproc'); // by default, we use however many processors we have on the machine when running locally
     selected_cloud = document.getElementById('cloud_selector').value;
@@ -357,10 +371,13 @@ function action_wrapper()
     input_data_file_name = document.getElementById('data_file_selector').value;
     // --- Using Prominence?
     use_prominence = 'false';
+    // --- Which VVUQ software?
+    selected_vvuq = document.getElementById('vvuq_selector').value;
     if (document.getElementById('cloud_selector').value == 'use_prominence') {use_prominence = 'true';}
     // --- Send form
     var formdata = new FormData();
     formdata.append("docker_image_run", selected_image);
+    formdata.append("selected_vvuq", selected_vvuq);
     formdata.append("input_file_name", input_file_name);
     formdata.append("input_file_type", format);
     formdata.append("input_data_file_name", input_data_file_name);
@@ -458,20 +475,21 @@ function action_wrapper()
 // --------------------------------------------------------------------
 // --------------------------------------------------------------------
 // --------------------------------------------------------------------
-// --- Launch Dakota container
-function launch_dakota_container()
+// --- Launch VVUQ container
+function launch_vvuq_container()
 {
-  // --- First check that there isn't a Dakota container already running
+  // --- First check that there isn't a VVUQ container already running
+  selected_vvuq = document.getElementById('vvuq_selector').value;
   container_running = check_vvuq_container();
-  if (container_running == "dakota")
+  if (container_running.includes(selected_vvuq))
   {
-    document.getElementById("dakota_comments").innerHTML="Dakota container already running!";
+    document.getElementById("vvuq_comments").innerHTML=selected_vvuq+" container already running!";
   }else
   // --- Launch a new container
   {
     show_waiting_div();
-    document.getElementById("waiting_message").innerHTML="<br/>This will launch a Dakota container in the background.<br/>Are you sure you want to action this request?<br/>";
-    action_specification = "launch_dakota";
+    document.getElementById("waiting_message").innerHTML="<br/>This will launch a "+selected_vvuq+" Docker container in the background.<br/>Are you sure you want to action this request?<br/>";
+    action_specification = "launch_vvuq";
   }
 }
 function check_vvuq_container()
@@ -479,11 +497,61 @@ function check_vvuq_container()
   container_running = "";
   dakota_id = execute_command("docker ps -aqf name=dakota_container --filter status=running");
   dakota_id = dakota_id.replace('\n','');
-  if (dakota_id != "")
+  easyvvuq_id = execute_command("docker ps -aqf name=easyvvuq_container --filter status=running");
+  easyvvuq_id = easyvvuq_id.replace('\n','');
+  if ( (dakota_id != "") && (easyvvuq_id != "") )
+  {
+    container_running = "dakota_and_easyvvuq";
+  }
+  if ( (dakota_id != "") && (easyvvuq_id == "") )
   {
     container_running = "dakota";
   }
+  if ( (dakota_id == "") && (easyvvuq_id != "") )
+  {
+    container_running = "easyvvuq";
+  }
   return container_running;
+}
+
+
+
+
+
+
+// --------------------------------------------------------------------
+// --------------------------------------------------------------------
+// --------------------------------------------------------------------
+// --- VVUQ selection functions
+function vvuq_select(selected_option)
+{ 
+  setCookie('selected_vvuq',selected_option.value,7);
+}
+function set_vvuq_selector(selected_vvuq)
+{
+  if (selected_vvuq == '')
+  {
+    vvuq_select_change('dakota');
+    return;
+  }else
+  {
+    vvuq_select_change(selected_vvuq);
+    return;
+  }
+}
+function vvuq_select_change(optionValToSelect)
+{
+  selectElement = document.getElementById('vvuq_selector');
+  selectOptions = selectElement.options;
+  for (var opt, j = 0; opt = selectOptions[j]; j++)
+  {
+    if (opt.value == optionValToSelect)
+    {
+      selectElement.selectedIndex = j;
+      vvuq_select(selectElement);
+      break;
+    }
+  }
 }
 
 
@@ -496,9 +564,8 @@ function check_vvuq_container()
 // --- Code container functions
 function pull_code_image()
 {
-  // --- First check that there isn't a Dakota container already running
-  Docker_image   = document.getElementById("docker_image").value;
   // --- Check if image has already been built
+  Docker_image   = document.getElementById("docker_image").value;
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.open("GET", "php/image_registry.php?action=check_image&image="+Docker_image, false);
   xmlhttp.send();
@@ -674,6 +741,11 @@ function download_user_example()
   link.click();
 }
 
+
+
+
+
+
 // --------------------------------------------------------------------
 // --------------------------------------------------------------------
 // --------------------------------------------------------------------
@@ -686,8 +758,9 @@ function cloud_select(selected_option)
   if (selected_option.value == "use_prominence")
   {
     // --- First check the VVUQ container is running
-    vvuq_container_running = check_vvuq_container();
-    if (vvuq_container_running == "")
+    selected_vvuq = document.getElementById('vvuq_selector').value;
+    container_running = check_vvuq_container();
+    if (! container_running.includes(selected_vvuq))
     {
       show_waiting_div();
       document.getElementById("waiting_message").innerHTML="<br/>You have not launched the VVUQ software needed to run! (go to 1st Tab)<br/>";
@@ -715,12 +788,11 @@ function cloud_select(selected_option)
 function set_cloud_selector(selected_cloud)
 {
   // --- That's the simple cases
-  if ( (selected_cloud == '') || (selected_cloud == 'run_locally') )
+  if (selected_cloud == '')
   {
     cloud_select_change('run_locally');
     return;
-  }
-  if (selected_cloud == 'use_prominence')
+  }else
   { 
     cloud_select_change(selected_cloud);
     return;
@@ -743,12 +815,19 @@ function cloud_select_change(optionValToSelect)
 function check_for_existing_token()
 {
   existing_token = '';
-  prominence_token = execute_command('docker exec dakota_container bash -c \'cat $HOME/.prominence/token\'');
+  // --- Which VVUQ software are we using?
+  selected_vvuq = document.getElementById('vvuq_selector').value;
+  container_running = check_vvuq_container();
+  if (! container_running.includes(selected_vvuq))
+  {
+    return existing_token;
+  }
+  prominence_token = execute_command('docker exec '+selected_vvuq+'_container bash -c \'cat $HOME/.prominence/token\'');
   prominence_token = prominence_token.split('{"access_token": "');
   if (prominence_token.length == 2)
   {
     prominence_token = prominence_token[1].split('"')[0];
-    command = 'docker exec -t dakota_container bash -c \'curl -i -H "Authorization: Bearer '+prominence_token+'" $PROMINENCE_OIDC_URL/userinfo\'';
+    command = 'docker exec -t '+selected_vvuq+'_container bash -c \'curl -i -H "Authorization: Bearer '+prominence_token+'" $PROMINENCE_OIDC_URL/userinfo\'';
     token_valid = execute_command(command);
     token_valid = token_valid.split('200 OK');
     if (token_valid.length == 2)
@@ -782,13 +861,13 @@ function cpu_select(selected_option)
 function set_cpu_selector(selected_cpu)
 {
   // --- That's the simple cases
-  if ( (selected_cpu == '') || (selected_cpu == 'select_n_cpu') )
+  if (selected_cpu == '')
   {
     cloud_select_change('select_n_cpu');
     return;
   }else
   { 
-    cloud_select_change(selected_cloud);
+    cloud_select_change(selected_cpu);
     return;
   }
 }
@@ -848,7 +927,7 @@ function launch_main_run()
   }
   // --- Go to run
   show_waiting_div();
-  document.getElementById("waiting_message").innerHTML="<br/>This will launch the Dakota job with your code.<br/>Are you sure you want to action this request?<br/>";
+  document.getElementById("waiting_message").innerHTML="<br/>This will launch the VVUQ job with your code.<br/>Are you sure you want to action this request?<br/>";
   action_specification = "main_run";
 }
 function run_select(selected_option)
@@ -1311,6 +1390,7 @@ function data_abortHandler(event)
 // --- Result functions
 function result_select(selected_option)
 { 
+  document.getElementById("retrieve_files_list").innerHTML = "";
   document.getElementById("result_comments").innerHTML="";
   if (selected_option.value != "select_result")
   { 
