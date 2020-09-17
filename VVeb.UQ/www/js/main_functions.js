@@ -44,6 +44,14 @@ window.onload = function()
     document.getElementById(div_to_hide[i]).style.overflow="hidden";
   }
 
+  // --- Make sure the Home link goes back to the login page
+  port_number = execute_command('docker port vvebuq_login');
+  port_number = port_number.trim().split(':')[1];
+  address = window.location.href;
+  address = address.split(':');
+  address = address[0]+':'+address[1]+':'+port_number;
+  document.getElementById("home_link").setAttribute("href",address);
+	
   // --- Make sure the vvuq drop-down is on the correct option
   selected_vvuq = getCookie('selected_vvuq');
   set_vvuq_selector(selected_vvuq);
@@ -217,6 +225,15 @@ function empty_terminal_output()
   execute_command('printf "" > /VVebUQ_runs/terminal_output.txt');
   execute_command('printf "" > /VVebUQ_runs/terminal_command.txt');
 }
+function who_am_i()
+{
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", "php/who_am_i.php", false);
+  xmlhttp.send();
+  name = xmlhttp.responseText;
+  return name.trim();
+}
+
 
 
 
@@ -244,11 +261,11 @@ function action_wrapper()
     if (selected_vvuq == 'dakota')
     {
       image_name = 'dakota_image'; //'spamela2/dakota_container:latest';
-      container_name = 'dakota_container';
+      container_name = 'dakota_container_'+who_am_i();
     }else
     {
       image_name = 'easyvvuq_image';
-      container_name = 'easyvvuq_container';
+      container_name = 'easyvvuq_container_'+who_am_i();
     }
     document.getElementById("waiting_gif").style.visibility="visible";
     document.getElementById("waiting_message").innerHTML="<br/>Please wait while the "+selected_vvuq+" Docker image is retrieved and launched.<br/>This may take a minute or so...<br/>";
@@ -278,10 +295,10 @@ function action_wrapper()
     selected_vvuq = document.getElementById('vvuq_selector').value;
     if (selected_vvuq == 'dakota')
     {
-      container_name = 'dakota_container';
+      container_name = 'dakota_container_'+who_am_i();
     }else
     {
-      container_name = 'easyvvuq_container';
+      container_name = 'easyvvuq_container_'+who_am_i();
     }
     // --- Some info, including the Prominence URL
     prominence_url = execute_command('docker exec '+container_name+' bash -c \'echo $PROMINENCE_OIDC_URL\'');
@@ -495,9 +512,9 @@ function launch_vvuq_container()
 function check_vvuq_container()
 {
   container_running = "";
-  dakota_id = execute_command("docker ps -aqf name=dakota_container --filter status=running");
+  dakota_id = execute_command("docker ps -aqf name=dakota_container_"+who_am_i()+" --filter status=running");
   dakota_id = dakota_id.replace('\n','');
-  easyvvuq_id = execute_command("docker ps -aqf name=easyvvuq_container --filter status=running");
+  easyvvuq_id = execute_command("docker ps -aqf name=easyvvuq_container_"+who_am_i()+" --filter status=running");
   easyvvuq_id = easyvvuq_id.replace('\n','');
   if ( (dakota_id != "") && (easyvvuq_id != "") )
   {
@@ -736,7 +753,7 @@ function download_user_example()
 {
   execute_command('cd ../ ; zip -r example_user_workflow.zip ./example_user_workflow ; cd -');
   link = document.createElement("a");
-  link.download = "download_docker_example";
+  link.download = "download_docker_example.zip";
   link.href = "./example_user_workflow.zip";
   link.click();
 }
@@ -822,12 +839,12 @@ function check_for_existing_token()
   {
     return existing_token;
   }
-  prominence_token = execute_command('docker exec '+selected_vvuq+'_container bash -c \'cat $HOME/.prominence/token\'');
+  prominence_token = execute_command('docker exec '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'cat $HOME/.prominence/token\'');
   prominence_token = prominence_token.split('{"access_token": "');
   if (prominence_token.length == 2)
   {
     prominence_token = prominence_token[1].split('"')[0];
-    command = 'docker exec -t '+selected_vvuq+'_container bash -c \'curl -i -H "Authorization: Bearer '+prominence_token+'" $PROMINENCE_OIDC_URL/userinfo\'';
+    command = 'docker exec -t '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'curl -i -H "Authorization: Bearer '+prominence_token+'" $PROMINENCE_OIDC_URL/userinfo\'';
     token_valid = execute_command(command);
     token_valid = token_valid.split('200 OK');
     if (token_valid.length == 2)

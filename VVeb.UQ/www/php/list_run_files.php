@@ -17,6 +17,10 @@ $arguments = shell_exec('cat /VVebUQ_runs/'.$dir_name.'/arguments_for_vvuq_scrip
 $arguments = preg_split('/\s+/',trim($arguments));
 $selected_vvuq = trim($arguments[count($arguments)-1]);
 
+// --- The VVUQ container name depends on the user
+$who_am_i = shell_exec('php who_am_i.php');
+$vvuq_container = $selected_vvuq.'_container_'.$who_am_i;
+
 // --- Simple case with containers
 $all_files = array();
 if (! $use_prominence)
@@ -34,7 +38,7 @@ if (! $use_prominence)
   $prominence_id = trim($prominence_id);
   if ($prominence_id != '')
   {
-    $command = 'docker exec -t '.$selected_vvuq.'_container prominence list jobs '.$prominence_id.' --all';
+    $command = 'docker exec -t '.$vvuq_container.' prominence list jobs '.$prominence_id.' --all';
     $containers = shell_exec($command);
     $containers_lines = preg_split('/\R/',$containers);
     if (count($containers_lines) > 2)
@@ -61,24 +65,24 @@ if (! $use_prominence)
           break;
         }
         // --- Record new containers list
-        $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'rm /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
+        $command = 'docker exec -t '.$vvuq_container.' bash -c \'rm /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
         $success = shell_exec($command);
-        $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'prominence download '.$prominence_job_id.'\'';
+        $command = 'docker exec -t '.$vvuq_container.' bash -c \'prominence download '.$prominence_job_id.'\'';
         $success = shell_exec($command);
         if ( (strpos($success,'workdir_VVebUQ') !== false) && (strpos($success,'Downloading file') !== false) )
         {
-          $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'tar -xvzf /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
+          $command = 'docker exec -t '.$vvuq_container.' bash -c \'tar -xvzf /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
           $success = shell_exec($command);
-          $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'rm /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
+          $command = 'docker exec -t '.$vvuq_container.' bash -c \'rm /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
           $success = shell_exec($command);
-          $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'ls -p /'.$selected_vvuq.'_dir/workdir_VVebUQ.*/';
+          $command = 'docker exec -t '.$vvuq_container.' bash -c \'ls -p /'.$selected_vvuq.'_dir/workdir_VVebUQ.*/';
           $command = $command.' | grep -v "arguments_for_vvuq_script.txt"';
           $command = $command.' | grep -v "dakota_params"';
           $command = $command.' | grep -v "dakota_results"';
           $command = $command.'\'';
 	  $fullcontent = shell_exec($command);
           $all_files = preg_split('/\R/',$fullcontent);
-          $command = 'docker exec -t '.$selected_vvuq.'_container bash -c \'rm -f /'.$selected_vvuq.'_dir/workdir_VVebUQ.*\'';
+          $command = 'docker exec -t '.$vvuq_container.' bash -c \'rm -f /'.$selected_vvuq.'_dir/workdir_VVebUQ.*\'';
           $success = shell_exec($command);
         }
       }

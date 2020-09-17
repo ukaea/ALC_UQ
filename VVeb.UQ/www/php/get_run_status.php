@@ -22,6 +22,10 @@ $arguments = shell_exec('cat /VVebUQ_runs/'.$dir_name.'/arguments_for_vvuq_scrip
 $arguments = preg_split('/\s+/',trim($arguments));
 $selected_vvuq = trim($arguments[count($arguments)-1]);
 
+// --- The VVUQ container name depends on the user
+$who_am_i = shell_exec('php who_am_i.php');
+$vvuq_container = $selected_vvuq.'_container_'.$who_am_i;
+
 // --- Simple case with containers
 if (! $use_prominence)
 {
@@ -39,7 +43,7 @@ if (! $use_prominence)
   }else
   {
     // --- Get list of jobs from that workflow
-    $command = 'docker exec -t '.$selected_vvuq.'_container prominence list jobs '.$prominence_id.' --all';
+    $command = 'docker exec -t '.$vvuq_container.' prominence list jobs '.$prominence_id.' --all';
     $containers = shell_exec($command);
     $containers_lines = preg_split('/\R/',$containers);
     if (count($containers_lines) > 2)

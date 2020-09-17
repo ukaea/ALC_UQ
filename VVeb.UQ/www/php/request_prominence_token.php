@@ -1,7 +1,8 @@
 <?php
 
-// --- Get VVUQ software
-$vvuq_container = strtolower(trim($_POST["selected_vvuq"])).'_container';
+// --- The VVUQ container name depends on the user
+$who_am_i = shell_exec('php who_am_i.php');
+$vvuq_container = strtolower(trim($_POST["selected_vvuq"])).'_container_'.$who_am_i;
 
 // --- If we have been called from restAPI, need to print command to terminal
 if (isset($_POST["action"]))

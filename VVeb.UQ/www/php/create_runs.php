@@ -63,6 +63,10 @@ $run_dir = str_replace("\n", '', $run_dir);
 $name_split = preg_split('/VVeb.UQ/', $run_dir);
 $user_inter_dir = $name_split[0].'user_interface/';
 
+// --- The VVUQ container name depends on the user
+$who_am_i = shell_exec('php who_am_i.php');
+$vvuq_container = $arguments["selected_vvuq"].'_container_'.$who_am_i;
+
 // --- Are we running with Prominence or locally?
 $use_prominence = trim($arguments["use_prominence"]);
 
@@ -114,10 +118,10 @@ if ($arguments["selected_vvuq"] == 'dakota')
   $command_vvuq = 'python3 easyvvuq_main.py';
 }
 // --- Produce VVUQ input file based on netcdf file provided by user
-$command = 'docker exec -w '.$base_dir.' -t '.$arguments["selected_vvuq"].'_container '.$command_user_interface.' -d run_script.py -c '.$n_cpu_dakota.' -i '.$input_file.' -o '.$base_dir.'/'.$out_file_user_interface.' -t '.$file_type;
+$command = 'docker exec -w '.$base_dir.' -t '.$vvuq_container.' '.$command_user_interface.' -d run_script.py -c '.$n_cpu_dakota.' -i '.$input_file.' -o '.$base_dir.'/'.$out_file_user_interface.' -t '.$file_type;
 shell_exec($command);
 // --- Run VVUQ software with fake output, just to prepare the run-directories
-$command = 'docker exec -w '.$base_dir.' -t '.$arguments["selected_vvuq"].'_container '.$command_vvuq;
+$command = 'docker exec -w '.$base_dir.' -t '.$vvuq_container.' '.$command_vvuq;
 shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
 shell_exec($command.' &> /VVebUQ_runs/terminal_output.txt');
 
@@ -141,14 +145,14 @@ if ($arguments["selected_vvuq"] == 'easyvvuq')
 // --- Submit the workflow
 if ($use_prominence == 'true')
 {
-  $command = 'docker exec -w '.$base_dir.' -t '.$arguments["selected_vvuq"].'_container ./submit_prominence_workflow.py';
+  $command = 'docker exec -w '.$base_dir.' -t '.$vvuq_container.' ./submit_prominence_workflow.py';
   shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
   shell_exec($command.' &> /VVebUQ_runs/terminal_output.txt');
   // --- Prominence might take a few seconds internally to get everything ready, wait
   sleep(5);
 }else
 {
-  $command = 'docker exec -w '.$base_dir.' -t '.$arguments["selected_vvuq"].'_container ./submit_local_workflow.py';
+  $command = 'docker exec -w '.$base_dir.' -t '.$vvuq_container.' ./submit_local_workflow.py';
   shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
   shell_exec($command.' &> /VVebUQ_runs/terminal_output.txt');
 }
