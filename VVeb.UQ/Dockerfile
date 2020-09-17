@@ -23,7 +23,7 @@ RUN apk --update add \
 
 # --- Copy data
 COPY www/ /var/www/html/
-COPY config.in /var/www/html/php/
+#COPY config.in /var/www/html/php/
 COPY etc/apache2/httpd.conf /etc/apache2/httpd.conf
 COPY etc/apache2/sites/ /etc/apache2/sites/
 COPY etc/php/php.ini /etc/php7/php.ini
