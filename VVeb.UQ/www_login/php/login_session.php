@@ -49,9 +49,26 @@ if ($user_already_has_session && $session_healthy)
 {
   
   $session_address = $_SERVER['HTTP_REFERER'];
+  if (trim($session_address) == '')
+  {
+    $session_address = $_SERVER['HTTP_HOST'];
+  }
   $session_address = explode(':',trim($session_address));
-  $session_address = $session_address[0].':'.$session_address[1].':'.$session_port;  // because http://IP:port
-  echo 'You already have a session running, please follow this link:<br/><a href="'.$session_address.'">'.$session_address.'</a>';
+  if (count($session_address) == 3)
+  {
+    $session_address = $session_address[0].':'.$session_address[1].':'.$session_port;  // because http://IP:port
+  }else
+  {
+    $session_address = 'http://'.$session_address[0].':'.$session_port;  // because http://IP:port
+  }
+  if (isset($_GET['FROM_WEB_FRONT']))
+  {
+    echo 'You already have a session running, please follow this link:<br/><a href="'.$session_address.'">'.$session_address.'</a>';
+  }else
+  {
+    echo "You already have a session running, please follow this link:\n";
+    echo $session_address."\n";
+  }
 }else
 {
   if (! $user_already_has_session)
@@ -75,8 +92,18 @@ if ($user_already_has_session && $session_healthy)
   shell_exec('mkdir -p '.$new_workdir);
   $workdir_mount = $run_dir.$session_name.'/';
   $session_address = $_SERVER['HTTP_REFERER'];
+  if (trim($session_address) == '')
+  {
+    $session_address = $_SERVER['HTTP_HOST'];
+  }
   $session_address = explode(':',trim($session_address));
-  $session_address = $session_address[0].':'.$session_address[1].':'.$session_port;  // because http://IP:port
+  if (count($session_address) == 3)
+  {
+    $session_address = $session_address[0].':'.$session_address[1].':'.$session_port;  // because http://IP:port
+  }else
+  {
+    $session_address = 'http://'.$session_address[0].':'.$session_port;  // because http://IP:port
+  }
   // --- Launch new container
   $container_name = 'vvebuq_app_'.$session_name;
   $command = 'docker container run --privileged --name '.$container_name.' -v /var/run/docker.sock:/var/run/docker.sock -v '.$workdir_mount.':/VVebUQ_runs/ -v '.$user_inter_dir.':/vvuq_user_interface/ -p '.$session_port.':80 -d vvebuq';
@@ -86,7 +113,14 @@ if ($user_already_has_session && $session_healthy)
   $command = 'docker cp /var/www/html/php/config.in.tmp '.$container_name.':/var/www/html/php/config.in';
   shell_exec($command);
   // --- Return link of new session to user
-  echo 'You already have a session running, please follow this link:<br/><a href="'.$session_address.'">'.$session_address.'</a>';
+  if (isset($_GET['FROM_WEB_FRONT']))
+  {
+    echo 'You now have a new session running, please follow this link:<br/><a href="'.$session_address.'">'.$session_address.'</a>';
+  }else
+  {
+    echo "You now have a new session running, please follow this link:\n";
+    echo $session_address."\n";
+  }
 }
 
 exit;

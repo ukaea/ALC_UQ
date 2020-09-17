@@ -29,6 +29,24 @@ if ( (! isset($_POST["action"])) && (! isset($_GET["action"])) )
   }
 }
 
+// --- Launch VVUQ container
+if ($ACTION == 'launch_vvuq')
+{
+  if (! isset($_POST["selected_vvuq"]))       {clean_exit("Variable \"selected_vvuq\" required (either dakota or easyvvuq)");}
+  $who_am_i = shell_exec('php who_am_i.php');
+  if (strtolower($_POST["selected_vvuq"]) == 'dakota')
+  {
+    $_POST["docker_image"] = 'dakota_image';
+    $_POST["container_name"] = 'dakota_container_'.$who_am_i;
+  }else
+  {
+    $_POST["docker_image"] = 'easyvvuq_image';
+    $_POST["container_name"] = 'easyvvuq_container_'.$who_am_i;
+  }
+  include('launch_vvuq.php');
+  exit();
+}
+
 // --- Request Prominence Token
 if ($ACTION == 'request_prominence_token')
 {
@@ -227,6 +245,7 @@ function get_latest_run()
 function clean_exit($message)
 {
   echo 'VVebUQ: '.$message."\n";
+  echo "        Maybe you used GET method instead of POST (or vice versa)?\n";
   echo "        please visit https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ\n";
   echo "        for detailed instructions.\n";
   exit();
