@@ -100,6 +100,10 @@ if ($ACTION == 'launch_vvuq')
 if ($ACTION == 'request_prominence_token')
 {
   if (! isset($_POST["selected_vvuq"]))       {clean_exit("Variable \"selected_vvuq\" required (either dakota or easyvvuq)");}
+  // --- Check that the vvuq container is running
+  $vvuq_container = shell_exec('docker ps -aqf name='.$_POST["selected_vvuq"].'_container_'.$session_name.' --filter status=running');
+  if (trim($vvuq_container) == '') {clean_exit("Before requesting a Prominence Token, you need to launch a VVUQ container");}
+  // --- Proceed to request
   include('../php/request_prominence_token.php');
   exit();
 }
@@ -115,6 +119,20 @@ if ($ACTION == 'launch_run')
   if (! isset($_POST["input_file_type"]))      {clean_exit("Variable \"input_file_type\" required");}
   if (! isset($_POST["input_data_file_name"])) {$_POST["input_data_file_name"] = "none";}
   if (! isset($_POST["use_prominence"]))       {$_POST["use_prominence"] = "false";}
+  // --- Check that the vvuq container is running
+  $vvuq_container = shell_exec('docker ps -aqf name='.$_POST["selected_vvuq"].'_container_'.$session_name.' --filter status=running');
+  if (trim($vvuq_container) == '') {clean_exit("Before launching a run, you need to launch a VVUQ container");}
+  // --- Check that local runs are allowed
+  $run_locally_forbidden = trim(shell_exec('cat config.in | grep LOCAL_RUNS_ALLOWED | grep FALSE'));
+  if ( ($run_locally_forbidden != '') && ($_POST["use_prominence"] == 'false') )
+  {
+    clean_exit("Local runs are forbidden".$run_locally_forbidden.", you need to use Prominence!");
+  }
+  // --- Check if Prominence Token still valid
+  if ($_POST["use_prominence"] == 'true')
+  {
+    check_for_expired_prominence_token_before_run($session_name, $_POST["selected_vvuq"]);
+  }
   // --- In order to allow the job submission as an async bash command
   // --- the arguments must be passed as normal variables, not as $_POST
   $arguments = $_POST["docker_image_run"];
@@ -127,6 +145,16 @@ if ($ACTION == 'launch_run')
   $arguments = $arguments.' '.$session_name;
   shell_exec('php ../php/create_runs.php '.$arguments.' > /dev/null &');
   echo "Your job is being prepared for submission...\n";
+  exit();
+}
+
+// --- Check app is running
+if ($ACTION == 'check_app')
+{
+  echo "Hello ".$username.".\n";
+  echo "Welcome to VVebUQ.\n";
+  echo "Please visit https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ\n";
+  echo "for detailed instructions.\n";
   exit();
 }
 
@@ -145,6 +173,7 @@ if ($ACTION == 'get_run_status')
   {
     $_GET["run_name"] = get_latest_run($session_name);
   }
+  check_for_expired_prominence_token($session_name, $_GET["run_name"]);
   include("../php/get_run_status.php");
   exit();
 }
@@ -157,6 +186,7 @@ if ($ACTION == 'list_run_files')
   {
     $_GET["run_name"] = get_latest_run($session_name);
   }
+  check_for_expired_prominence_token($session_name, $_GET["run_name"]);
   include("../php/list_run_files.php");
   exit();
 }
@@ -169,6 +199,7 @@ if ($ACTION == 'download_run')
   {
     $_GET["run_name"] = get_latest_run($session_name);
   }
+  check_for_expired_prominence_token($session_name, $_GET["run_name"]);
   include("../php/download_run.php");
   exit();
 }
@@ -181,6 +212,7 @@ if ($ACTION == 'download_run_files')
   {
     $_GET["run_name"] = get_latest_run($session_name);
   }
+  check_for_expired_prominence_token($session_name, $_GET["run_name"]);
   include("../php/download_run_files.php");
   exit();
 }
@@ -193,6 +225,7 @@ if ($ACTION == 'delete_run')
   {
     $_GET["run_name"] = get_latest_run($session_name);
   }
+  check_for_expired_prominence_token($session_name, $_GET["run_name"]);
   include("../php/delete_run.php");
   exit();
 }
@@ -205,6 +238,7 @@ if ($ACTION == 'delete_run_data')
   {
     $_GET["run_name"] = get_latest_run($session_name);
   }
+  check_for_expired_prominence_token($session_name, $_GET["run_name"]);
   include("../php/delete_run.php");
   include("../php/delete_run_data.php");
   exit();
@@ -333,9 +367,89 @@ function get_latest_run($session_name)
 
 
 
+// Check for expired Prominence token
+function check_for_expired_prominence_token($session_name, $run_name)
+{
+  // --- Check if we are using Prominence
+  $dir_name = $run_name;
+  $dir_name = "workdir_".$dir_name;
+  $dir_name = '/VVebUQ_runs/'.$session_name.'/'.$dir_name;
+  $prominence_id_file = $dir_name.'/prominence_workflow_id.txt';
+  $use_prominence = file_exists($prominence_id_file);
+
+  // --- If we're not using Prominence, do nothing
+  if (! $use_prominence) {return;}
+
+  // --- Before checking everything, check which vvuq software we're using
+  $arguments = shell_exec('cat '.$dir_name.'/arguments_for_vvuq_script.txt');
+  $arguments = preg_split('/\s+/',trim($arguments));
+  $selected_vvuq = trim($arguments[count($arguments)-2]);
+
+  // --- The VVUQ container name depends on the user
+  $vvuq_container = $selected_vvuq.'_container_'.$session_name;
+
+  $prominence_token = shell_exec('docker exec '.$vvuq_container.' bash -c \'cat $HOME/.prominence/token\'');
+  $prominence_token = explode('{"access_token": "',$prominence_token);
+  if (count($prominence_token) == 2)
+  {
+    $prominence_token = explode('"',$prominence_token[1])[0];
+    $command = 'docker exec -t '.$vvuq_container.' bash -c \'curl -i -H "Authorization: Bearer '.$prominence_token.'" $PROMINENCE_OIDC_URL/userinfo\'';
+    $token_valid = shell_exec($command);
+    $token_valid = explode('200 OK',$token_valid);
+    if (count($token_valid) == 2)
+    {
+      // --- If Prominence token is valid, do nothing
+      return;
+    }else
+    {
+      exit_with_prominence_token_warning();
+    }
+  }else
+  {
+    exit_with_prominence_token_warning();
+  }
+}
+// Check for expired Prominence token before we launch a run
+function check_for_expired_prominence_token_before_run($session_name, $selected_vvuq)
+{
+  // --- The VVUQ container name depends on the user
+  $vvuq_container = $selected_vvuq.'_container_'.$session_name;
+
+  $prominence_token = shell_exec('docker exec '.$vvuq_container.' bash -c \'cat $HOME/.prominence/token\'');
+  $prominence_token = explode('{"access_token": "',$prominence_token);
+  if (count($prominence_token) == 2)
+  {
+    $prominence_token = explode('"',$prominence_token[1])[0];
+    $command = 'docker exec -t '.$vvuq_container.' bash -c \'curl -i -H "Authorization: Bearer '.$prominence_token.'" $PROMINENCE_OIDC_URL/userinfo\'';
+    $token_valid = shell_exec($command);
+    $token_valid = explode('200 OK',$token_valid);
+    if (count($token_valid) == 2)
+    {
+      // --- If Prominence token is valid, do nothing
+      return;
+    }else
+    {
+      exit_with_prominence_token_warning();
+    }
+  }else
+  {
+    exit_with_prominence_token_warning();
+  }
+}
+function exit_with_prominence_token_warning()
+{
+  echo "VVebUQ: Your Prominence Token has expired, you need to request a new one.\n";
+  echo "        please visit https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ\n";
+  echo "        for detailed instructions.\n";
+  exit();
+}
 
 
-// --- remove image from registry
+
+
+
+
+// --- Exit with nice message
 function clean_exit($message)
 {
   echo 'VVebUQ: '.$message."\n";

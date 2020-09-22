@@ -275,6 +275,7 @@ function action_wrapper()
       {
         empty_terminal_output();
         hide_waiting_div();
+        cloud_select_change(document.getElementById("cloud_selector").value);
         return;
       }
     };
@@ -772,10 +773,12 @@ function cloud_select(selected_option)
     // --- First check the VVUQ container is running
     selected_vvuq = document.getElementById('vvuq_selector').value;
     container_running = check_vvuq_container();
-    if (! container_running.includes(selected_vvuq))
+    local_runs = execute_command('cat config.in | grep LOCAL_RUNS_ALLOWED');
+    local_runs = local_runs.split(' = ')[1].trim();
+    if (  (! container_running.includes(selected_vvuq)) && (local_runs.includes('TRUE'))   )
     {
       show_waiting_div();
-      document.getElementById("waiting_message").innerHTML="<br/>You have not launched the VVUQ software needed to run! (go to 1st Tab)<br/>";
+      document.getElementById("waiting_message").innerHTML="<br/>You have not launched the VVUQ software needed to run! (go to \"Set-up\" Tab)<br/>";
       document.getElementById("action_wrapper_button").style.visibility="hidden";
       cloud_select_change('run_locally');
       return;
@@ -799,15 +802,37 @@ function cloud_select(selected_option)
 }
 function set_cloud_selector(selected_cloud)
 {
-  // --- That's the simple cases
-  if (selected_cloud == '')
+  // --- First check if local runs are allowed
+  local_runs = execute_command('cat config.in | grep LOCAL_RUNS_ALLOWED');
+  local_runs = local_runs.split(' = ')[1].trim();
+  // --- If local runs are not allowed, we remove it from the selector
+  if (! local_runs.includes('TRUE'))
   {
-    cloud_select_change('run_locally');
-    return;
+    // --- Remove local-run option
+    selector = document.getElementById("cloud_selector");
+    children = selector.children;
+    for (i = 0; i < children.length; i++)
+    {
+      child = children[i];
+      if (child.value == 'run_locally')
+      {
+        selector.removeChild(child);
+      }
+    }
+    child = selector.lastElementChild;
+    cloud_select_change(child.value);
   }else
-  { 
-    cloud_select_change(selected_cloud);
-    return;
+  {
+    // --- That's the simple cases
+    if (selected_cloud == '')
+    {
+      cloud_select_change('run_locally');
+      return;
+    }else
+    { 
+      cloud_select_change(selected_cloud);
+      return;
+    }
   }
 }
 function cloud_select_change(optionValToSelect)
@@ -849,8 +874,31 @@ function check_for_existing_token()
   }
   return existing_token;
 }
+function expired_prominence_token_warning()
+{
+  selected_cloud = document.getElementById('cloud_selector').value;
+  if (selected_cloud != 'use_prominence') {return "n/a";}
+  existing_token = check_for_existing_token();
+  if (existing_token == '')
+  {
+    show_waiting_div();
+    document.getElementById("waiting_message").innerHTML="<br/>Your Prominence Token has expired! (go to \"Cloud\" Tab)<br/>";
+    document.getElementById("action_wrapper_button").style.visibility="hidden";
+    return "expired";
+  }
+}
 function request_prominence_token()
 {
+  // --- First check the VVUQ container is running
+  selected_vvuq = document.getElementById('vvuq_selector').value;
+  container_running = check_vvuq_container();
+  if (! container_running.includes(selected_vvuq))
+  {
+    show_waiting_div();
+    document.getElementById("waiting_message").innerHTML="<br/>You have not launched the VVUQ software needed to run! (go to \"Set-up\" Tab)<br/>";
+    document.getElementById("action_wrapper_button").style.visibility="hidden";
+    return;
+  }
   // --- Go to run
   show_waiting_div();
   document.getElementById("waiting_message").innerHTML="<br/>This will request a new Prominence Token.<br/>Are you sure you want to action this request?<br/>";
@@ -915,7 +963,7 @@ function launch_main_run()
   if (container_running == "")
   {
     show_waiting_div();
-    document.getElementById("waiting_message").innerHTML="<br/>You have not launched the VVUQ software needed to run! (go to 1st Tab)<br/>";
+    document.getElementById("waiting_message").innerHTML="<br/>You have not launched the VVUQ software needed to run! (go to \"Set-up\" Tab)<br/>";
     document.getElementById("action_wrapper_button").style.visibility="hidden";
     return;
   }
@@ -924,7 +972,7 @@ function launch_main_run()
   if (input_file_present == "false")
   {
     show_waiting_div();
-    document.getElementById("waiting_message").innerHTML="<br/>You have not uploaded any input file needed to run! (go to 2nd Tab)<br/>";
+    document.getElementById("waiting_message").innerHTML="<br/>You have not uploaded any input file needed to run! (go to \"Inputs\" Tab)<br/>";
     document.getElementById("action_wrapper_button").style.visibility="hidden";
     return;
   }
@@ -933,10 +981,13 @@ function launch_main_run()
   if ( (selected_image == "") || (selected_image == "select_image") || (selected_image == "new_image") )
   {
     show_waiting_div();
-    document.getElementById("waiting_message").innerHTML="<br/>You have not selected any code image needed to run! (go to 1st Tab)<br/>";
+    document.getElementById("waiting_message").innerHTML="<br/>You have not selected any code image needed to run! (go to \"Set-up\" Tab)<br/>";
     document.getElementById("action_wrapper_button").style.visibility="hidden";
     return;
   }
+  // --- Check Prominence Token is not expired (if using Prominence)
+  expired_token = expired_prominence_token_warning();
+  if (expired_token == 'expired') {return;}
   // --- Go to run
   show_waiting_div();
   document.getElementById("waiting_message").innerHTML="<br/>This will launch the VVUQ job with your code.<br/>Are you sure you want to action this request?<br/>";
@@ -947,6 +998,9 @@ function run_select(selected_option)
   document.getElementById("run_comments").innerHTML="";
   if (selected_option.value != "select_run")
   {
+    // --- Check Prominence Token is not expired (if using Prominence)
+    expired_token = expired_prominence_token_warning();
+    if (expired_token == 'expired') {return;}
     // --- Get run name
     setCookie('selected_run',selected_option.value,7);
     dir_name = selected_option.value;
@@ -998,12 +1052,20 @@ function get_previous_runs()
 }
 function refresh_containers_log()
 {
+  // --- Check Prominence Token is not expired (if using Prominence)
+  expired_token = expired_prominence_token_warning();
+  if (expired_token == 'expired') {return;}
+  // --- Refresh log
   selected_run = document.getElementById('run_selector').value;
   reload_run_selector();
   run_select_change(selected_run);
 }
 function stop_containers()
 {
+  // --- Check Prominence Token is not expired (if using Prominence)
+  expired_token = expired_prominence_token_warning();
+  if (expired_token == 'expired') {return;}
+  // --- Go to action wrapper
   show_waiting_div();
   document.getElementById("waiting_message").innerHTML="<br/>This will stop and remove all containers for this run.<br/>"
                                                       +"Data from completed containers will still be retrievable,<br/>"
@@ -1013,6 +1075,10 @@ function stop_containers()
 }
 function purge_run()
 {
+  // --- Check Prominence Token is not expired (if using Prominence)
+  expired_token = expired_prominence_token_warning();
+  if (expired_token == 'expired') {return;}
+  // --- Go to action wrapper
   show_waiting_div();
   document.getElementById("waiting_message").innerHTML="<br/>This will stop and remove all containers for this run,<br/>"
                                                       +"and remove all data associated with this run.<br/>"
@@ -1409,6 +1475,10 @@ function data_abortHandler(event)
 // --- Result functions
 function result_select(selected_option)
 { 
+  // --- Check Prominence Token is not expired (if using Prominence)
+  expired_token = expired_prominence_token_warning();
+  if (expired_token == 'expired') {return;}
+  // --- Get results
   document.getElementById("retrieve_files_list").innerHTML = "";
   document.getElementById("result_comments").innerHTML="";
   if (selected_option.value != "select_result")
@@ -1530,6 +1600,10 @@ function set_result_selector(selected_run)
 }
 function purge_result()
 {
+  // --- Check Prominence Token is not expired (if using Prominence)
+  expired_token = expired_prominence_token_warning();
+  if (expired_token == 'expired') {return;}
+  // --- Go to action wrapper
   show_waiting_div();
   document.getElementById("waiting_message").innerHTML="<br/>This will stop and remove all containers for this run,<br/>"
                                                       +"and remove all data associated with this run.<br/>"
@@ -1538,6 +1612,9 @@ function purge_result()
 }
 function select_result_file(file_id)
 {
+  // --- Check Prominence Token is not expired (if using Prominence)
+  expired_token = expired_prominence_token_warning();
+  if (expired_token == 'expired') {return;}
   // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
   use_prominence = false;
   selected_result = document.getElementById('result_selector').value;
@@ -1594,6 +1671,9 @@ function unselect_result_file(file_id)
 }
 function download_entire_run()
 {
+  // --- Check Prominence Token is not expired (if using Prominence)
+  expired_token = expired_prominence_token_warning();
+  if (expired_token == 'expired') {return;}
   // --- Get run name
   selected_result = document.getElementById('result_selector').value;
   run_name = selected_result.replace('workdir_','');
@@ -1609,6 +1689,9 @@ function download_entire_run()
 }
 function download_selected_files()
 {
+  // --- Check Prominence Token is not expired (if using Prominence)
+  expired_token = expired_prominence_token_warning();
+  if (expired_token == 'expired') {return;}
   // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
   use_prominence = false;
   selected_result = document.getElementById('result_selector').value;

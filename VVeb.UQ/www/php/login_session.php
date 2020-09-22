@@ -9,8 +9,9 @@ if ($username == '')
 }
 
 // --- Get run-dir required for Docker-mounts
-$run_dir = shell_exec('cat config.in');
-$run_dir = str_replace("\n", '', $run_dir);
+$run_dir = shell_exec('cat config.in | grep APP_DIRECTORY');
+$run_dir = explode(' = ',$run_dir)[1];
+$run_dir = trim(str_replace("\n", '', $run_dir));
 $name_split = preg_split('/VVeb.UQ/', $run_dir);
 
 // --- Check existing user workdirs in main directory
@@ -18,6 +19,7 @@ $workdirs = shell_exec('ls /VVebUQ_runs/ | grep VVebUQ_user_ | grep _id_');
 $workdirs = preg_split('/\s+/', $workdirs);
 $user_already_has_session = false;
 $session_name = '';
+$session_healthy = false;
 for ($i=0; $i<count($workdirs); $i++)
 {
   if (trim($workdirs[$i]) != '')
@@ -28,6 +30,11 @@ for ($i=0; $i<count($workdirs); $i++)
       $session_name = trim($workdirs[$i]);
       $user_hash = explode('VVebUQ_user_'.$username.'_id_',trim($workdirs[$i]));
       $user_hash = $user_hash[1];
+      $session_healthy = false;
+      if (file_exists('../'.$user_hash.'/index.html'))
+      {
+        $session_healthy = true;
+      }
     }
   }
 }
@@ -52,6 +59,12 @@ if (substr($session_address, -1) != '/')
 // --- Act depending if a session already exists
 if ($user_already_has_session)
 {
+  // --- Reset session if unhealthy
+  $new_workdir = '../'.$user_hash;
+  shell_exec('mkdir -p '.$new_workdir);
+  shell_exec('cp ../default_page/index.html '.$new_workdir.'/');
+  shell_exec('cp ../default_page/rest_api.php '.$new_workdir.'/');
+  shell_exec('cp config.in '.$new_workdir.'/');
   // --- Refer user to his already allocated address
   $session_address = $session_address.$user_hash.'/';
   if (isset($_GET['FROM_WEB_FRONT']))

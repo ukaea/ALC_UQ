@@ -1,5 +1,12 @@
 <?php
 
+// --- WARNING!!!
+// --- This only works for usage from the web front-end, through js form-submission
+// --- If you try to use this inside the rest-API wrappers, it will not work!
+
+
+
+
 // --- The address holds the user id
 $session_address = $_SERVER['HTTP_REFERER'];
 if (trim($session_address) == '')

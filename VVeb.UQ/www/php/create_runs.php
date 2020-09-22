@@ -60,8 +60,9 @@ if ($file_ext == 'csv') {$file_type = 'csv';}
 $data_filename = trim($arguments["input_data_file_name"]);
 
 // --- Get run-dir
-$run_dir = shell_exec('cat config.in');
-$run_dir = str_replace("\n", '', $run_dir);
+$run_dir = shell_exec('cat config.in | grep APP_DIRECTORY');
+$run_dir = explode(' = ',$run_dir)[1];
+$run_dir = trim(str_replace("\n", '', $run_dir));
 $name_split = preg_split('/VVeb.UQ/', $run_dir);
 $user_inter_dir = $name_split[0].'user_interface/';
 
