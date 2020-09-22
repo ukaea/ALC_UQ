@@ -13,9 +13,10 @@ if (isset($_POST["docker_image_run"]))
   $arguments["input_file_type"]      = $_POST["input_file_type"];
   $arguments["input_data_file_name"] = $_POST["input_data_file_name"];
   $arguments["use_prominence"]       = $_POST["use_prominence"];
+  $arguments["VVebUQ_session_name"]  = $_POST['VVebUQ_session_name'];
 }else
 {
-  if ($argc < 8) {exit();}
+  if ($argc < 9) {exit();}
   $arguments["docker_image_run"]     = $argv[1];
   $arguments["selected_vvuq"]        = $argv[2];
   $arguments["n_cpu"]                = $argv[3];
@@ -23,6 +24,7 @@ if (isset($_POST["docker_image_run"]))
   $arguments["input_file_type"]      = $argv[5];
   $arguments["input_data_file_name"] = $argv[6];
   $arguments["use_prominence"]       = $argv[7];
+  $arguments["VVebUQ_session_name"]  = $argv[8];
 }
 
 // --- Get date
@@ -36,7 +38,7 @@ $container_name = $image_name;
 $container_name = str_replace('/','_',$container_name);
 $container_name = str_replace(':','_',$container_name);
 $workdir_name   = 'workdir_'.$date.'_'.$container_name;
-$container_name = 'VVebUQ_CONTAINER_'.$date.'_'.$container_name;
+$container_name = 'VVebUQ_CONTAINER_'.$arguments["VVebUQ_session_name"].'_'.$date.'_'.$container_name;
 
 // --- Get the number of cpu available (THIS NEEDS TO BE GENERALISED PROPERLY!!!)
 $n_cpu = (int)trim($arguments["n_cpu"]);
@@ -64,16 +66,15 @@ $name_split = preg_split('/VVeb.UQ/', $run_dir);
 $user_inter_dir = $name_split[0].'user_interface/';
 
 // --- The VVUQ container name depends on the user
-$who_am_i = shell_exec('php who_am_i.php');
-$vvuq_container = $arguments["selected_vvuq"].'_container_'.$who_am_i;
+$vvuq_container = $arguments["selected_vvuq"].'_container_'.$arguments["VVebUQ_session_name"];
 
 // --- Are we running with Prominence or locally?
 $use_prominence = trim($arguments["use_prominence"]);
 
 // --- Produce files in run directory of container
-$work_dir        = '/VVebUQ_runs';
+$work_dir        = '/VVebUQ_runs/'.$arguments["VVebUQ_session_name"];
 $base_dir        = $work_dir.'/'.$workdir_name;
-$mount_dir       = $run_dir.$workdir_name;
+$mount_dir       = $run_dir.$arguments["VVebUQ_session_name"].'/'.$workdir_name;
 $files_dir       = $base_dir.'/files_for_'.$arguments["selected_vvuq"]; // either files_for_dakota or files_for_easyvvuq
 $input_file      = $work_dir.'/'.$filename;
 $data_input_file = $work_dir.'/'.$data_filename;
@@ -97,6 +98,7 @@ $arguments_file = $arguments_file.' '.$user_inter_dir;
 $arguments_file = $arguments_file.' '.$use_prominence;
 $arguments_file = $arguments_file.' '.$n_cpu;
 $arguments_file = $arguments_file.' '.$arguments["selected_vvuq"];
+$arguments_file = $arguments_file.' '.$arguments["VVebUQ_session_name"];
 $args_file = $files_dir.'/arguments_for_vvuq_script.txt';
 shell_exec('printf \''.$arguments_file.'\' > '.$args_file);
 $args_file = $base_dir.'/arguments_for_vvuq_script.txt';
@@ -105,7 +107,7 @@ shell_exec('printf \''.$arguments_file.'\' > '.$args_file);
 // --- Before starting, we create a flag file to inform that the job is being prepared
 shell_exec('echo "JOB_BEING_PREPARED_FOR_SUBMISSION" > '.$base_dir.'/JOB_BEING_PREPARED_FOR_SUBMISSION.txt');
 
-// --- Prepare runs
+// --- Produce VVUQ input file (for Dakota) or python script (for easyvvuq) based on netcdf file provided by user
 if ($arguments["selected_vvuq"] == 'dakota')
 {
   $command_user_interface = 'python3 /vvuq_user_interface/python/main.py';
@@ -117,13 +119,13 @@ if ($arguments["selected_vvuq"] == 'dakota')
   $out_file_user_interface = 'easyvvuq_main.py';
   $command_vvuq = 'python3 easyvvuq_main.py';
 }
-// --- Produce VVUQ input file based on netcdf file provided by user
+// --- Launch VVUQ input command
 $command = 'docker exec -w '.$base_dir.' -t '.$vvuq_container.' '.$command_user_interface.' -d run_script.py -c '.$n_cpu_dakota.' -i '.$input_file.' -o '.$base_dir.'/'.$out_file_user_interface.' -t '.$file_type;
 shell_exec($command);
 // --- Run VVUQ software with fake output, just to prepare the run-directories
 $command = 'docker exec -w '.$base_dir.' -t '.$vvuq_container.' '.$command_vvuq;
-shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
-shell_exec($command.' &> /VVebUQ_runs/terminal_output.txt');
+shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/'.$arguments["VVebUQ_session_name"].'/terminal_command.txt');
+shell_exec($command.' &> /VVebUQ_runs/'.$arguments["VVebUQ_session_name"].'/terminal_output.txt');
 
 // --- Rename directories if we used easyvvuq
 if ($arguments["selected_vvuq"] == 'easyvvuq')
@@ -146,15 +148,15 @@ if ($arguments["selected_vvuq"] == 'easyvvuq')
 if ($use_prominence == 'true')
 {
   $command = 'docker exec -w '.$base_dir.' -t '.$vvuq_container.' ./submit_prominence_workflow.py';
-  shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
-  shell_exec($command.' &> /VVebUQ_runs/terminal_output.txt');
+  shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/'.$arguments["VVebUQ_session_name"].'/terminal_command.txt');
+  shell_exec($command.' &> /VVebUQ_runs/'.$arguments["VVebUQ_session_name"].'/terminal_output.txt');
   // --- Prominence might take a few seconds internally to get everything ready, wait
   sleep(5);
 }else
 {
   $command = 'docker exec -w '.$base_dir.' -t '.$vvuq_container.' ./submit_local_workflow.py';
-  shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
-  shell_exec($command.' &> /VVebUQ_runs/terminal_output.txt');
+  shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/'.$arguments["VVebUQ_session_name"].'/terminal_command.txt');
+  shell_exec($command.' &> /VVebUQ_runs/'.$arguments["VVebUQ_session_name"].'/terminal_output.txt');
 }
 
 // --- Once we finished, we can remove the flag file

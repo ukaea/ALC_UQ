@@ -1,30 +1,32 @@
 <?php
 
+// --- Get session name
+$session_name = $_GET['VVebUQ_session_name'];
+
 // --- Get name of run
 $run_name = $_GET["run_name"];
 
 // --- Check if we are using Prominence
 $dir_name = $run_name;
-$dir_name = str_replace("VVebUQ_CONTAINER_","",$dir_name);
 $dir_name = "workdir_".$dir_name;
-$prominence_id_file = '/VVebUQ_runs/'.$dir_name.'/prominence_workflow_id.txt';
+$dir_name = '/VVebUQ_runs/'.$session_name.'/'.$dir_name;
+$prominence_id_file = $dir_name.'/prominence_workflow_id.txt';
 $use_prominence = file_exists($prominence_id_file);
 
 // --- Before checking everything, check if job is stil being prepared
-if (file_exists('/VVebUQ_runs/'.$dir_name.'/JOB_BEING_PREPARED_FOR_SUBMISSION.txt'))
+if (file_exists($dir_name.'/JOB_BEING_PREPARED_FOR_SUBMISSION.txt'))
 {
   echo "Your job is being prepared for submission...\n";
   exit();
 }
 
 // --- Before checking everything, check which vvuq software we're using
-$arguments = shell_exec('cat /VVebUQ_runs/'.$dir_name.'/arguments_for_vvuq_script.txt');
+$arguments = shell_exec('cat '.$dir_name.'/arguments_for_vvuq_script.txt');
 $arguments = preg_split('/\s+/',trim($arguments));
-$selected_vvuq = trim($arguments[count($arguments)-1]);
+$selected_vvuq = trim($arguments[count($arguments)-2]);
 
 // --- The VVUQ container name depends on the user
-$who_am_i = shell_exec('php who_am_i.php');
-$vvuq_container = $selected_vvuq.'_container_'.$who_am_i;
+$vvuq_container = $selected_vvuq.'_container_'.$session_name;
 
 // --- Simple case with containers
 if (! $use_prominence)
@@ -35,7 +37,7 @@ if (! $use_prominence)
 {
   $prominence_id = shell_exec('cat '.$prominence_id_file);
   $prominence_id = trim($prominence_id);
-  $prominence_job_has_been_deleted = '/VVebUQ_runs/'.$dir_name.'/prominence_workflow_has_been_deleted.txt';
+  $prominence_job_has_been_deleted = $dir_name.'/prominence_workflow_has_been_deleted.txt';
   $prominence_job_has_been_deleted = file_exists($prominence_job_has_been_deleted);
   if ( ($prominence_id == '') || ($prominence_job_has_been_deleted) )
   {

@@ -44,14 +44,6 @@ window.onload = function()
     document.getElementById(div_to_hide[i]).style.overflow="hidden";
   }
 
-  // --- Make sure the Home link goes back to the login page
-  port_number = execute_command('docker port vvebuq_login');
-  port_number = port_number.trim().split(':')[1];
-  address = window.location.href;
-  address = address.split(':');
-  address = address[0]+':'+address[1]+':'+port_number;
-  document.getElementById("home_link").setAttribute("href",address);
-	
   // --- Make sure the vvuq drop-down is on the correct option
   selected_vvuq = getCookie('selected_vvuq');
   set_vvuq_selector(selected_vvuq);
@@ -181,7 +173,7 @@ function execute_command_async(command,output_destination)
         document.getElementById(output_destination).innerHTML = this.responseText;
       }
     };
-    xmlhttp.open("GET", "php/server_side_functions.php?input=" + command, true);
+    xmlhttp.open("GET", "../php/server_side_functions.php?input=" + command, true);
     xmlhttp.send();
   }
 }
@@ -195,7 +187,7 @@ function execute_command(command)
     // ===%%%=== is used as a replacement for spaces (which are not allowed in http request url...)
     command = command.replace(' ','===%%%===');
     var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", "php/server_side_functions.php?input=" + command, false);
+    xmlhttp.open("GET", "../php/server_side_functions.php?input=" + command, false);
     xmlhttp.send();
     return xmlhttp.responseText;
   }
@@ -216,19 +208,19 @@ function execute_command_from_html(command, output_destination)
 }
 function get_terminal_output()
 {
-  output = execute_command('cat /VVebUQ_runs/terminal_command.txt ; echo ""; tail /VVebUQ_runs/terminal_output.txt');
+  output = execute_command('cat /VVebUQ_runs/'+who_am_i().trim()+'/terminal_command.txt ; echo ""; tail /VVebUQ_runs/'+who_am_i().trim()+'/terminal_output.txt');
   output = '<pre style="white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap:break-word;">'+output+'</pre>';
   document.getElementById('terminal_output').innerHTML = output;
 }
 function empty_terminal_output()
 {
-  execute_command('printf "" > /VVebUQ_runs/terminal_output.txt');
-  execute_command('printf "" > /VVebUQ_runs/terminal_command.txt');
+  execute_command('printf "" > /VVebUQ_runs/'+who_am_i().trim()+'/terminal_output.txt');
+  execute_command('printf "" > /VVebUQ_runs/'+who_am_i().trim()+'/terminal_command.txt');
 }
 function who_am_i()
 {
   var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "php/who_am_i.php", false);
+  xmlhttp.open("GET", "../php/who_am_i.php", false);
   xmlhttp.send();
   name = xmlhttp.responseText;
   return name.trim();
@@ -271,10 +263,11 @@ function action_wrapper()
     document.getElementById("waiting_message").innerHTML="<br/>Please wait while the "+selected_vvuq+" Docker image is retrieved and launched.<br/>This may take a minute or so...<br/>";
     // --- Send form
     var formdata = new FormData();
+    formdata.append("VVebUQ_session_name", who_am_i().trim());
     formdata.append("docker_image", image_name);
     formdata.append("container_name", container_name);
     var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("POST", "php/launch_vvuq.php",true);
+    xmlhttp.open("POST", "../php/launch_vvuq.php",true);
     // --- We do this async because we want to catch the terminal output while the request runs...
     xmlhttp.onreadystatechange = function ()
     {
@@ -295,10 +288,10 @@ function action_wrapper()
     selected_vvuq = document.getElementById('vvuq_selector').value;
     if (selected_vvuq == 'dakota')
     {
-      container_name = 'dakota_container_'+who_am_i();
+      container_name = 'dakota_container_'+who_am_i().trim();
     }else
     {
-      container_name = 'easyvvuq_container_'+who_am_i();
+      container_name = 'easyvvuq_container_'+who_am_i().trim();
     }
     // --- Some info, including the Prominence URL
     prominence_url = execute_command('docker exec '+container_name+' bash -c \'echo $PROMINENCE_OIDC_URL\'');
@@ -306,9 +299,10 @@ function action_wrapper()
     document.getElementById("waiting_message").innerHTML='<br/>Please copy the token provided by Prominence<br/>and follow this link:<br/><a href="'+prominence_url+'/device" target="_blank">'+prominence_url+'/device</a><br/>';
     // --- Send form
     var formdata = new FormData();
+    formdata.append("VVebUQ_session_name", who_am_i().trim());
     formdata.append("selected_vvuq", selected_vvuq);
     var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("POST", "php/request_prominence_token.php",true);
+    xmlhttp.open("POST", "../php/request_prominence_token.php",true);
     // --- We do this async because we want to catch the terminal output while the request runs...
     xmlhttp.onreadystatechange = function ()
     {
@@ -333,7 +327,7 @@ function action_wrapper()
     var formdata = new FormData();
     formdata.append("docker_image", Docker_image);
     var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("POST", "php/pull_image.php",true);
+    xmlhttp.open("POST", "../php/pull_image.php",true);
     // --- We do this async because we want to catch the terminal output while the request runs...
     xmlhttp.onreadystatechange = function ()
     {
@@ -347,7 +341,7 @@ function action_wrapper()
         full_name = full_name_and_id.split(',');
         full_name = full_name[0];
         var xmlhttp = new XMLHttpRequest();
-        xmlhttp.open("GET", "php/image_registry.php?action=add_image&image="+full_name_and_id, false);
+        xmlhttp.open("GET", "../php/image_registry.php?action=add_image&image="+full_name_and_id, false);
         xmlhttp.send();
         // --- Make sure this image is selected in drop-down after reload
         reload_image_selector();
@@ -393,6 +387,7 @@ function action_wrapper()
     if (document.getElementById('cloud_selector').value == 'use_prominence') {use_prominence = 'true';}
     // --- Send form
     var formdata = new FormData();
+    formdata.append("VVebUQ_session_name", who_am_i().trim());
     formdata.append("docker_image_run", selected_image);
     formdata.append("selected_vvuq", selected_vvuq);
     formdata.append("input_file_name", input_file_name);
@@ -401,14 +396,14 @@ function action_wrapper()
     formdata.append("use_prominence", use_prominence);
     formdata.append("n_cpu", n_cpu);
     var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("POST", "php/create_runs.php",true);
+    xmlhttp.open("POST", "../php/create_runs.php",true);
     // --- We do this async because we want to catch the terminal output while the request runs...
     xmlhttp.onreadystatechange = function ()
     {
       if(this.readyState == 4 && this.status == 200)
       {
         // --- Print the containers logs
-        selected_run = execute_command('ls /VVebUQ_runs/ -tr | grep workdir | tail -n 1');
+        selected_run = execute_command('ls /VVebUQ_runs/'+who_am_i().trim()+'/ -tr | grep workdir | tail -n 1');
         selected_run = selected_run.replace("\n","");
         reload_run_selector();
         set_run_selector(selected_run);
@@ -434,7 +429,7 @@ function action_wrapper()
       // --- Call php script
       var xmlhttp = new XMLHttpRequest();
       run_name = select_run.replace("workdir_","");
-      xmlhttp.open("GET", "php/delete_run.php?run_name="+run_name, false);
+      xmlhttp.open("GET", "../php/delete_run.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, false);
       xmlhttp.send();
       set_run_selector(select_run);
       hide_waiting_div();
@@ -464,11 +459,11 @@ function action_wrapper()
       run_name = select_run.replace("workdir_","");
       // --- First delete run containers
       var xmlhttp = new XMLHttpRequest();
-      xmlhttp.open("GET", "php/delete_run.php?run_name="+run_name, false);
+      xmlhttp.open("GET", "../php/delete_run.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, false);
       xmlhttp.send();
       // --- And then delete data
       var xmlhttp = new XMLHttpRequest();
-      xmlhttp.open("GET", "php/delete_run_data.php?run_name="+run_name, false);
+      xmlhttp.open("GET", "../php/delete_run_data.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, false);
       xmlhttp.send();
       reload_run_selector();
       set_run_selector("select_run");
@@ -584,7 +579,7 @@ function pull_code_image()
   // --- Check if image has already been built
   Docker_image   = document.getElementById("docker_image").value;
   var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "php/image_registry.php?action=check_image&image="+Docker_image, false);
+  xmlhttp.open("GET", "../php/image_registry.php?action=check_image&image="+Docker_image, false);
   xmlhttp.send();
   image_found = xmlhttp.responseText;
   if (image_found == "found")
@@ -607,7 +602,7 @@ function get_code_images()
 {
   // --- Sanity check for the registered images
   var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "php/image_registry.php?action=get_all_images&image=not_needed", false);
+  xmlhttp.open("GET", "../php/image_registry.php?action=get_all_images&image=not_needed", false);
   xmlhttp.send();
   all_images = xmlhttp.responseText;
   output = [];
@@ -629,7 +624,7 @@ function get_code_image_id(image_name)
 {
   // --- Sanity check for the registered images
   var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "php/image_registry.php?action=get_all_images&image=not_needed", false);
+  xmlhttp.open("GET", "../php/image_registry.php?action=get_all_images&image=not_needed", false);
   xmlhttp.send();
   all_images = xmlhttp.responseText;
   if (all_images != "")
@@ -687,7 +682,7 @@ function reload_image_selector()
 {
   // --- Sanity check for the registered images
   var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "php/image_registry.php?action=sanity_check&image=not_needed", false);
+  xmlhttp.open("GET", "../php/image_registry.php?action=sanity_check&image=not_needed", false);
   xmlhttp.send();
 
   // --- Clean up selector
@@ -754,7 +749,7 @@ function download_user_example()
   execute_command('cd ../ ; zip -r example_user_workflow.zip ./example_user_workflow ; cd -');
   link = document.createElement("a");
   link.download = "download_docker_example.zip";
-  link.href = "./example_user_workflow.zip";
+  link.href = "../example_user_workflow.zip";
   link.click();
 }
 
@@ -956,10 +951,10 @@ function run_select(selected_option)
     setCookie('selected_run',selected_option.value,7);
     dir_name = selected_option.value;
     run_name = dir_name.split("workdir_");
-    run_name = "VVebUQ_CONTAINER_" + run_name[1];
+    run_name = run_name[1];
     // --- Call php script
     var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", "php/get_run_status.php?run_name="+run_name, false);
+    xmlhttp.open("GET", "../php/get_run_status.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, false);
     xmlhttp.send();
     containers = xmlhttp.responseText;
     // --- print the docker containers corresponding to job
@@ -987,7 +982,10 @@ function run_select_change(optionValToSelect)
 function get_previous_runs()
 {
   previous_runs = [];
-  output = execute_command('php list_runs.php');
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", "../php/list_runs.php?VVebUQ_session_name="+who_am_i().trim(), false);
+  xmlhttp.send();
+  output = xmlhttp.responseText;
   output = output.split("\n");
   for (i=0 ; i<output.length; i++)
   {
@@ -1095,6 +1093,8 @@ function file_select(selected_option)
   if (selected_option.value == "new_file")
   { 
     document.getElementById("upload_form").style.visibility="visible";
+    document.getElementById("progress_status").innerHTML = "";
+    document.getElementById("upload_comments").innerHTML = "";
     setCookie('selected_file','new_file',7);
   }else
   { 
@@ -1149,7 +1149,7 @@ function reload_file_selector()
 function get_existing_files()
 { 
   existing_files = [];
-  output = execute_command('ls -p /VVebUQ_runs/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -E ".csv|.ncd"');
+  output = execute_command('ls -p /VVebUQ_runs/'+who_am_i().trim()+'/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -E ".csv|.ncd"');
   output = output.split("\n");
   for (i=0 ; i<output.length; i++)
   { 
@@ -1163,8 +1163,7 @@ function get_existing_files()
 function check_input_file()
 {
   file_present = "false";
-  //output = execute_command('ls /VVebUQ_runs/');
-  output = execute_command('ls -p /VVebUQ_runs/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -E ".csv|.ncd"');
+  output = execute_command('ls -p /VVebUQ_runs/'+who_am_i().trim()+'/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -E ".csv|.ncd"');
   output = output.replace("\n","");
   if (output != "")
   {
@@ -1187,6 +1186,7 @@ function send_upload()
 
   var n_files = document.getElementById("fileToUpload").files.length;
   var formdata = new FormData();
+  formdata.append("VVebUQ_session_name", who_am_i().trim());
   for (k=0;k<n_files;k++)
   {
     var file = document.getElementById("fileToUpload").files[k];
@@ -1197,7 +1197,7 @@ function send_upload()
   ajax.addEventListener("load", completeHandler, false);
   ajax.addEventListener("error", errorHandler, false);
   ajax.addEventListener("abort", abortHandler, false);
-  ajax.open("POST", "php/upload.php");
+  ajax.open("POST", "../php/upload.php");
   ajax.send(formdata);
 }
 function progressHandler(event)
@@ -1213,7 +1213,7 @@ function completeHandler(event)
   document.getElementById("progressBar").value = 0;
   document.getElementById("progressBar").style.visibility="hidden";
   reload_file_selector();
-  last_file = execute_command('ls -ptr /VVebUQ_runs/ | grep -v "/" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -E ".csv|.ncd" | tail -n 1');
+  last_file = execute_command('ls -ptr /VVebUQ_runs/'+who_am_i().trim()+'/ | grep -v "/" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -E ".csv|.ncd" | tail -n 1');
   last_file = last_file.replace("\n","");
   file_select_change(last_file);
 }
@@ -1254,6 +1254,8 @@ function data_file_select(selected_option)
   if (selected_option.value == "new_data_file")
   { 
     document.getElementById("upload_data_form").style.visibility="visible";
+    document.getElementById("data_progress_status").innerHTML = "";
+    document.getElementById("data_upload_comments").innerHTML = "";
     setCookie('selected_data_file','new_data_file',7);
   }else
   { 
@@ -1308,7 +1310,7 @@ function reload_data_file_selector()
 function get_existing_data_files()
 { 
   existing_files = [];
-  output = execute_command('ls -p /VVebUQ_runs/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep ".zip"');
+  output = execute_command('ls -p /VVebUQ_runs/'+who_am_i().trim()+'/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep ".zip"');
   output = output.split("\n");
   for (i=0 ; i<output.length; i++)
   { 
@@ -1322,8 +1324,7 @@ function get_existing_data_files()
 function check_input_data_file()
 {
   file_present = "false";
-  //output = execute_command('ls /VVebUQ_runs/');
-  output = execute_command('ls -p /VVebUQ_runs/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep ".zip"');
+  output = execute_command('ls -p /VVebUQ_runs/'+who_am_i().trim()+'/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep ".zip"');
   output = output.replace("\n","");
   if (output != "")
   {
@@ -1346,6 +1347,7 @@ function send_data_upload()
 
   var n_files = document.getElementById("dataFileToUpload").files.length;
   var formdata = new FormData();
+  formdata.append("VVebUQ_session_name", who_am_i().trim());
   for (k=0;k<n_files;k++)
   {
     var file = document.getElementById("dataFileToUpload").files[k];
@@ -1356,7 +1358,7 @@ function send_data_upload()
   ajax.addEventListener("load", data_completeHandler, false);
   ajax.addEventListener("error", data_errorHandler, false);
   ajax.addEventListener("abort", data_abortHandler, false);
-  ajax.open("POST", "php/upload_data_file.php");
+  ajax.open("POST", "../php/upload_data_file.php");
   ajax.send(formdata);
 }
 function data_progressHandler(event)
@@ -1372,7 +1374,7 @@ function data_completeHandler(event)
   document.getElementById("data_progressBar").value = 0;
   document.getElementById("data_progressBar").style.visibility="hidden";
   reload_data_file_selector();
-  last_file = execute_command('ls -ptr /VVebUQ_runs/ | grep -v "/" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep ".zip" | tail -n 1');
+  last_file = execute_command('ls -ptr /VVebUQ_runs/'+who_am_i().trim()+'/ | grep -v "/" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep ".zip" | tail -n 1');
   last_file = last_file.replace("\n","");
   data_file_select_change(last_file);
 }
@@ -1417,7 +1419,7 @@ function result_select(selected_option)
     run_name = run_name.replace("workdir_","");
     // --- Call php script
     var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", "php/list_run_files.php?run_name="+run_name, false);
+    xmlhttp.open("GET", "../php/list_run_files.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, false);
     xmlhttp.send();
     output = xmlhttp.responseText;
     output_lines = output.split("\n");
@@ -1539,7 +1541,7 @@ function select_result_file(file_id)
   // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
   use_prominence = false;
   selected_result = document.getElementById('result_selector').value;
-  prominence_id = execute_command('cat /VVebUQ_runs/'+selected_result+'/prominence_workflow_id.txt');
+  prominence_id = execute_command('cat /VVebUQ_runs/'+who_am_i().trim()+'/'+selected_result+'/prominence_workflow_id.txt');
   prominence_id = prominence_id.trim();
   if ( (! prominence_id.includes('No such file or directory')) && (prominence_id != '') ) {use_prominence = true;}
   if (use_prominence)
@@ -1597,12 +1599,12 @@ function download_entire_run()
   run_name = selected_result.replace('workdir_','');
   // --- Call php script
   var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "php/download_run.php?run_name="+run_name+"&get_back_to_js=true", false);
+  xmlhttp.open("GET", "../php/download_run.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&get_back_to_js=true", false);
   xmlhttp.send();
   // --- Create artificial link to download target
   link = document.createElement("a");
   link.download = run_name+'.zip';
-  link.href = './downloads/'+run_name+'.zip';
+  link.href = '../downloads/'+run_name+'.zip';
   link.click();
 }
 function download_selected_files()
@@ -1610,7 +1612,7 @@ function download_selected_files()
   // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
   use_prominence = false;
   selected_result = document.getElementById('result_selector').value;
-  prominence_id = execute_command('cat /VVebUQ_runs/'+selected_result+'/prominence_workflow_id.txt');
+  prominence_id = execute_command('cat /VVebUQ_runs/'+who_am_i().trim()+'/'+selected_result+'/prominence_workflow_id.txt');
   prominence_id = prominence_id.trim();
   if ( (! prominence_id.includes('No such file or directory')) && (prominence_id != '') ) {use_prominence = true;}
   if (use_prominence)
@@ -1634,12 +1636,12 @@ function download_selected_files()
   }
   // --- Call php script
   var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "php/download_run_files.php?run_name="+run_name+file_list_php+"&get_back_to_js=true", false);
+  xmlhttp.open("GET", "../php/download_run_files.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+file_list_php+"&get_back_to_js=true", false);
   xmlhttp.send();
   // --- Create artificial link to download target
   link = document.createElement("a");
   link.download = run_name+'_selected.zip';
-  link.href = './downloads/'+run_name+'_selected.zip';
+  link.href = '../downloads/'+run_name+'_selected.zip';
   link.click();
 }
 
@@ -1698,7 +1700,7 @@ function getCookie(cname)
 function debug()
 {
     var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", "php/image_registry.php?action=remove_image&image=random/image:latest", false);
+    xmlhttp.open("GET", "../php/image_registry.php?action=remove_image&image=random/image:latest", false);
     xmlhttp.send();
     return xmlhttp.responseText;
 }

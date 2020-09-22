@@ -1,32 +1,33 @@
 <?php
 
+// --- Get session name
+$session_name = $_GET['VVebUQ_session_name'];
+  
 // --- Name of run directory
-$dir_name = 'workdir_'.$_GET["run_name"];
-$run_name = '/VVebUQ_runs/workdir_'.$_GET["run_name"];
+$dir_name = '/VVebUQ_runs/'.$session_name.'/workdir_'.$_GET["run_name"];
 
 // --- Count number of sub-tasks in that run
-$all_sub_runs  = shell_exec('ls '.$run_name.' | grep workdir_VVebUQ | grep -v ".json"');
+$all_sub_runs  = shell_exec('ls '.$dir_name.' | grep workdir_VVebUQ | grep -v ".json"');
 $all_sub_runs  = preg_split("/\r\n|\n|\r/",$all_sub_runs);
 $n_runs = count($all_sub_runs) - 1;
 
-$prominence_id_file = $run_name.'/prominence_workflow_id.txt';
+$prominence_id_file = $dir_name.'/prominence_workflow_id.txt';
 $use_prominence = file_exists($prominence_id_file);
 
 // --- Before checking everything, check which vvuq software we're using
-$arguments = shell_exec('cat /VVebUQ_runs/'.$dir_name.'/arguments_for_vvuq_script.txt');
+$arguments = shell_exec('cat '.$dir_name.'/arguments_for_vvuq_script.txt');
 $arguments = preg_split('/\s+/',trim($arguments));
-$selected_vvuq = trim($arguments[count($arguments)-1]);
+$selected_vvuq = trim($arguments[count($arguments)-2]);
 
 // --- The VVUQ container name depends on the user
-$who_am_i = shell_exec('php who_am_i.php');
-$vvuq_container = $selected_vvuq.'_container_'.$who_am_i;
+$vvuq_container = $selected_vvuq.'_container_'.$session_name;
 
 // --- Simple case with containers
 $all_files = array();
 if (! $use_prominence)
 {
   // --- Get list of files and folders
-  $command = 'ls -p '.$run_name.'/'.$all_sub_runs[0].'/';
+  $command = 'ls -p '.$dir_name.'/'.$all_sub_runs[0].'/';
   $command = $command.' | grep -v "arguments_for_vvuq_script.txt"';
   $command = $command.' | grep -v "dakota_params"';
   $command = $command.' | grep -v "dakota_results"';

@@ -1,7 +1,10 @@
 <?php
 
+// --- Get session name
+$session_name = $_GET['VVebUQ_session_name'];
+
 // --- Get name of containers
-$run_name = 'VVebUQ_CONTAINER_'.$_GET["run_name"];
+$run_name = 'VVebUQ_CONTAINER_'.$session_name.'_'.$_GET["run_name"];
 $dir_name  = 'workdir_'.$_GET["run_name"];
 
 // --- Remove all containers
@@ -11,11 +14,10 @@ $use_prominence = file_exists($prominence_id_file);
 // --- Before checking everything, check which vvuq software we're using
 $arguments = shell_exec('cat /VVebUQ_runs/'.$dir_name.'/arguments_for_vvuq_script.txt');
 $arguments = preg_split('/\s+/',trim($arguments));
-$selected_vvuq = trim($arguments[count($arguments)-1]);
+$selected_vvuq = trim($arguments[count($arguments)-2]);
 
 // --- The VVUQ container name depends on the user
-$who_am_i = shell_exec('php who_am_i.php');
-$vvuq_container = $selected_vvuq.'_container_'.$who_am_i;
+$vvuq_container = $selected_vvuq.'_container_'.$session_name;
 
 // --- Simple case with containers
 if (! $use_prominence)

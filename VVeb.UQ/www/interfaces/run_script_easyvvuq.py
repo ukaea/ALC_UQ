@@ -7,10 +7,10 @@ import subprocess
 
 
 # --- Function to execute command with interactive printout sent to web-terminal in real-time
-def interactive_command(cmd):
+def interactive_command(cmd,session_name):
     # --- Execute command
     try:
-        cmd2 = 'printf "' + cmd + '" > /VVebUQ_runs/terminal_command.txt'
+        cmd2 = 'printf "' + cmd + '" > /VVebUQ_runs/'+session_name+'/terminal_command.txt'
         process = subprocess.Popen(cmd2, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process.wait()
         process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -22,7 +22,7 @@ def interactive_command(cmd):
     # --- Get output to web-terminal printout
     try:
         output = str(process.stdout.read(),'utf-8')
-        cmd2 = 'printf "new container: ' + output + '" >> /VVebUQ_runs/terminal_output.txt'
+        cmd2 = 'printf "new container: ' + output + '" >> /VVebUQ_runs/'+session_name+'/terminal_output.txt'
         process = subprocess.Popen(cmd2, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process.wait()
     except  Exception as exc:
@@ -68,7 +68,7 @@ process.wait()
 with open('arguments_for_vvuq_script.txt') as args_file:
     data = args_file.read()
 my_args = data.strip().split(' ')
-if (len(my_args) != 10):
+if (len(my_args) != 11):
     print('run_script: not enough arguments in arguments_for_vvuq_script.txt')
     sys.exit()
 container_name = my_args[0]
@@ -81,6 +81,7 @@ user_inter_dir = my_args[6]
 use_prominence = my_args[7]
 n_cpu          = my_args[8]
 selected_vvuq  = my_args[9]
+session_name   = my_args[10]
 
 # --- Deal with the inputs
 with open(json_input, "r") as f:
@@ -103,7 +104,7 @@ with open(filename, 'w') as output_file:
 
 # --- Unzip data file if present
 if ( (data_filename != 'none') and (data_filename != 'select_data_file') ):
-    interactive_command('unzip -u '+data_filename)
+    interactive_command('unzip -u '+data_filename,session_name)
 
 # --- Last I tried, easyVVUQ average didn't work unless result had at least two values
 with open(output_filename, 'w') as output_file:

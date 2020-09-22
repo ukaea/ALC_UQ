@@ -1,6 +1,9 @@
 <?php
 
 
+// --- Get session name
+$session_name = $_POST['VVebUQ_session_name'];
+
 // --- Get number of files
 $n_files = count($_FILES["dataFileToUpload"]["name"]);
 if($n_files == 0) 
@@ -32,7 +35,7 @@ for($i=0 ; $i<$n_files ; $i++)
       $new_name = $name_part;
     }
   }		  
-  $new_name = '/VVebUQ_runs/'.$new_name;
+  $new_name = '/VVebUQ_runs/'.$session_name.'/'.$new_name;
  
   // --- Define temporary target file here (it will be moved after upload)
   $target_file = basename($_FILES["dataFileToUpload"]["name"][$i]);

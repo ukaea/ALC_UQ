@@ -1,8 +1,10 @@
 <?php
 
+// --- Get session name
+$session_name = $_POST['VVebUQ_session_name'];
+
 // --- The VVUQ container name depends on the user
-$who_am_i = shell_exec('php who_am_i.php');
-$vvuq_container = strtolower(trim($_POST["selected_vvuq"])).'_container_'.$who_am_i;
+$vvuq_container = strtolower(trim($_POST["selected_vvuq"])).'_container_'.$session_name;
 
 // --- If we have been called from restAPI, need to print command to terminal
 if (isset($_POST["action"]))
@@ -10,12 +12,12 @@ if (isset($_POST["action"]))
   $printout_location = '';
 }else
 {
-  $printout_location = ' &> /VVebUQ_runs/terminal_output.txt';
+  $printout_location = ' &> /VVebUQ_runs/'.$session_name.'/terminal_output.txt';
 }
 
 // --- Execute request
 $command = 'docker exec -t '.$vvuq_container.' prominence register';
-shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
+shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/'.$session_name.'/terminal_command.txt');
 $command = $command.$printout_location;
 if (isset($_POST["action"]))
 {
@@ -32,7 +34,7 @@ if (isset($_POST["action"]))
 }
 
 $command = 'docker exec -t '.$vvuq_container.' prominence login';
-shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/terminal_command.txt');
+shell_exec('printf \''.$command.'\n\' &> /VVebUQ_runs/'.$session_name.'/terminal_command.txt');
 $command = $command.$printout_location;
 if (isset($_POST["action"]))
 {

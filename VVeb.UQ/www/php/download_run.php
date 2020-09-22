@@ -1,27 +1,29 @@
 <?php
 
+// --- Get session name
+$session_name = $_GET['VVebUQ_session_name'];
+
 // --- Get run directory
 $run_name = $_GET["run_name"];
 $dir_name  = 'workdir_'.$run_name;
 
 // --- Create zip file of entire run
-$prominence_id_file = '/VVebUQ_runs/'.$dir_name.'/prominence_workflow_id.txt';
+$prominence_id_file = '/VVebUQ_runs/'.$session_name.'/'.$dir_name.'/prominence_workflow_id.txt';
 $use_prominence = file_exists($prominence_id_file);
 
 // --- Before checking everything, check which vvuq software we're using
-$arguments = shell_exec('cat /VVebUQ_runs/'.$dir_name.'/arguments_for_vvuq_script.txt');
+$arguments = shell_exec('cat /VVebUQ_runs/'.$session_name.'/'.$dir_name.'/arguments_for_vvuq_script.txt');
 $arguments = preg_split('/\s+/',trim($arguments));
-$selected_vvuq = trim($arguments[count($arguments)-1]);
+$selected_vvuq = trim($arguments[count($arguments)-2]);
 
 // --- The VVUQ container name depends on the user
-$who_am_i = shell_exec('php who_am_i.php');
-$vvuq_container = $selected_vvuq.'_container_'.$who_am_i;
+$vvuq_container = $selected_vvuq.'_container_'.$session_name;
 
 // --- Simple case with containers
 if (! $use_prominence)
 {
-  shell_exec('cd /VVebUQ_runs/ ; rm -f '.$run_name.'.zip ; cd -');
-  shell_exec('cd /VVebUQ_runs/ ; zip -r '.$run_name.'.zip ./'.$dir_name.' ; cd -');
+  shell_exec('cd /VVebUQ_runs/'.$session_name.'/ ; rm -f '.$run_name.'.zip ; cd -');
+  shell_exec('cd /VVebUQ_runs/'.$session_name.'/ ; zip -r '.$run_name.'.zip ./'.$dir_name.' ; cd -');
 }else
 {
   $prominence_id = shell_exec('cat '.$prominence_id_file);
@@ -69,7 +71,7 @@ if (! $use_prominence)
         $command = 'docker exec -t '.$vvuq_container.' bash -c \'rm /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
         $success = shell_exec($command);
         // --- Move zip to right place
-        $command = 'docker exec -t '.$vvuq_container.' bash -c \'mv /'.$selected_vvuq.'_dir/'.$run_name.'.zip /VVebUQ_runs/\'';
+        $command = 'docker exec -t '.$vvuq_container.' bash -c \'mv /'.$selected_vvuq.'_dir/'.$run_name.'.zip /VVebUQ_runs/'.$session_name.'/\'';
         $success = shell_exec($command);
       }
     }
@@ -78,7 +80,7 @@ if (! $use_prominence)
 
 
 // --- Move zip file to downloads/
-shell_exec('mkdir -p ../downloads ; mv /VVebUQ_runs/'.$run_name.'.zip ../downloads/');
+shell_exec('mkdir -p ../downloads ; mv /VVebUQ_runs/'.$session_name.'/'.$run_name.'.zip ../downloads/');
 
 // --- We read file into output only for the restAPI
 if (! isset($_GET["get_back_to_js"]))
