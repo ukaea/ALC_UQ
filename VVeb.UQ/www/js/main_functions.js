@@ -1708,7 +1708,7 @@ function download_entire_run()
   // --- Create artificial link to download target
   link = document.createElement("a");
   link.download = run_name+'.zip';
-  link.href = '../downloads/'+run_name+'.zip';
+  link.href = '../VVebUQ_downloads/'+who_am_i().trim()+'/'+run_name+'.zip';
   link.click();
 }
 function download_selected_files()
@@ -1748,7 +1748,7 @@ function download_selected_files()
   // --- Create artificial link to download target
   link = document.createElement("a");
   link.download = run_name+'_selected.zip';
-  link.href = '../downloads/'+run_name+'_selected.zip';
+  link.href = '../VVebUQ_downloads/'+who_am_i().trim()+'/'+run_name+'_selected.zip';
   link.click();
 }
 

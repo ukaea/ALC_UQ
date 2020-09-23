@@ -5,6 +5,7 @@ $vvebuq_mounts = shell_exec('docker inspect -f "{{.Mounts}}" '.$vvebuq_id);
 $vvebuq_mounts = explode('} {',$vvebuq_mounts);
 $user_interface = '';
 $working_directory = '';
+$download_directory = '';
 foreach ($vvebuq_mounts as $mount_tmp)
 {
   if (    (strpos($mount_tmp, 'bind') !== false)
@@ -25,9 +26,18 @@ foreach ($vvebuq_mounts as $mount_tmp)
     {
       $working_directory = $working_directory.'/';
     }
+  }elseif (    (strpos($mount_tmp, 'bind') !== false)
+            && (strpos($mount_tmp, 'VVebUQ_downloads') !== false) )
+  {
+    $download_directory = trim(explode('bind',$mount_tmp)[1]);
+    $download_directory = trim(preg_split('/\s+/',$download_directory)[0]);
+    if (substr($download_directory, -1) != '/')
+    {
+      $download_directory = $download_directory.'/';
+    }
   }
 }
 
-echo $working_directory.','.$user_interface;
+echo $working_directory.','.$user_interface.','.$download_directory;
 
 ?>

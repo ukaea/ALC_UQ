@@ -7,9 +7,13 @@ $session_name = $_GET['VVebUQ_session_name'];
 $run_name = $_GET["run_name"];
 $dir_name  = 'workdir_'.$run_name;
 
+// --- The download location depends on the user
+$download_dir = '/var/www/html/VVebUQ_downloads/'.$session_name.'/';
+shell_exec('mkdir -p '.$download_dir);
+
 // --- Get names of selected files
 $files = $_GET["files"];
-$zip_command = 'zip -rg '.$run_name.'_selected.zip ';
+$zip_command = 'zip -rg '.$download_dir.$run_name.'_selected.zip ';
 foreach ($files as $file)
 {
   if (trim($file) != '')
@@ -24,11 +28,11 @@ shell_exec('cd /VVebUQ_runs/'.$session_name.'/ ; rm -f '.$run_name.'_selected.zi
 shell_exec('cd /VVebUQ_runs/'.$session_name.'/ ; '.$zip_command.' ; cd -');
 
 // --- Move zip file to downloads/
-shell_exec('mkdir -p ../downloads ; mv /VVebUQ_runs/'.$session_name.'/'.$run_name.'_selected.zip ../downloads/');
+shell_exec('mv /VVebUQ_runs/'.$session_name.'/'.$run_name.'_selected.zip '.$download_dir);
 
 // --- We read file into output only for the restAPI
 if (! isset($_GET["get_back_to_js"]))
 {
-  readfile('../downloads/'.$run_name.'_selected.zip');
+  readfile($download_dir.$run_name.'_selected.zip');
 }
 ?>

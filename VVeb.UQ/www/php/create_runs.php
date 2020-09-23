@@ -59,9 +59,9 @@ if ($file_ext == 'csv') {$file_type = 'csv';}
 // --- Get the additional-data file name
 $data_filename = trim($arguments["input_data_file_name"]);
 
-// --- Get run-dir
+// --- Get mount-paths
 $mount_paths = shell_exec('php ../php/get_mount_paths.php');
-$run_dir = trim(explode(',',$mount_paths)[0]);
+$run_dir        = trim(explode(',',$mount_paths)[0]);
 $user_inter_dir = trim(explode(',',$mount_paths)[1]);
 
 // --- The VVUQ container name depends on the user

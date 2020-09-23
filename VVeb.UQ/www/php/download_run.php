@@ -19,13 +19,22 @@ $selected_vvuq = trim($arguments[count($arguments)-2]);
 // --- The VVUQ container name depends on the user
 $vvuq_container = $selected_vvuq.'_container_'.$session_name;
 
+// --- Note: The download location depends on the user, and on Prominence vs. the app
+// --- There are two download locations: the one for Prominence, which needs to be inside the VVUQ container
+// --- And the one from the app itself, which needs to be accessible from /var/www/html/
+// --- They are both the same mounted dir, but the name in the app is /var/www/html/VVebUQ_downloads/
+// --- whereas it's just /VVebUQ_downloads/ in the VVUQ container
+$download_dir = '/var/www/html/VVebUQ_downloads/'.$session_name.'/';
+shell_exec('mkdir -p '.$download_dir);
+
 // --- Simple case with containers
 if (! $use_prominence)
 {
-  shell_exec('cd /VVebUQ_runs/'.$session_name.'/ ; rm -f '.$run_name.'.zip ; cd -');
-  shell_exec('cd /VVebUQ_runs/'.$session_name.'/ ; zip -r '.$run_name.'.zip ./'.$dir_name.' ; cd -');
+  shell_exec('cd '.$download_dir.' ; rm -f '.$run_name.'.zip ; cd -');
+  shell_exec('cd /VVebUQ_runs/'.$session_name.'/ ; zip -r '.$download_dir.$run_name.'.zip '.$dir_name.' ; cd -');
 }else
 {
+  $download_dir = '/VVebUQ_downloads/'.$session_name.'/';
   $prominence_id = shell_exec('cat '.$prominence_id_file);
   $prominence_id = trim($prominence_id);
   if ($prominence_id == '')
@@ -54,38 +63,32 @@ if (! $use_prominence)
           }
         }
         // --- First remove existing files
-        $command = 'docker exec -t '.$vvuq_container.' bash -c \'rm /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
+        $command = 'docker exec -w '.$download_dir.' -t '.$vvuq_container.' bash -c \'rm workdir_VVebUQ.*.tgz *.zip\'';
         $success = shell_exec($command);
         // --- Download each job
         for ($i=1; $i< count($containers_lines); $i++)
         {
           if (trim($containers_lines[$i]) == '') {continue;}
           $prominence_job_id = preg_split('/\s+/',$containers_lines[$i])[$ID_position];
-          $command = 'docker exec -t '.$vvuq_container.' bash -c \'prominence download '.$prominence_job_id.'\'';
+          $command = 'docker exec -w '.$download_dir.' -t '.$vvuq_container.' bash -c \'prominence download '.$prominence_job_id.'\'';
           $success = shell_exec($command);
         }
         // --- zip everything together
-        $command = 'docker exec -t '.$vvuq_container.' bash -c \'cd /'.$selected_vvuq.'_dir/ ; rm -f '.$run_name.'.zip ; zip '.$run_name.'.zip workdir_VVebUQ.*.tgz\'';
+        $command = 'docker exec -w '.$download_dir.' -t '.$vvuq_container.' bash -c \'zip '.$run_name.'.zip workdir_VVebUQ.*.tgz\'';
         $success = shell_exec($command);
         // --- Remove tarballs
-        $command = 'docker exec -t '.$vvuq_container.' bash -c \'rm /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
-        $success = shell_exec($command);
-        // --- Move zip to right place
-        $command = 'docker exec -t '.$vvuq_container.' bash -c \'mv /'.$selected_vvuq.'_dir/'.$run_name.'.zip /VVebUQ_runs/'.$session_name.'/\'';
+        $command = 'docker exec -w '.$download_dir.' -t '.$vvuq_container.' bash -c \'rm workdir_VVebUQ.*.tgz\'';
         $success = shell_exec($command);
       }
     }
   }
 }
 
-
-// --- Move zip file to downloads/
-shell_exec('mkdir -p ../downloads ; mv /VVebUQ_runs/'.$session_name.'/'.$run_name.'.zip ../downloads/');
-
 // --- We read file into output only for the restAPI
 if (! isset($_GET["get_back_to_js"]))
 {
-  readfile('../downloads/'.$run_name.'.zip');
+  $download_dir = '/var/www/html/VVebUQ_downloads/'.$session_name.'/';
+  readfile($download_dir.$run_name.'.zip');
 }
 
 ?>
