@@ -128,6 +128,15 @@ if ($ACTION == 'launch_run')
   {
     clean_exit("Local runs are forbidden".$run_locally_forbidden.", you need to use Prominence!");
   }
+  // --- Check that Docker image exists
+  if ($run_locally_forbidden != '')
+  {
+    $image_exists = shell_exec('php ../php/check_image.php '.$_POST["docker_image_run"]);
+    if (trim($image_exists) == '')
+    {
+      clean_exit("Could not find your Docker image in the Docker-hub repository, please double check.");
+    }
+  }
   // --- Check if Prominence Token still valid
   if ($_POST["use_prominence"] == 'true')
   {
