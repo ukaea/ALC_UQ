@@ -93,7 +93,7 @@ for key in (inputs):
         all_vars.append(float(inputs[key]))
 
 # --- Preprocessing (ie. convert dakota params file back to netcdf)
-#cmd = 'python3 /vvuq_user_interface/python/interface.py dakota_params dakota_results %s %s' % (filename, file_type)
+#cmd = 'python3 /VVebUQ_user_interface/python/interface.py dakota_params dakota_results %s %s' % (filename, file_type)
 #process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 #process.wait()
 # --- User-interface will need to be developped to deal with easyVVUQ input instead

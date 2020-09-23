@@ -29,7 +29,7 @@ if (trim($container_running) != '')
 }
 
 // --- Run Container
-$command = 'docker container run --privileged --name '.$container_name.' -v /var/run/docker.sock:/var/run/docker.sock -v '.$run_dir.':/VVebUQ_runs/ -v '.$user_inter_dir.':/vvuq_user_interface/ -v '.$download_dir.':/VVebUQ_downloads/ -id '.$image_name;
+$command = 'docker container run --privileged --name '.$container_name.' -v /var/run/docker.sock:/var/run/docker.sock -v '.$run_dir.':/VVebUQ_runs/ -v '.$user_inter_dir.':/VVebUQ_user_interface/ -v '.$download_dir.':/VVebUQ_downloads/ -id '.$image_name;
 shell_exec('printf \''.$command.'\n\' > /VVebUQ_runs/'.$session_name.'/terminal_command.txt');
 shell_exec($command.' &> /VVebUQ_runs/'.$session_name.'/terminal_output.txt');
 

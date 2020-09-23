@@ -62,7 +62,7 @@ selected_vvuq  = my_args[9]
 session_name   = my_args[10]
 
 # --- Preprocessing (ie. convert dakota params file back to netcdf)
-cmd = 'python3 /vvuq_user_interface/python/interface.py dakota_params dakota_results %s %s' % (filename, file_type)
+cmd = 'python3 /VVebUQ_user_interface/python/interface.py dakota_params dakota_results %s %s' % (filename, file_type)
 process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 process.wait()
 

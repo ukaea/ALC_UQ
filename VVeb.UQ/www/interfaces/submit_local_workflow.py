@@ -73,7 +73,7 @@ except  Exception as exc:
 # --- Run container for each dir
 for my_dir in subdirs:
     if (my_dir.strip() != ''):
-        cmd = 'docker container run --privileged --name ' + container_name + '_' + my_dir + ' -v ' + run_dir + '/' + my_dir + ':/tmp/work_dir/ -v ' + user_inter_dir + ':/vvuq_user_interface/ -d ' + image_name
+        cmd = 'docker container run --privileged --name ' + container_name + '_' + my_dir + ' -v ' + run_dir + '/' + my_dir + ':/tmp/work_dir/ -v ' + user_inter_dir + ':/VVebUQ_user_interface/ -d ' + image_name
         interactive_command(cmd,session_name)
 
 

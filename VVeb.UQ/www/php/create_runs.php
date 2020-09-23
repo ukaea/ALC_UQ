@@ -109,7 +109,7 @@ shell_exec('echo "JOB_BEING_PREPARED_FOR_SUBMISSION" > '.$base_dir.'/JOB_BEING_P
 // --- Produce VVUQ input file (for Dakota) or python script (for easyvvuq) based on netcdf file provided by user
 if ($arguments["selected_vvuq"] == 'dakota')
 {
-  $command_user_interface = 'python3 /vvuq_user_interface/python/main.py';
+  $command_user_interface = 'python3 /VVebUQ_user_interface/python/main.py';
   $out_file_user_interface = 'dakota_run.in';
   $command_vvuq = 'dakota -i ./dakota_run.in -o dakota_run.out';
 }else

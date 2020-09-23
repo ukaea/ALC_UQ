@@ -1,6 +1,6 @@
 # Include dakota folder
 import sys
-sys.path.insert(1, '/vvuq_user_interface/python/')
+sys.path.insert(1, '/VVebUQ_user_interface/python/')
 
 import numpy as np
 import xarray as xr

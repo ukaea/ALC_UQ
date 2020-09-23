@@ -124,22 +124,22 @@ token = get_prominence_token()
 headers = {'Authorization':'Bearer %s' % token}
 
 # --- Upload Dakota user interface
-tarball = 'vvuq_user_interface.tgz'
-interactive_command('tar -cvzf '+tarball+' /vvuq_user_interface',session_name)
+tarball = 'VVebUQ_user_interface.tgz'
+interactive_command('tar -cvzf '+tarball+' /VVebUQ_user_interface',session_name)
 # --- Get url from Prominence for this upload
 url = get_prominence_upload_url(tarball, headers)
 if (url is None):
-    print('Prominence: Unable to obtain upload URL for vvuq_user_interface')
+    print('Prominence: Unable to obtain upload URL for VVebUQ_user_interface')
     sys.exit()
 # --- Upload zipped file to Prominence
 try:
     with open(tarball, 'rb') as file_obj:
         response = requests.put(url, data=file_obj, timeout=60)
 except Exception as exc:
-    print('Prominence: Unable to upload vvuq_user_interface tarball due to', exc)
+    print('Prominence: Unable to upload VVebUQ_user_interface tarball due to', exc)
     sys.exit()
 if (response.status_code != 200):
-    print('Prominence: Unable to upload vvuq_user_interface tarball due to status error: ', response.status_code)
+    print('Prominence: Unable to upload VVebUQ_user_interface tarball due to status error: ', response.status_code)
     sys.exit()
 # --- Remove zipped file now that it's uploaded
 os.remove(tarball)
@@ -184,8 +184,8 @@ for my_dir in subdirs:
     artifact1['url'] = tarball
     artifact1['mountpoint'] = '%s:/tmp/work_dir' % my_dir
     artifact2 = {}
-    artifact2['url'] = 'vvuq_user_interface.tgz'
-    artifact2['mountpoint'] = 'vvuq_user_interface:/vvuq_user_interface'
+    artifact2['url'] = 'VVebUQ_user_interface.tgz'
+    artifact2['mountpoint'] = 'VVebUQ_user_interface:/VVebUQ_user_interface'
     job = {}
     job['name'] = '%s' % my_dir
     job['name'] = job['name'].replace('.', '_')
