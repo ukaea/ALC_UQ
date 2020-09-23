@@ -9,10 +9,8 @@ if ($username == '')
 }
 
 // --- Get run-dir required for Docker-mounts
-$run_dir = shell_exec('cat config.in | grep -i APP_DIRECTORY');
-$run_dir = explode(' = ',$run_dir)[1];
-$run_dir = trim(str_replace("\n", '', $run_dir));
-$name_split = preg_split('/VVeb.UQ/', $run_dir);
+$mount_paths = shell_exec('php ../php/get_mount_paths.php');
+$run_dir = trim(explode(',',$mount_paths)[0]);
 
 // --- Check existing user workdirs in main directory
 $workdirs = shell_exec('ls /VVebUQ_runs/ | grep VVebUQ_user_ | grep _id_');
@@ -75,7 +73,13 @@ if ($user_already_has_session)
   $session_address = $session_address.$user_hash.'/';
   if (isset($_GET['FROM_WEB_FRONT']))
   {
+    echo '<div style="background:black;color:white">';
     echo 'You already have a session running, please follow this link:<br/><a href="'.$session_address.'">'.$session_address.'</a>';
+    echo '<br/><br/>Note you can also use the command-line rest-API with the link<br/>'.$session_address.'rest_api.php';
+    echo '<br/><br/>please visit';
+    echo '<br/><a href="https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ">https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ</a>';
+    echo '<br/>for detailed instructions.';
+    echo '</div>';
   }else
   {
     echo "You already have a session running, please follow this link:\n";
@@ -100,7 +104,13 @@ if ($user_already_has_session)
   // --- Return link of new session to user
   if (isset($_GET['FROM_WEB_FRONT']))
   {
+    echo '<div style="background:black;color:white">';
     echo 'You now have a new session running, please follow this link:<br/><a href="'.$session_address.'">'.$session_address.'</a>';
+    echo '<br/><br/>Note you can also use the command-line rest-API with the link<br/>'.$session_address.'rest_api.php';
+    echo '<br/><br/>please visit';
+    echo '<br/><a href="https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ">https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ</a>';
+    echo '<br/>for detailed instructions.';
+    echo '</div>';
   }else
   {
     echo "You now have a new session running, please follow this link:\n";

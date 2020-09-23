@@ -60,11 +60,9 @@ if ($file_ext == 'csv') {$file_type = 'csv';}
 $data_filename = trim($arguments["input_data_file_name"]);
 
 // --- Get run-dir
-$run_dir = shell_exec('cat config.in | grep -i APP_DIRECTORY');
-$run_dir = explode(' = ',$run_dir)[1];
-$run_dir = trim(str_replace("\n", '', $run_dir));
-$name_split = preg_split('/VVeb.UQ/', $run_dir);
-$user_inter_dir = $name_split[0].'user_interface/';
+$mount_paths = shell_exec('php ../php/get_mount_paths.php');
+$run_dir = trim(explode(',',$mount_paths)[0]);
+$user_inter_dir = trim(explode(',',$mount_paths)[1]);
 
 // --- The VVUQ container name depends on the user
 $vvuq_container = $arguments["selected_vvuq"].'_container_'.$arguments["VVebUQ_session_name"];
