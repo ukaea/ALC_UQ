@@ -7,7 +7,7 @@ $session_name = $_POST['VVebUQ_session_name'];
 // --- Get Form Variables
 $image_name = $_POST["docker_image"];
 $container_name = $_POST["container_name"];
-$run_dir = shell_exec('cat config.in | grep APP_DIRECTORY');
+$run_dir = shell_exec('cat config.in | grep -i APP_DIRECTORY');
 $run_dir = explode(' = ',$run_dir)[1];
 $run_dir = trim(str_replace("\n", '', $run_dir));
 $name_split = preg_split('/VVeb.UQ/', $run_dir);

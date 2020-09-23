@@ -123,7 +123,7 @@ if ($ACTION == 'launch_run')
   $vvuq_container = shell_exec('docker ps -aqf name='.$_POST["selected_vvuq"].'_container_'.$session_name.' --filter status=running');
   if (trim($vvuq_container) == '') {clean_exit("Before launching a run, you need to launch a VVUQ container");}
   // --- Check that local runs are allowed
-  $run_locally_forbidden = trim(shell_exec('cat config.in | grep LOCAL_RUNS_ALLOWED | grep FALSE'));
+  $run_locally_forbidden = trim(shell_exec('cat config.in | grep -i LOCAL_RUNS_ALLOWED | grep -i FALSE'));
   if ( ($run_locally_forbidden != '') && ($_POST["use_prominence"] == 'false') )
   {
     clean_exit("Local runs are forbidden".$run_locally_forbidden.", you need to use Prominence!");

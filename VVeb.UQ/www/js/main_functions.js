@@ -342,7 +342,7 @@ function action_wrapper()
         full_name = full_name_and_id.split(',');
         full_name = full_name[0];
         var xmlhttp = new XMLHttpRequest();
-        xmlhttp.open("GET", "../php/image_registry.php?action=add_image&image="+full_name_and_id, false);
+        xmlhttp.open("GET", "../php/image_registry.php?action=add_image&image="+full_name_and_id+"&VVebUQ_session_name="+who_am_i().trim(), false);
         xmlhttp.send();
         // --- Make sure this image is selected in drop-down after reload
         reload_image_selector();
@@ -580,30 +580,56 @@ function pull_code_image()
   // --- Check if image has already been built
   Docker_image   = document.getElementById("docker_image").value;
   var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "../php/image_registry.php?action=check_image&image="+Docker_image, false);
+  xmlhttp.open("GET", "../php/image_registry.php?action=check_image&image="+Docker_image+"&VVebUQ_session_name="+who_am_i().trim(), false);
   xmlhttp.send();
   image_found = xmlhttp.responseText;
+  // --- Just check image exists if not running locally
+  local_runs = execute_command('cat config.in | grep -i LOCAL_RUNS_ALLOWED').split(' = ')[1].trim();
+  if (! local_runs.toLowerCase().includes('true'))
+  {
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", "../php/check_image.php?docker_image="+Docker_image, false);
+    xmlhttp.send();
+    image_exists = xmlhttp.responseText;
+    if (image_exists.trim() != '')
+    {
+      full_name_and_id= Docker_image.trim()+',nonlocal';
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.open("GET", "../php/image_registry.php?action=add_image&image="+full_name_and_id+"&VVebUQ_session_name="+who_am_i().trim(), false);
+      xmlhttp.send();
+      // --- Make sure this image is selected in drop-down after reload
+      reload_image_selector();
+      set_image_selector(Docker_image);
+      return;
+    }else
+    {
+      show_waiting_div();
+      document.getElementById("waiting_message").innerHTML="<br/>The image you specified cannot be found on the Docker hub registry."
+                                                          +"<br/>Please double check or contact VVebUQ developers.<br/>";
+      document.getElementById("action_wrapper_button").style.visibility="hidden";
+      return;
+    }
+  }
+  // --- If running locally, pull image
+  show_waiting_div();
   if (image_found == "found")
   { 
-    show_waiting_div();
     document.getElementById("waiting_message").innerHTML="<br/>WARNING: you already have a built image for:"
                                                         +"<br/>"+Docker_image+"<br/>"
                                                         +"<br/>This will over-write it with a new (updated?) image."
                                                         +"<br/>Are you sure you want to action this request?<br/>";
-    action_specification = "pull_code";
   }else
-  // --- Launch a new container
   {
-    show_waiting_div();
-    document.getElementById("waiting_message").innerHTML="<br/>This will pull a new Docker image of your code.<br/>Are you sure you want to action this request?<br/>";
-    action_specification = "pull_code";
+    document.getElementById("waiting_message").innerHTML="<br/>This will pull a new Docker image of your code."
+		                                        +"<br/>Are you sure you want to action this request?<br/>";
   }
+  action_specification = "pull_code";
 }
 function get_code_images()
 {
   // --- Sanity check for the registered images
   var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "../php/image_registry.php?action=get_all_images&image=not_needed", false);
+  xmlhttp.open("GET", "../php/image_registry.php?action=get_all_images&image=not_needed"+"&VVebUQ_session_name="+who_am_i().trim(), false);
   xmlhttp.send();
   all_images = xmlhttp.responseText;
   output = [];
@@ -625,7 +651,7 @@ function get_code_image_id(image_name)
 {
   // --- Sanity check for the registered images
   var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "../php/image_registry.php?action=get_all_images&image=not_needed", false);
+  xmlhttp.open("GET", "../php/image_registry.php?action=get_all_images&image=not_needed"+"&VVebUQ_session_name="+who_am_i().trim(), false);
   xmlhttp.send();
   all_images = xmlhttp.responseText;
   if (all_images != "")
@@ -683,7 +709,7 @@ function reload_image_selector()
 {
   // --- Sanity check for the registered images
   var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "../php/image_registry.php?action=sanity_check&image=not_needed", false);
+  xmlhttp.open("GET", "../php/image_registry.php?action=sanity_check&image=not_needed"+"&VVebUQ_session_name="+who_am_i().trim(), false);
   xmlhttp.send();
 
   // --- Clean up selector
@@ -773,9 +799,8 @@ function cloud_select(selected_option)
     // --- First check the VVUQ container is running
     selected_vvuq = document.getElementById('vvuq_selector').value;
     container_running = check_vvuq_container();
-    local_runs = execute_command('cat config.in | grep LOCAL_RUNS_ALLOWED');
-    local_runs = local_runs.split(' = ')[1].trim();
-    if (  (! container_running.includes(selected_vvuq)) && (local_runs.includes('TRUE'))   )
+    local_runs = execute_command('cat config.in | grep -i LOCAL_RUNS_ALLOWED').split(' = ')[1].trim();
+    if (  (! container_running.includes(selected_vvuq)) && (local_runs.toLowerCase().includes('true'))   )
     {
       show_waiting_div();
       document.getElementById("waiting_message").innerHTML="<br/>You have not launched the VVUQ software needed to run! (go to \"Set-up\" Tab)<br/>";
@@ -803,10 +828,9 @@ function cloud_select(selected_option)
 function set_cloud_selector(selected_cloud)
 {
   // --- First check if local runs are allowed
-  local_runs = execute_command('cat config.in | grep LOCAL_RUNS_ALLOWED');
-  local_runs = local_runs.split(' = ')[1].trim();
+  local_runs = execute_command('cat config.in | grep -i LOCAL_RUNS_ALLOWED').split(' = ')[1].trim();
   // --- If local runs are not allowed, we remove it from the selector
-  if (! local_runs.includes('TRUE'))
+  if (! local_runs.toLowerCase().includes('true'))
   {
     // --- Remove local-run option
     selector = document.getElementById("cloud_selector");
@@ -1783,7 +1807,7 @@ function getCookie(cname)
 function debug()
 {
     var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", "../php/image_registry.php?action=remove_image&image=random/image:latest", false);
+    xmlhttp.open("GET", "../php/image_registry.php?action=remove_image&image=random/image:latest"+"&VVebUQ_session_name="+who_am_i().trim(), false);
     xmlhttp.send();
     return xmlhttp.responseText;
 }

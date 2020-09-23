@@ -9,7 +9,7 @@ if ($username == '')
 }
 
 // --- Get run-dir required for Docker-mounts
-$run_dir = shell_exec('cat config.in | grep APP_DIRECTORY');
+$run_dir = shell_exec('cat config.in | grep -i APP_DIRECTORY');
 $run_dir = explode(' = ',$run_dir)[1];
 $run_dir = trim(str_replace("\n", '', $run_dir));
 $name_split = preg_split('/VVeb.UQ/', $run_dir);
@@ -45,6 +45,11 @@ if (trim($session_address) == '')
 {
   $session_address = $_SERVER['HTTP_HOST'];
 }
+// --- Make sure we don't have index.html at the end
+if(strpos($session_address, "index.html") !== false)
+{
+  $session_address = explode('/index.html',$session_address)[0];
+}
 // --- Make sure we have http at the beginning of our address
 if(! (strpos($session_address, "http") !== false) )
 {
@@ -64,6 +69,7 @@ if ($user_already_has_session)
   shell_exec('mkdir -p '.$new_workdir);
   shell_exec('cp ../default_page/index.html '.$new_workdir.'/');
   shell_exec('cp ../default_page/rest_api.php '.$new_workdir.'/');
+  shell_exec('cp ../php/image_registry.csv '.$new_workdir.'/');
   shell_exec('cp config.in '.$new_workdir.'/');
   // --- Refer user to his already allocated address
   $session_address = $session_address.$user_hash.'/';
@@ -89,6 +95,7 @@ if ($user_already_has_session)
   shell_exec('mkdir -p '.$new_workdir);
   shell_exec('cp ../default_page/index.html '.$new_workdir.'/');
   shell_exec('cp ../default_page/rest_api.php '.$new_workdir.'/');
+  shell_exec('cp ../php/image_registry.csv '.$new_workdir.'/');
   shell_exec('cp config.in '.$new_workdir.'/');
   // --- Return link of new session to user
   if (isset($_GET['FROM_WEB_FRONT']))
