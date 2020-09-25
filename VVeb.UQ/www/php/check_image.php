@@ -19,6 +19,11 @@ $input_image = trim(strtolower($username).'/'.strtolower($imagename));
 if ($docker_image == $input_image)
 {
   echo $docker_image;
+}else
+// this is very dirty, but 'docker search' is rubbish
+// if you push an image and search for it, you won't see it until a while...
+{
+  echo $input_image;
 }
 
 ?>

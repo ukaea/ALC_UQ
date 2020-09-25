@@ -82,8 +82,8 @@ if ($user_already_has_session)
     echo '</div>';
   }else
   {
-    echo "You already have a session running, please follow this link:\n";
-    echo $session_address."\n";
+    echo "You already have a session running, please use this link for you rest-API calls:\n";
+    echo $session_address."rest_api.php\n";
   }
 }else
 {
@@ -113,8 +113,8 @@ if ($user_already_has_session)
     echo '</div>';
   }else
   {
-    echo "You now have a new session running, please follow this link:\n";
-    echo $session_address."\n";
+    echo "You now have a new session running, please use this link for you rest-API calls:\n";
+    echo $session_address."rest_api.php\n";
   }
 }
 
