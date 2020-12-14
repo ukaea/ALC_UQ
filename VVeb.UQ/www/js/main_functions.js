@@ -1239,7 +1239,7 @@ function reload_file_selector()
 function get_existing_files()
 { 
   existing_files = [];
-  output = execute_command('ls -p /VVebUQ_runs/'+who_am_i().trim()+'/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -E ".csv|.ncd"');
+  output = execute_command('ls -p /VVebUQ_runs/'+who_am_i().trim()+'/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -E ".csv|.nc"');
   output = output.split("\n");
   for (i=0 ; i<output.length; i++)
   { 
@@ -1253,7 +1253,7 @@ function get_existing_files()
 function check_input_file()
 {
   file_present = "false";
-  output = execute_command('ls -p /VVebUQ_runs/'+who_am_i().trim()+'/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -E ".csv|.ncd"');
+  output = execute_command('ls -p /VVebUQ_runs/'+who_am_i().trim()+'/ | grep -v "/" | grep -v "README.txt" | grep -v "terminal_command.txt" | grep -v "terminal_output.txt" | grep -E ".csv|.nc"');
   output = output.replace("\n","");
   if (output != "")
   {
