@@ -58,8 +58,9 @@ data_filename  = my_args[5]
 user_inter_dir = my_args[6]
 use_prominence = my_args[7]
 n_cpu          = my_args[8]
-selected_vvuq  = my_args[9]
-session_name   = my_args[10]
+RAM            = my_args[9]
+selected_vvuq  = my_args[10]
+session_name   = my_args[11]
 
 # --- Preprocessing (ie. convert dakota params file back to netcdf)
 cmd = 'python3 /VVebUQ_user_interface/python/interface.py dakota_params dakota_results %s %s' % (filename, file_type)

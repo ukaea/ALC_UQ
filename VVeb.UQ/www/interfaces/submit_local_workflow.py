@@ -55,8 +55,9 @@ data_filename  = my_args[5]
 user_inter_dir = my_args[6]
 use_prominence = my_args[7]
 n_cpu          = my_args[8]
-selected_vvuq  = my_args[9]
-session_name   = my_args[10]
+RAM            = my_args[9]
+selected_vvuq  = my_args[10]
+session_name   = my_args[11]
 
 # --- Get all task-directories
 try:

@@ -9,6 +9,7 @@ if (isset($_POST["docker_image_run"]))
   $arguments["docker_image_run"]     = $_POST["docker_image_run"];
   $arguments["selected_vvuq"]        = $_POST["selected_vvuq"];
   $arguments["n_cpu"]                = $_POST["n_cpu"];
+  $arguments["RAM"]                  = $_POST["RAM"];
   $arguments["input_file_name"]      = $_POST["input_file_name"];
   $arguments["input_file_type"]      = $_POST["input_file_type"];
   $arguments["input_data_file_name"] = $_POST["input_data_file_name"];
@@ -20,11 +21,12 @@ if (isset($_POST["docker_image_run"]))
   $arguments["docker_image_run"]     = $argv[1];
   $arguments["selected_vvuq"]        = $argv[2];
   $arguments["n_cpu"]                = $argv[3];
-  $arguments["input_file_name"]      = $argv[4];
-  $arguments["input_file_type"]      = $argv[5];
-  $arguments["input_data_file_name"] = $argv[6];
-  $arguments["use_prominence"]       = $argv[7];
-  $arguments["VVebUQ_session_name"]  = $argv[8];
+  $arguments["RAM"]                  = $argv[4];
+  $arguments["input_file_name"]      = $argv[5];
+  $arguments["input_file_type"]      = $argv[6];
+  $arguments["input_data_file_name"] = $argv[7];
+  $arguments["use_prominence"]       = $argv[8];
+  $arguments["VVebUQ_session_name"]  = $argv[9];
 }
 
 // --- Get date
@@ -40,8 +42,9 @@ $container_name = str_replace(':','_',$container_name);
 $workdir_name   = 'workdir_'.$date.'_'.$container_name;
 $container_name = 'VVebUQ_CONTAINER_'.$arguments["VVebUQ_session_name"].'_'.$date.'_'.$container_name;
 
-// --- Get the number of cpu available (THIS NEEDS TO BE GENERALISED PROPERLY!!!)
+// --- Get the number of cpu and RAM available
 $n_cpu = (int)trim($arguments["n_cpu"]);
+$RAM   = (int)trim($arguments["RAM"]);
 
 // --- The Dakota run itself will prepare all the directories, which can be done in parallel
 // --- By default we use however many processes are available to do this (minus 1 for the app itself)
@@ -96,6 +99,7 @@ $arguments_file = $arguments_file.' '.$data_filename;
 $arguments_file = $arguments_file.' '.$user_inter_dir;
 $arguments_file = $arguments_file.' '.$use_prominence;
 $arguments_file = $arguments_file.' '.$n_cpu;
+$arguments_file = $arguments_file.' '.$RAM;
 $arguments_file = $arguments_file.' '.$arguments["selected_vvuq"];
 $arguments_file = $arguments_file.' '.$arguments["VVebUQ_session_name"];
 $args_file = $files_dir.'/arguments_for_vvuq_script.txt';

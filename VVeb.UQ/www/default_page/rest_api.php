@@ -119,6 +119,7 @@ if ($ACTION == 'launch_run')
   if (! isset($_POST["input_file_type"]))      {clean_exit("Variable \"input_file_type\" required");}
   if (! isset($_POST["input_data_file_name"])) {$_POST["input_data_file_name"] = "none";}
   if (! isset($_POST["use_prominence"]))       {$_POST["use_prominence"] = "false";}
+  if (! isset($_POST["RAM"]))                  {$_POST["RAM"] = "1";}
   // --- Check that the vvuq container is running
   $vvuq_container = shell_exec('docker ps -aqf name='.$_POST["selected_vvuq"].'_container_'.$session_name.' --filter status=running');
   if (trim($vvuq_container) == '') {clean_exit("Before launching a run, you need to launch a VVUQ container");}
@@ -147,6 +148,7 @@ if ($ACTION == 'launch_run')
   $arguments = $_POST["docker_image_run"];
   $arguments = $arguments.' '.$_POST["selected_vvuq"];
   $arguments = $arguments.' '.$_POST["n_cpu"];
+  $arguments = $arguments.' '.$_POST["RAM"];
   $arguments = $arguments.' '.$_POST["input_file_name"];
   $arguments = $arguments.' '.$_POST["input_file_type"];
   $arguments = $arguments.' '.$_POST["input_data_file_name"];

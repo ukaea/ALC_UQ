@@ -58,6 +58,8 @@ window.onload = function()
   set_cloud_selector(selected_cloud);
   selected_cpu = getCookie('selected_cpu');
   set_cpu_selector(selected_cpu);
+  selected_RAM = getCookie('selected_RAM');
+  set_RAM_selector(selected_RAM);
 
   // --- Make sure the run drop-down is on the correct option
   reload_run_selector();
@@ -361,8 +363,9 @@ function action_wrapper()
     selected_image = document.getElementById('image_selector').value;
     document.getElementById("waiting_gif").style.visibility="visible";
     document.getElementById("waiting_message").innerHTML="<br/>Please wait while containers are launched for your jobs.<br/>This may take a moment depending on the number of runs...<br/>";
-    // --- Number of CPUs available for the run
+    // --- Number of CPUs and memory available for the run
     n_cpu = execute_command('nproc'); // by default, we use however many processors we have on the machine when running locally
+    RAM = 1; // in GB
     selected_cloud = document.getElementById('cloud_selector').value;
     if (selected_cloud == 'use_prominence')
     {
@@ -373,6 +376,11 @@ function action_wrapper()
       }else
       {
         n_cpu = selected_cpu;
+      }
+      selected_RAM = document.getElementById('RAM_selector').value;
+      if (selected_RAM != 'select_RAM')
+      {
+        RAM = selected_RAM;
       }
     }
     // --- Input file format
@@ -396,6 +404,7 @@ function action_wrapper()
     formdata.append("input_data_file_name", input_data_file_name);
     formdata.append("use_prominence", use_prominence);
     formdata.append("n_cpu", n_cpu);
+    formdata.append("RAM", RAM);
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open("POST", "../php/create_runs.php",true);
     // --- We do this async because we want to catch the terminal output while the request runs...
@@ -793,6 +802,7 @@ function cloud_select(selected_option)
 { 
   document.getElementById("prominence_token_button").style.visibility="hidden";
   document.getElementById("cpu_selector").style.visibility="hidden";
+  document.getElementById("RAM_selector").style.visibility="hidden";
   document.getElementById("cloud_comments").innerHTML="";
   if (selected_option.value == "use_prominence")
   {
@@ -819,6 +829,7 @@ function cloud_select(selected_option)
     }
     document.getElementById("prominence_token_button").style.visibility="visible";
     document.getElementById("cpu_selector").style.visibility="visible";
+    document.getElementById("RAM_selector").style.visibility="visible";
     setCookie('selected_cloud','use_prominence',7);
   }else
   { 
@@ -947,11 +958,11 @@ function set_cpu_selector(selected_cpu)
   // --- That's the simple cases
   if (selected_cpu == '')
   {
-    cloud_select_change('select_n_cpu');
+    cpu_select_change('select_n_cpu');
     return;
   }else
   { 
-    cloud_select_change(selected_cpu);
+    cpu_select_change(selected_cpu);
     return;
   }
 }
@@ -965,6 +976,47 @@ function cpu_select_change(optionValToSelect)
     {
       selectElement.selectedIndex = j;
       cpu_select(selectElement);
+      break;
+    }
+  }
+}
+// --- RAM selection functions
+function RAM_select(selected_option)
+{ 
+  // --- Check if Prominence Token already exists
+  existing_token = check_for_existing_token();
+  if (existing_token == '')
+  {
+    document.getElementById("cloud_comments").innerHTML="No Prominence Token Found, request new one!";
+  }else
+  {
+    document.getElementById("cloud_comments").innerHTML="Current Prominence Token still valid,<br/>no need for new token,<br/>proceed to following step...";
+  }
+  setCookie('selected_RAM',selected_option.value,7);
+}
+function set_RAM_selector(selected_RAM)
+{
+  // --- That's the simple cases
+  if (selected_RAM == '')
+  {
+    RAM_select_change('select_RAM');
+    return;
+  }else
+  { 
+    RAM_select_change(selected_cpu);
+    return;
+  }
+}
+function RAM_select_change(optionValToSelect)
+{
+  selectElement = document.getElementById('RAM_selector');
+  selectOptions = selectElement.options;
+  for (var opt, j = 0; opt = selectOptions[j]; j++)
+  {
+    if (opt.value == optionValToSelect)
+    {
+      selectElement.selectedIndex = j;
+      RAM_select(selectElement);
       break;
     }
   }

@@ -99,8 +99,9 @@ data_filename  = my_args[5]
 user_inter_dir = my_args[6]
 use_prominence = my_args[7]
 n_cpu          = my_args[8]
-selected_vvuq  = my_args[9]
-session_name   = my_args[10]
+RAM            = my_args[9]
+selected_vvuq  = my_args[10]
+session_name   = my_args[11]
 
 # --- Get paths
 path   = os.getcwd()
@@ -171,7 +172,7 @@ for my_dir in subdirs:
     # --- Create json file to define job for Prominence
     resources = {}
     resources['cpus'] = int(n_cpu)
-    resources['memory'] = 1
+    resources['memory'] = int(RAM)
     resources['disk'] = 10
     resources['nodes'] = 1
     resources['walltime'] = 3600
