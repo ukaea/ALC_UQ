@@ -87,7 +87,7 @@ def get_prominence_upload_url(filename, headers):
 with open('arguments_for_vvuq_script.txt') as args_file:
     data = args_file.read()
 my_args = data.strip().split(' ')
-if (len(my_args) != 11):
+if (len(my_args) != 12):
     print('run_script: not enough arguments in arguments_for_vvuq_script.txt')
     sys.exit()
 container_name = my_args[0]
