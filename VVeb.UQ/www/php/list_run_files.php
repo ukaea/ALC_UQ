@@ -4,6 +4,7 @@
 $session_name = $_GET['VVebUQ_session_name'];
   
 // --- Name of run directory
+$run_name = $_GET["run_name"];
 $dir_name = '/VVebUQ_runs/'.$session_name.'/workdir_'.$_GET["run_name"];
 
 // --- Count number of sub-tasks in that run
@@ -35,6 +36,8 @@ if (! $use_prominence)
   $all_files = preg_split("/\r\n|\n|\r/",$all_files);
 }else
 {
+  $arguments_update_id = $prominence_id_file.' '.$run_name.' '.$vvuq_container;
+  shell_exec('php ../php/update_prominence_id.php '.$arguments_update_id.' > /dev/null &');
   $prominence_id = shell_exec('cat '.$prominence_id_file);
   $prominence_id = trim($prominence_id);
   if ($prominence_id != '')

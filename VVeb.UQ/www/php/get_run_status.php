@@ -35,6 +35,8 @@ if (! $use_prominence)
   $containers = shell_exec($command);
 }else
 {
+  $arguments_update_id = $prominence_id_file.' '.$run_name.' '.$vvuq_container;
+  shell_exec('php ../php/update_prominence_id.php '.$arguments_update_id.' > /dev/null &');
   $prominence_id = shell_exec('cat '.$prominence_id_file);
   $prominence_id = trim($prominence_id);
   $prominence_job_has_been_deleted = $dir_name.'/prominence_workflow_has_been_deleted.txt';
