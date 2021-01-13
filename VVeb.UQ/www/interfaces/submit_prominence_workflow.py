@@ -175,7 +175,7 @@ for my_dir in subdirs:
     resources['memory'] = int(RAM)
     resources['disk'] = 10
     resources['nodes'] = 1
-    resources['walltime'] = 3600
+    resources['walltime'] = 21600
     task = {}
     task['cmd'] = ''
     task['image'] = image_name
