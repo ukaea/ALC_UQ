@@ -4,6 +4,7 @@ import subprocess
 import sys
 import json
 import requests
+import time
 
 # --- Function to execute command with interactive printout sent to web-terminal in real-time
 def interactive_command(cmd,session_name):
@@ -215,7 +216,15 @@ cmd = 'prominence run prominence_workflow.json'
 process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 process.wait()
 output = str(process.stdout.read(),'utf-8')
+# --- Record Workflow id
 workflow_id = output.partition('Workflow created with id ')[2].strip()
+if (workflow_id == ''):
+    time.sleep(10.0)
+    cmd = 'prominence list workflows | grep "'+my_run+'"'
+    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process.wait()
+    output = str(process.stdout.read(),'utf-8')
+    workflow_id = output.partition(my_run)[0].strip()
 with open('prominence_workflow_id.txt', 'w') as outfile:
     outfile.write(workflow_id)
 
