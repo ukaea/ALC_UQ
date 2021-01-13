@@ -1003,7 +1003,7 @@ function set_RAM_selector(selected_RAM)
     return;
   }else
   { 
-    RAM_select_change(selected_cpu);
+    RAM_select_change(selected_RAM);
     return;
   }
 }
