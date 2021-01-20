@@ -37,6 +37,9 @@ $output = `$command`;
 $command = 'printf "new container: '.$output.'" >> /VVebUQ_runs/terminal_output.txt';
 `$command`;
 # --- Postprocessing
+`python3 /dakota_user_interface/python/interface2.py dakota_params dakota_results`;
+$command = 'printf "container finished: '.$output.'" >> /VVebUQ_runs/terminal_output.txt';
+sleep 10 while( !(-e "./FINISHED.TXT") );
 $output = sprintf("%21s%17.15e f", "", 0.0);
 $command = "echo \"".$output."\" >> ".$my_args[1];
 `$command`;
