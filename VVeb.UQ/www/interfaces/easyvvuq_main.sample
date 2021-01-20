@@ -16,10 +16,10 @@ class VVebUQ_Encoder(BaseEncoder, encoder_name='VVebUQ_encoder'):
         user_file = DakotaFile( file_type = '#FILETYPE#' )
         user_file.read( input_file )
 
-        # Format data in params into correct shapes and add valiues entries to file
+        # Format data in params into correct shapes and add values entries to file
         self.parse_data( user_file, params )
  
-        # Write new data file with varied data
+        # Write new data file with varied data in the target directory
         user_file.write( target_dir+'/'+input_file )
         
     def parse_data( self, user_file, params ):

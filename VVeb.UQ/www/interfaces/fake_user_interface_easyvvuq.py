@@ -20,7 +20,7 @@ parser.add_argument("-i", "--input", default='DAKOTA.nc', help=helpstr)
 helpstr = "Type of input file. Currently supports netcdf (n) and csv (c)"
 parser.add_argument("-t", "--type", default='netcdf', help=helpstr)
 
-helpstr = "Name of the output DAKOTA file to create"
+helpstr = "Name of the output file to create"
 parser.add_argument("-o", "--output", default='easyvvuq_main.py', help=helpstr)
 
 args = parser.parse_args()
@@ -53,7 +53,7 @@ for name, dataset in user_file.uncertain.items():
 
         for i in range( minima.size ):
 
-            vaL_name = name + '_' + str(i)
+            val_name = name + '_' + str(i)
 
             val_min = float(minima[i])
             val_max = float(maxima[i])
@@ -74,7 +74,7 @@ for name, dataset in user_file.uncertain.items():
 
         for i in range( means.size ):
 
-            vaL_name = name + '_' + str(i)
+            val_name = name + '_' + str(i)
 
             val_mean = float(means[i])
             val_sd   = float(  sds[i])
