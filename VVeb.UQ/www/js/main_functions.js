@@ -506,8 +506,7 @@ function action_wrapper()
     run_name = selected_result.replace('workdir_','');
     if ( (selected_result != "") && (selected_result != "select_run") && (selected_result != "select_result") )
     {
-      document.getElementById("waiting_message").innerHTML="<br/>Please wait while the data is being prepared and downloaded.<br/>This may take a moment depending on the size of the job...<br/>";
-      document.getElementById("waiting_gif").style.visibility="visible";
+      show_waiting_div_with_message("Please wait while the data is being prepared and downloaded.<br/>This may take a moment depending on the size of the job...");
       // --- Call php script
       var xmlhttp = new XMLHttpRequest();
       xmlhttp.open("GET", "../php/download_run.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&get_back_to_js=true", true);
@@ -557,8 +556,7 @@ function action_wrapper()
       expired_token = expired_prominence_token_warning();
       if (expired_token == 'expired') {return;}
       // --- Create artificial link to download target
-      document.getElementById("waiting_message").innerHTML="<br/>Please wait while the data is being prepared and downloaded.<br/>This may take a moment depending on the size of the job...<br/>";
-      document.getElementById("waiting_gif").style.visibility="visible";
+      show_waiting_div_with_message("Please wait while the data is being prepared and downloaded.<br/>This may take a moment depending on the size of the job...");
       // --- Get run name
       run_name = selected_result.replace('workdir_','');
       // --- Call php script

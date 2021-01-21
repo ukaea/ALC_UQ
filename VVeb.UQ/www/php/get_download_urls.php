@@ -32,7 +32,8 @@ shell_exec('mkdir -p '.$download_dir);
 
 // --- Get Prominence id
 $download_dir = '/VVebUQ_downloads/'.$session_name.'/';
-shell_exec('cd '.$download_dir.' ; rm -f '.$run_name.'.zip ; cd -');
+$command = 'docker exec -w '.$download_dir.' -t '.$vvuq_container.' bash -c \'rm -f '.$run_name.'.zip\'';
+$success = shell_exec($command);
 $arguments_update_id = $prominence_id_file.' '.$run_name.' '.$vvuq_container;
 shell_exec('php ../php/update_prominence_id.php '.$arguments_update_id.' > /dev/null &');
 $prominence_id = shell_exec('cat '.$prominence_id_file);
@@ -66,6 +67,8 @@ if (count($containers_lines) > 2)
     // --- Get the url script in right location
     $command = 'cp ../interfaces/get_job_url_from_prominence.py /var/www/html'.$download_dir;
     $success = shell_exec($command);
+    $command = 'cp ../interfaces/download_all_urls.sh /var/www/html'.$download_dir;
+    $success = shell_exec($command);
     $command = 'docker exec -w '.$download_dir.' -t '.$vvuq_container.' bash -c \'chmod +x ./get_job_url_from_prominence.py\'';
     $success = shell_exec($command);
     // --- Get download URL for each job
@@ -77,7 +80,7 @@ if (count($containers_lines) > 2)
       $success = shell_exec($command);
     }
     // --- zip everything together
-    $command = 'docker exec -w '.$download_dir.' -t '.$vvuq_container.' bash -c \'zip '.$run_name.'.zip VVebUQ_URL_*.txt\'';
+    $command = 'docker exec -w '.$download_dir.' -t '.$vvuq_container.' bash -c \'zip '.$run_name.'.zip VVebUQ_URL_*.txt download_all_urls.sh\'';
     $success = shell_exec($command);
     // --- Remove tarballs
     $command = 'docker exec -w '.$download_dir.' -t '.$vvuq_container.' bash -c \'rm VVebUQ_URL_individual_jobs.txt VVebUQ_URL_all_jobs_combined.txt\'';
