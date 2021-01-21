@@ -487,6 +487,100 @@ function action_wrapper()
       document.getElementById("waiting_message").innerHTML="<br/>The selected run is not valid!<br/>";
     }
   }
+
+  // --- Download all the data of a run
+  if (action_specification == "download_run")
+  {
+    // --- Check Prominence Token is not expired (if using Prominence)
+    expired_token = expired_prominence_token_warning();
+    if (expired_token == 'expired') {return;}
+    // --- Get run name
+    selected_result = document.getElementById('result_selector').value;
+    run_name = selected_result.replace('workdir_','');
+    if ( (selected_result != "") && (selected_result != "select_run") && (selected_result != "select_result") )
+    {
+      document.getElementById("waiting_message").innerHTML="<br/>Please wait while the data is being prepared and downloaded.<br/>This may take a moment depending on the size of the job...<br/>";
+      document.getElementById("waiting_gif").style.visibility="visible";
+      // --- Call php script
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.open("GET", "../php/download_run.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&get_back_to_js=true", true);
+      // --- We do this async because we want to catch the terminal output while the request runs...
+      xmlhttp.onreadystatechange = function ()
+      {
+        if(this.readyState == 4 && this.status == 200)
+        {
+	  hide_waiting_div();
+          empty_terminal_output();
+          // --- Create artificial link to download target
+          link = document.createElement("a");
+          link.download = run_name+'.zip';
+          link.href = '../VVebUQ_downloads/'+who_am_i().trim()+'/'+run_name+'.zip';
+          link.click();
+          return;
+        }
+      };
+      xmlhttp.send();
+    }else
+    {
+      document.getElementById("action_wrapper_button").style.visibility="hidden";
+      document.getElementById("waiting_message").innerHTML="<br/>The selected run is not valid!<br/>";
+      return;
+    }
+  }
+
+  // --- Download all the data of a run
+  if (action_specification == "get_download_urls")
+  {
+    selected_result = document.getElementById('result_selector').value;
+    if ( (selected_result != "") && (selected_result != "select_run") && (selected_result != "select_result") )
+    {
+      // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
+      use_prominence = false;
+      prominence_id = execute_command('cat /VVebUQ_runs/'+who_am_i().trim()+'/'+selected_result+'/prominence_workflow_id.txt');
+      prominence_id = prominence_id.trim();
+      if ( (! prominence_id.includes('No such file or directory')) && (prominence_id != '') ) {use_prominence = true;}
+      if (! use_prominence)
+      {
+        document.getElementById("waiting_message").innerHTML = "Getting download-URLs is reserved to Prominence runs.<br/>"
+                                                             + "If you are running locally, this is not necessary since files are local.";
+        document.getElementById("action_wrapper_button").style.visibility="hidden";
+        return;
+      }
+      // --- Check Prominence Token is not expired (if using Prominence)
+      expired_token = expired_prominence_token_warning();
+      if (expired_token == 'expired') {return;}
+      // --- Create artificial link to download target
+      document.getElementById("waiting_message").innerHTML="<br/>Please wait while the data is being prepared and downloaded.<br/>This may take a moment depending on the size of the job...<br/>";
+      document.getElementById("waiting_gif").style.visibility="visible";
+      // --- Get run name
+      run_name = selected_result.replace('workdir_','');
+      // --- Call php script
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.open("GET", "../php/get_download_urls.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&get_back_to_js=true", true);
+      // --- We do this async because we want to catch the terminal output while the request runs...
+      xmlhttp.onreadystatechange = function ()
+      {
+        if(this.readyState == 4 && this.status == 200)
+        {
+          hide_waiting_div();
+          empty_terminal_output();
+          // --- Create artificial link to download target
+          link = document.createElement("a");
+          link.download = run_name+'.zip';
+          link.href = '../VVebUQ_downloads/'+who_am_i().trim()+'/'+run_name+'.zip';
+          link.click();
+          return;
+        }
+      };
+      xmlhttp.send();
+    }else
+    {
+      document.getElementById("action_wrapper_button").style.visibility="hidden";
+      document.getElementById("waiting_message").innerHTML="<br/>The selected run is not valid!<br/>";
+      return;
+    }
+  }
+
 }
 
 
@@ -1747,52 +1841,27 @@ function unselect_result_file(file_id)
 }
 function download_entire_run()
 {
-  // --- Check Prominence Token is not expired (if using Prominence)
-  expired_token = expired_prominence_token_warning();
-  if (expired_token == 'expired') {return;}
-  // --- Get run name
-  selected_result = document.getElementById('result_selector').value;
-  run_name = selected_result.replace('workdir_','');
-  // --- Call php script
-  var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "../php/download_run.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&get_back_to_js=true", false);
-  xmlhttp.send();
-  // --- Create artificial link to download target
-  link = document.createElement("a");
-  link.download = run_name+'.zip';
-  link.href = '../VVebUQ_downloads/'+who_am_i().trim()+'/'+run_name+'.zip';
-  link.click();
+  // --- Go to action wrapper
+  show_waiting_div();
+  document.getElementById("waiting_message").innerHTML="<br/>This will download the entire data associated,<br/>"
+                                                      +"to this run. Depending on the size of the data,<br/>"
+                                                      +"the number of runs, and your internet connection,<br/>"
+                                                      +"this may take a long time.<br/>"
+                                                      +"(Have you considered using \"get_download_URLs\" instead?)<br/>"
+                                                      +"Are you sure you want to action this request?<br/>";
+  action_specification = "download_run";
+  return;
 }
 function get_download_urls()
 {
-  // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
-  use_prominence = false;
-  selected_result = document.getElementById('result_selector').value;
-  prominence_id = execute_command('cat /VVebUQ_runs/'+who_am_i().trim()+'/'+selected_result+'/prominence_workflow_id.txt');
-  prominence_id = prominence_id.trim();
-  if ( (! prominence_id.includes('No such file or directory')) && (prominence_id != '') ) {use_prominence = true;}
-  if (! use_prominence)
-  {
-    document.getElementById("retrieve_files_list").innerHTML = "Getting download-URLs is reserved to Prominence runs.<br/>"
-                                                             + "If you are running locally, this is not necessary since files are local.";
-    return;
-  }
-  // --- Check Prominence Token is not expired (if using Prominence)
-  expired_token = expired_prominence_token_warning();
-  if (expired_token == 'expired') {return;}
-  // --- Create artificial link to download target
-  document.getElementById("retrieve_files_list").innerHTML = "Please wait while the download is being prepared...";
-  // --- Get run name
-  run_name = selected_result.replace('workdir_','');
-  // --- Call php script
-  var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "../php/get_download_urls.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&get_back_to_js=true", false);
-  xmlhttp.send();
-  // --- Create artificial link to download target
-  link = document.createElement("a");
-  link.download = run_name+'.zip';
-  link.href = '../VVebUQ_downloads/'+who_am_i().trim()+'/'+run_name+'.zip';
-  link.click();
+  // --- Go to action wrapper
+  show_waiting_div();
+  document.getElementById("waiting_message").innerHTML="<br/>This will produce a list of URLs for each instance<br/>"
+                                                      +"of this run. Depending on the number of instances,<br/>"
+                                                      +"this may take some time.<br/>"
+                                                      +"Are you sure you want to action this request?<br/>";
+  action_specification = "get_download_urls";
+  return;
 }
 function download_selected_files()
 {

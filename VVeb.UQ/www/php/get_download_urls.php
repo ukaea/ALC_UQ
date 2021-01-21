@@ -32,6 +32,7 @@ shell_exec('mkdir -p '.$download_dir);
 
 // --- Get Prominence id
 $download_dir = '/VVebUQ_downloads/'.$session_name.'/';
+shell_exec('cd '.$download_dir.' ; rm -f '.$run_name.'.zip ; cd -');
 $arguments_update_id = $prominence_id_file.' '.$run_name.' '.$vvuq_container;
 shell_exec('php ../php/update_prominence_id.php '.$arguments_update_id.' > /dev/null &');
 $prominence_id = shell_exec('cat '.$prominence_id_file);
