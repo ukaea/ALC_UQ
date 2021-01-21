@@ -202,7 +202,7 @@ if ($ACTION == 'list_run_files')
   exit();
 }
 
-// --- List files inside run tasks
+// --- Download entire run
 if ($ACTION == 'download_run')
 {
   // --- If the user did not specify a run-name, we use the most recent one
@@ -215,7 +215,20 @@ if ($ACTION == 'download_run')
   exit();
 }
 
-// --- List files inside run tasks
+// --- Download run URLs for user to use directly
+if ($ACTION == 'download_run_urls')
+{
+  // --- If the user did not specify a run-name, we use the most recent one
+  if (! isset($_GET["run_name"]))
+  {
+    $_GET["run_name"] = get_latest_run($session_name);
+  }
+  check_for_expired_prominence_token($session_name, $_GET["run_name"]);
+  include("../php/get_download_urls.php");
+  exit();
+}
+
+// --- Download only selected files
 if ($ACTION == 'download_run_files')
 {
   // --- If the user did not specify a run-name, we use the most recent one
@@ -228,7 +241,7 @@ if ($ACTION == 'download_run_files')
   exit();
 }
 
-// --- List files inside run tasks
+// --- Delete run containers
 if ($ACTION == 'delete_run')
 {
   // --- If the user did not specify a run-name, we use the most recent one
@@ -241,7 +254,7 @@ if ($ACTION == 'delete_run')
   exit();
 }
 
-// --- List files inside run tasks
+// --- Delete whole data associated to a run
 if ($ACTION == 'delete_run_data')
 {
   // --- If the user did not specify a run-name, we use the most recent one

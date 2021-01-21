@@ -24,6 +24,8 @@ WORKDIR /easyvvuq_dir/
 RUN git clone https://github.com/UCL-CCS/EasyVVUQ.git
 WORKDIR /easyvvuq_dir/EasyVVUQ
 RUN pip3 install wheel
+RUN pip3 install scipy
+RUN pip3 install Cython
 RUN pip3 install -r requirements.txt
 RUN pip3 install --upgrade setuptools
 RUN python3 setup.py install

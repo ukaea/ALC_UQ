@@ -68,6 +68,9 @@ if (! $use_prominence)
           $prominence_job_id = preg_split('/\s+/',$containers_lines[$i])[$ID_position];
           break;
         }
+        // --- Make sure we don't already have something here
+        $command = 'docker exec -t '.$vvuq_container.' bash -c \'rm -rf /'.$selected_vvuq.'_dir/workdir_VVebUQ.*\'';
+        $success = shell_exec($command);
         // --- Record new containers list
         $command = 'docker exec -t '.$vvuq_container.' bash -c \'rm /'.$selected_vvuq.'_dir/workdir_VVebUQ.*.tgz\'';
         $success = shell_exec($command);
@@ -86,7 +89,7 @@ if (! $use_prominence)
           $command = $command.'\'';
 	  $fullcontent = shell_exec($command);
           $all_files = preg_split('/\R/',$fullcontent);
-          $command = 'docker exec -t '.$vvuq_container.' bash -c \'rm -f /'.$selected_vvuq.'_dir/workdir_VVebUQ.*\'';
+          $command = 'docker exec -t '.$vvuq_container.' bash -c \'rm -rf /'.$selected_vvuq.'_dir/workdir_VVebUQ.*\'';
           $success = shell_exec($command);
         }
       }
