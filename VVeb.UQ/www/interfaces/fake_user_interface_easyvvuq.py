@@ -1,6 +1,3 @@
-
-# FIX TO USE QUASI-MC, SC, PCE
-
 #!/usr/bin/python3
 import os
 import sys
@@ -29,11 +26,11 @@ args = parser.parse_args()
 user_file = DakotaFile( file_type = args.type )
 user_file.read( args.input )
 
-# If samples is present in settings this is a pure sampling run
-# Otherwise it is some kind of scan (PCE/SC etc)
-n_samples = 0
-if 'samples' in user_file.settings:
-    n_samples = user_file.settings['samples'] 
+# Sample type setting is used to specify the kind of run
+if 'sample_type' in user_file.settings:
+    sample_type = user_file.settings['sample_type'] 
+else:
+    raise Exception("No sample type set. ABORTING!")
 
 all_vars = {}
 out_vars = {}
@@ -97,9 +94,43 @@ all_vars["out_file"]["default"] = "easyvvuq_out.csv"
 run_script = "run_script = \'"+args.driver+"\'\n"
 parameters = "parameters = "+json.dumps(all_vars)+"\n"
 variations = "variations = "+variations+"\n"
-n_samples  = "n_samples  = "+str(n_samples)+"\n"
 
-all_strings = run_script + parameters + variations + n_samples
+all_strings = run_script + parameters + variations
+
+if sample_type is not 'pce':
+
+    n_samples = 0
+    if 'samples' in user_file.settings:
+        n_samples = user_file.settings['samples'] 
+    else:
+        raise Exception("Number of samples to take not specified. ABORTING!")
+
+    n_samples  = "n_samples  = "+str(n_samples)+"\n"
+    all_strings = all_strings + n_samples
+
+    # Set sampler
+    if sample_type is 'random':
+        sampler = 'uq.sampling.RandomSampler(vary=variations)'
+    elif sample_type is 'lhs':
+        sampler = 'uq.sampling.quasirandom.LHCSampler(vary=variations)'
+    elif sample_type is 'halton':
+        sampler = 'uq.sampling.quasirandom.HaltonSampler(vary=variations)'
+    else:
+        raise Exception("Unsupported sampler set. App currently supports: random, lhs, halton, pce. ABORTING!")
+
+    draw_args = "num_samples=n_samples, replicas=1"
+
+else:
+
+    poly_order = 0
+    if 'poly_order' in user_file.settings:
+        poly_order = user_file.settings['poly_order'] 
+    else:
+        raise Exception("PCE polynomial order not set. ABORTING!")
+
+    sampler = "uq.sampling.PCESampler(vary=variations,polynomial_order="+str(poly_order)+")"
+
+    draw_args = ""
 
 # Main sample opened here - inputs replaced from file!
 with open('easyvvuq_main.sample') as file_tmp:
@@ -107,6 +138,8 @@ with open('easyvvuq_main.sample') as file_tmp:
     file_string = file_string.replace('#REPLACE_INPUTS_HERE',all_strings)
     file_string = file_string.replace('#FILENAME#',args.input )
     file_string = file_string.replace('#FILETYPE#',args.type  )
+    file_String = file_string.replace('#SAMPLER#' ,sampler    )
+    file_string = file_string.replace('#DRAWARGS#',draw_args  )
 
 with open(args.output, 'w') as outfile:
     outfile.write(file_string)
@@ -114,7 +147,3 @@ with open(args.output, 'w') as outfile:
 # GENERATES TEMPLATE FILE
 with open('easyvvuq_input.template', 'w') as outfile:
     json.dump(out_vars,outfile)
-
-
-
-

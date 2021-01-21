@@ -74,9 +74,17 @@ class DakotaFile:
                 raise FileConsistencyError('Sampling run configuration data is missing.\n' \
                                            +'Please use add_settings to add run confuration settings.')
 
-            if 'samples' not in self.settings.attrs:
+            if 'sample_type' not in self.settings:
+                print('No sample type set. Defaulting to Latin Hypercube Sampling.')
+                self.settings['sample_type'] = 'lhs'
+
+            if 'samples' not in self.settings.attrs and self.settings['sample_type'] is not 'pce':
                 raise FileConsistencyError('Run configuration data should at least specify ' \
                                            +'the number of samples to produce.')
+
+            if 'poly_order' not in self.settings.attrs and self.settings['sample_type'] is 'pce':
+                print('No polynomial order set for polynomial chaos expansion. Defaulting to 4')
+                self.settings['poly_order'] = 4
 
     # Top level read and write functions - for now just wrappers to read_netcdf and write_netcdf ---
 

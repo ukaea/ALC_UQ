@@ -83,16 +83,13 @@ encoder = VVebUQ_Encoder(template_fname=template, target_filename=input_filename
 # --- Define campaign
 my_campaign.add_app(name="run_script_easyvvuq", params=parameters, encoder=encoder)
 
-# FIXME - WOULD BE GOOD TO HANDLE MORE THAN RANDOM SAMPLING
-# This would need to be handled in easyvvuq_main.sample in a similar replace way as above
-# May need to replace these lines for PCE/SC/QMC.
-
 # --- Specify Sampler
-my_sampler = uq.sampling.RandomSampler(vary=variations)
+my_sampler = #SAMPLER#
+
 my_campaign.set_sampler(my_sampler)
 
 # --- How many samples?
-my_campaign.draw_samples(num_samples=n_samples, replicas=1)
+my_campaign.draw_samples(#DRAWARGS#)
 
 # --- Create run input directories
 my_campaign.populate_runs_dir()

@@ -4,7 +4,7 @@ from copy import deepcopy
 
 # Settings Information
 # What settings DAKOTA expects to read from the netcdf file
-allowed_settings = ['sample_type','samples','seed']
+allowed_settings = ['sample_type','samples','seed', 'poly_order']
 
 # Variable Type Information
 # Required and optional data for different variables
