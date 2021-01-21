@@ -981,28 +981,62 @@ function cloud_select_change(optionValToSelect)
 }
 function check_for_existing_token()
 {
-  existing_token = '';
   // --- Which VVUQ software are we using?
   selected_vvuq = document.getElementById('vvuq_selector').value;
   container_running = check_vvuq_container();
   if (! container_running.includes(selected_vvuq))
   {
-    return existing_token;
+    return '';
   }
-  prominence_token = execute_command('docker exec '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'cat $HOME/.prominence/token\'');
-  prominence_token = prominence_token.split('{"access_token": "');
-  if (prominence_token.length == 2)
+  show_waiting_div();
+  document.getElementById("waiting_gif").style.visibility="visible";
+  document.getElementById("waiting_message").innerHTML="<br/>Checking Prominence Token, please wait...<br/>";
+  command = 'docker exec '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'cat $HOME/.prominence/token\'';
+  // ===%%%=== is used as a replacement for spaces (which are not allowed in http request url...)
+  command = command.replace(' ','===%%%===');
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", "../php/server_side_functions.php?input=" + command, true);
+  // --- We do this async because we want to catch the terminal output while the request runs...
+  xmlhttp.onreadystatechange = function ()
   {
-    prominence_token = prominence_token[1].split('"')[0];
-    command = 'docker exec -t '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'curl -i -H "Authorization: Bearer '+prominence_token+'" $PROMINENCE_OIDC_URL/userinfo\'';
-    token_valid = execute_command(command);
-    token_valid = token_valid.split('200 OK');
-    if (token_valid.length == 2)
+    if(this.readyState == 4 && this.status == 200)
     {
-      existing_token = 'yes';
+      prominence_token = xmlhttp.responseText;
+      prominence_token = prominence_token.split('{"access_token": "');
+      if (prominence_token.length == 2)
+      {
+        prominence_token = prominence_token[1].split('"')[0];
+        command = 'docker exec -t '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'curl -i -H "Authorization: Bearer '+prominence_token+'" $PROMINENCE_OIDC_URL/userinfo\'';
+        // ===%%%=== is used as a replacement for spaces (which are not allowed in http request url...)
+        command = command.replace(' ','===%%%===');
+        var xmlhttp2 = new XMLHttpRequest();
+        xmlhttp2.open("GET", "../php/server_side_functions.php?input=" + command, true);
+        // --- We do this async because we want to catch the terminal output while the request runs...
+        xmlhttp2.onreadystatechange = function ()
+        {
+          if(this.readyState == 4 && this.status == 200)
+          {
+            token_valid = xmlhttp2.responseText;
+            token_valid = token_valid.split('200 OK');
+            hide_waiting_div();
+            if (token_valid.length == 2)
+            {
+              return 'yes';
+            }else
+            {
+	      return '';
+	    }
+          }
+	};
+	xmlhttp2.send();
+      }else
+      {
+        hide_waiting_div();
+	return '';
+      }
     }
-  }
-  return existing_token;
+  };
+  xmlhttp.send();
 }
 function expired_prominence_token_warning()
 {
