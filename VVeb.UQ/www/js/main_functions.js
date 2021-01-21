@@ -110,6 +110,13 @@ function show_waiting_div()
   document.getElementById("waiting_gif").style.visibility="hidden";
   document.getElementById("action_wrapper_button").style.visibility="visible";
 }
+function show_waiting_div_with_message(message)
+{
+  show_waiting_div();
+  document.getElementById("waiting_gif").style.visibility="visible";
+  document.getElementById("action_wrapper_button").style.visibility="hidden";
+  document.getElementById("waiting_message").innerHTML="<br/>"+message+"<br/>";
+}
 function hide_waiting_div()
 {
   document.getElementById("action_wrapper_button").style.visibility="hidden";
@@ -1241,13 +1248,22 @@ function run_select(selected_option)
     run_name = dir_name.split("workdir_");
     run_name = run_name[1];
     // --- Call php script
+    show_waiting_div_with_message("Getting run status, please wait...");
     var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", "../php/get_run_status.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, false);
+    xmlhttp.open("GET", "../php/get_run_status.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+    xmlhttp.onreadystatechange = function ()
+    {
+      if(this.readyState == 4 && this.status == 200)
+      {
+        hide_waiting_div();
+        // --- print the docker containers corresponding to job
+        containers = xmlhttp.responseText;
+        containers = "<pre>" + containers + "</pre>";
+        document.getElementById("run_comments").innerHTML = containers;
+        return;
+      }
+    };
     xmlhttp.send();
-    containers = xmlhttp.responseText;
-    // --- print the docker containers corresponding to job
-    containers = "<pre>" + containers + "</pre>";
-    document.getElementById("run_comments").innerHTML = containers;
   }else
   {
     setCookie('selected_run','select_run',7);
@@ -1722,37 +1738,46 @@ function result_select(selected_option)
     run_name = selected_option.value;
     run_name = run_name.replace("workdir_","");
     // --- Call php script
+    show_waiting_div_with_message("Getting run content, please wait...");
     var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", "../php/list_run_files.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, false);
-    xmlhttp.send();
-    output = xmlhttp.responseText;
-    output_lines = output.split("\n");
-    count_runs = output_lines[0].split('This run contains ')[1];
-    count_runs = count_runs.split(' sub-tasks')[0];
-    fullcontent = '';
-    if (output.includes("At first sight, each sub-task contains"))
-    {
-      fullcontent = output.split("At first sight, each sub-task contains")[1];
-    }
-    split_content = fullcontent.split("\n");
-    new_list = document.createElement("ul");
-    for (i = 0; i<split_content.length; i++)
-    {
-      if (split_content[i].trim() != '')
-      {
-        new_file = document.createElement("li");
-        new_file.setAttribute("id",split_content[i].trim());
-        new_file.setAttribute("style","cursor: pointer;");
-        new_file.setAttribute("onclick","select_result_file(this.id);");
-        new_file.innerHTML = split_content[i].trim();
-        new_list.appendChild(new_file);
+    xmlhttp.open("GET", "../php/list_run_files.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+    xmlhttp.onreadystatechange = function ()
+    { 
+      if(this.readyState == 4 && this.status == 200)
+      { 
+        hide_waiting_div();
+        output = xmlhttp.responseText;
+        output_lines = output.split("\n");
+        count_runs = output_lines[0].split('This run contains ')[1];
+        count_runs = count_runs.split(' sub-tasks')[0];
+        fullcontent = '';
+        if (output.includes("At first sight, each sub-task contains"))
+        {
+          fullcontent = output.split("At first sight, each sub-task contains")[1];
+        }
+        split_content = fullcontent.split("\n");
+        new_list = document.createElement("ul");
+        for (i = 0; i<split_content.length; i++)
+        {
+          if (split_content[i].trim() != '')
+          {
+            new_file = document.createElement("li");
+            new_file.setAttribute("id",split_content[i].trim());
+            new_file.setAttribute("style","cursor: pointer;");
+            new_file.setAttribute("onclick","select_result_file(this.id);");
+            new_file.innerHTML = split_content[i].trim();
+            new_list.appendChild(new_file);
+          }
+        }
+        comments = document.createElement("div");
+        comments.innerHTML = "<p>This case contains "+count_runs+" run-directories each with content:</p><br/>";
+        result_div = document.getElementById("result_comments");
+        result_div.appendChild(comments);
+        result_div.appendChild(new_list);
+        return;
       }
-    }
-    comments = document.createElement("div");
-    comments.innerHTML = "<p>This case contains "+count_runs+" run-directories each with content:</p><br/>";
-    result_div = document.getElementById("result_comments");
-    result_div.appendChild(comments);
-    result_div.appendChild(new_list);
+    };
+    xmlhttp.send();
   }else
   {
     setCookie('selected_result','select_result',7);
