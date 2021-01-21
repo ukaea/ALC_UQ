@@ -992,6 +992,42 @@ function check_for_existing_token()
   document.getElementById("waiting_gif").style.visibility="visible";
   document.getElementById("waiting_message").innerHTML="<br/>Checking Prominence Token, please wait...<br/>";
   command = 'docker exec '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'cat $HOME/.prominence/token\'';
+  prominence_token = execute_command(command);
+  prominence_token = prominence_token.split('{"access_token": "');
+  if (prominence_token.length == 2)
+  {
+    prominence_token = prominence_token[1].split('"')[0];
+    command = 'docker exec -t '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'curl -i -H "Authorization: Bearer '+prominence_token+'" $PROMINENCE_OIDC_URL/userinfo\'';
+    token_valid = execute_command(command);
+    token_valid = token_valid.split('200 OK');
+    hide_waiting_div();
+    if (token_valid.length == 2)
+    {
+      return 'yes';
+    }else
+    {
+      return '';
+    }
+  }else
+  {
+    hide_waiting_div();
+    return '';
+  }
+}
+function check_for_existing_token_background()
+{
+  // --- Which VVUQ software are we using?
+  selected_vvuq = document.getElementById('vvuq_selector').value;
+  container_running = check_vvuq_container();
+  if (! container_running.includes(selected_vvuq))
+  {
+    print_expired_prominence_token_warning();
+    return;
+  }
+  show_waiting_div();
+  document.getElementById("waiting_gif").style.visibility="visible";
+  document.getElementById("waiting_message").innerHTML="<br/>Checking Prominence Token, please wait...<br/>";
+  command = 'docker exec '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'cat $HOME/.prominence/token\'';
   // ===%%%=== is used as a replacement for spaces (which are not allowed in http request url...)
   command = command.replace(' ','===%%%===');
   var xmlhttp = new XMLHttpRequest();
@@ -1018,21 +1054,22 @@ function check_for_existing_token()
           {
             token_valid = xmlhttp2.responseText;
             token_valid = token_valid.split('200 OK');
-            hide_waiting_div();
             if (token_valid.length == 2)
             {
-              return 'yes';
+              hide_waiting_div();
+              return;
             }else
             {
-	      return '';
+              print_expired_prominence_token_warning();
+              return;
 	    }
           }
 	};
 	xmlhttp2.send();
       }else
       {
-        hide_waiting_div();
-	return '';
+        print_expired_prominence_token_warning();
+        return;
       }
     }
   };
@@ -1045,11 +1082,17 @@ function expired_prominence_token_warning()
   existing_token = check_for_existing_token();
   if (existing_token == '')
   {
+    print_expired_prominence_token_warning();
+    return "expired";
+  }
+}
+function print_expired_prominence_token_warning()
+{
     show_waiting_div();
     document.getElementById("waiting_message").innerHTML="<br/>Your Prominence Token has expired! (go to \"Cloud\" Tab)<br/>";
     document.getElementById("action_wrapper_button").style.visibility="hidden";
-    return "expired";
-  }
+    document.getElementById("waiting_gif").style.visibility="hidden";
+    return;
 }
 function request_prominence_token()
 {
@@ -1072,14 +1115,7 @@ function request_prominence_token()
 function cpu_select(selected_option)
 { 
   // --- Check if Prominence Token already exists
-  existing_token = check_for_existing_token();
-  if (existing_token == '')
-  {
-    document.getElementById("cloud_comments").innerHTML="No Prominence Token Found, request new one!";
-  }else
-  {
-    document.getElementById("cloud_comments").innerHTML="Current Prominence Token still valid,<br/>no need for new token,<br/>proceed to following step...";
-  }
+  check_for_existing_token_background();
   setCookie('selected_cpu',selected_option.value,7);
 }
 function set_cpu_selector(selected_cpu)
@@ -1113,14 +1149,7 @@ function cpu_select_change(optionValToSelect)
 function RAM_select(selected_option)
 { 
   // --- Check if Prominence Token already exists
-  existing_token = check_for_existing_token();
-  if (existing_token == '')
-  {
-    document.getElementById("cloud_comments").innerHTML="No Prominence Token Found, request new one!";
-  }else
-  {
-    document.getElementById("cloud_comments").innerHTML="Current Prominence Token still valid,<br/>no need for new token,<br/>proceed to following step...";
-  }
+  check_for_existing_token_background();
   setCookie('selected_RAM',selected_option.value,7);
 }
 function set_RAM_selector(selected_RAM)
