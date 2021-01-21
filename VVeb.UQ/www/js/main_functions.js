@@ -927,6 +927,7 @@ function cloud_select(selected_option)
     setCookie('selected_cloud','use_prominence',7);
   }else
   { 
+    document.getElementById("cpu_selector").style.visibility="visible";
     setCookie('selected_cloud','run_locally',7);
   }
 }
