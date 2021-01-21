@@ -58,13 +58,10 @@ my_campaign = uq.Campaign(name='easyvvuq_campaign', work_dir=".")
 encoder = uq.encoders.GenericEncoder(template_fname=template, target_filename=input_filename)
 
 # --- Decoder for the output file
-decoder = uq.decoders.SimpleCSV(target_filename=out_file, output_columns=['Step','Value'], header=0)
-
-# --- Collate fake results into fake average...
-collater = uq.collate.AggregateSamples(average=True)
+decoder = uq.decoders.SimpleCSV(target_filename=out_file, output_columns=['Step','Value'])
 
 # --- Define campaign
-my_campaign.add_app(name="run_script_easyvvuq", params=parameters, encoder=encoder, decoder=decoder, collater=collater)
+my_campaign.add_app(name="run_script_easyvvuq", params=parameters, encoder=encoder, decoder=decoder)
 
 # --- Specify Sampler
 my_sampler = uq.sampling.RandomSampler(vary=variations)
