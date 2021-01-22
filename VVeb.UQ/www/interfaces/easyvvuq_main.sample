@@ -5,7 +5,7 @@ from easyvvuq.encoders import BaseEncoder
 import sys
 sys.path.insert(1, '/VVebUQ_user_interface/python/')
 from dakota_file import DakotaFile
-from definitions import
+from definitions import *
 
 # Define a custom encoder to use to write varied data back to DakotaFile
 class VVebUQ_Encoder(BaseEncoder, encoder_name='VVebUQ_encoder'):
@@ -61,7 +61,7 @@ class VVebUQ_Encoder(BaseEncoder, encoder_name='VVebUQ_encoder'):
             # Add data to values data array
             dataset.data_vars['values'].data = values_data
 
-    def element_version:
+    def element_version():
 
         return 'v1.0'
 
