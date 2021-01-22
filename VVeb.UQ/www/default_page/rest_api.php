@@ -29,7 +29,7 @@ for ($i=0; $i<count($workdirs); $i++)
       $session_name = trim($workdirs[$i]);
       $username = explode('VVebUQ_user_',trim($workdirs[$i]));
       $username = $username[1];
-      $username = explode('_id_'.$user_hash,trim($workdirs[$i]));
+      $username = explode('_id_'.$user_hash,trim($username);
       $username = $username[0];
     }
   }
