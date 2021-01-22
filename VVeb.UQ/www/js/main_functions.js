@@ -17,6 +17,15 @@ var action_specification = "";
 // --- Loading functions
 window.onload = function()
 {
+  // --- It's important that "index.html" is not in the url!!!
+  href_url = window.location.href.split("/");
+  href_url = href_url[href_url.length-1];
+  if (href_url.trim() == "index.html")
+  {
+    href_url = window.location.href.split("index.html")[0];
+    window.location.href = href_url;
+  }
+
   // --- This checks for the terminal log-file to give a live-update to the user
   setInterval(function(){get_terminal_output();}, 1000);
 

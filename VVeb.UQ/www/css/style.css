@@ -6,7 +6,7 @@
   text-align:		center;
   font-weight:		bold;
   font-size:		20px;
-  color:		white;
+  color:		black;
   overflow: hidden
 }
 
@@ -17,12 +17,6 @@
   width:		100%;
 }
 
-#logo
-{
-  margin:		0 auto;
-  width:		20%;
-}
-
 #contact
 {
   margin:		0 auto;
@@ -31,7 +25,7 @@
   font-weight:		bold;
   //font-size:		12px;
   //background-color:	DarkBlue;
-  color:		white;
+  color:		black;
 }
 
 #content
@@ -47,8 +41,11 @@ a
 
 body
 {
-  /*background-image:	url("../Logos/fast_cam.png"); background-size: cover;*/
-  background-image:	url("../Logos/magic_pixel_back.png"); background-size: cover;
+  //background-image:	url("../Logos/fast_cam.png"); background-size: cover;
+  //background-image:	url("../Logos/magic_pixel_back.png"); background-size: cover;
+  background-image:	url("../Logos/VVebUQ_background.png"); background-size: cover;
+  //background-color:	lightGrey;
+  color:		black;
 }
 
 
@@ -66,9 +63,23 @@ body
   float: left;
   border: none;
   outline: none;
+  padding: 20px 20px;
   cursor: pointer;
-  padding: 14px 16px;
   transition: 0.3s;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.tab div {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  padding: none;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 30px;
+  font-weight: bold;
 }
 
 /* Change background color of buttons on hover */
@@ -83,10 +94,12 @@ body
 
 /* Style the tab content */
 .tabcontent {
+  min-height: 400px;
   display: none;
   padding: 6px 12px;
   border: 1px solid #ccc;
   border-top: none;
   background-color: rgba(0, 0, 0, 0.7);
+  color: white;
 }
 

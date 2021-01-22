@@ -41,29 +41,17 @@
     <!-- Main wrapper that contains everything else -->
     <div id="wrapper">
 
-      <!-- Welcome -->
-      <h1>VVeb.UQ CCFE</h1>
-
-      <!-- Left Logo: get back to main page -->
-      <a id="home_link" href="../index.html" style="position:absolute; left:10px; top:10px; height: 100px; border: 5px solid white;">
-        <img src="../Logos/MAST_fast_cam.png" style="height: 70.0%;"/><br />Home
-      </a>
-
-      <!-- Right Logo: go to CCFE web page -->
-      <a href="https://ccfe.ukaea.uk/research/advanced-computing/" style="position:absolute; right:10px; top:10px; height: 100px; border: 5px solid white;">
-        <img src="../Logos/ccfe.jpg" style="height: 70.0%;"/><br />CCFE home
-      </a>
-
       <!-- Work-desk that contains the Set-up, Inputs, and Results tabs -->
       <div id="workdesk">
 
         <!-- Tab links -->
         <div class="tab">
-          <button class="tablinks" onclick="openTab(event, 'Set-up')"  id="TAB_Set-up">Set-up</button>
-          <button class="tablinks" onclick="openTab(event, 'Cloud')"   id="TAB_Cloud">Cloud</button>
-          <button class="tablinks" onclick="openTab(event, 'Inputs')"  id="TAB_Inputs">Inputs</button>
-          <button class="tablinks" onclick="openTab(event, 'Run')"     id="TAB_Run">Run</button>
-          <button class="tablinks" onclick="openTab(event, 'Results')" id="TAB_Results">Results</button>
+          <div    class="tablinks" onclick="location.href='../index.html'" id="Home"><img src="../Logos/VVebUQ_logo.png" style="height: 80px;"/></div>
+          <button class="tablinks" onclick="openTab(event, 'Set-up')"      id="TAB_Set-up">Set-up</button>
+          <button class="tablinks" onclick="openTab(event, 'Cloud')"       id="TAB_Cloud">Cloud</button>
+          <button class="tablinks" onclick="openTab(event, 'Inputs')"      id="TAB_Inputs">Inputs</button>
+          <button class="tablinks" onclick="openTab(event, 'Run')"         id="TAB_Run">Run</button>
+          <button class="tablinks" onclick="openTab(event, 'Results')"     id="TAB_Results">Results</button>
         </div>
         
         <!-- Set-up Tab -->
