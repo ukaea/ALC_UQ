@@ -1,3 +1,6 @@
+
+/* --- Main page divs --- */
+
 #wrapper
 {
   margin:		0 auto;
@@ -13,6 +16,7 @@
 #workdesk
 {
   border:               15px solid black;
+  border-radius:        25px;
   box-sizing:           border-box;
   width:		100%;
 }
@@ -23,8 +27,6 @@
   width:		60%;
   text-align:		center;
   font-weight:		bold;
-  //font-size:		12px;
-  //background-color:	DarkBlue;
   color:		black;
 }
 
@@ -48,58 +50,136 @@ body
   color:		black;
 }
 
-
-
-/* Style the tab */
-.tab {
-  overflow: hidden;
-  border: 1px solid #ccc;
-  background-color: #f1f1f1;
+.button_like
+{
+  background-color: 	lightGray;
+  color: 		black;
+  border: 		1px solid blue;
+  border-radius:        5px;
+  font-weight:		bold;
+  font-size:		15px;
+  box-shadow: 		3px 3px rgba(200, 200, 200, 0.3);;
 }
 
-/* Style the buttons that are used to open the tab content */
-.tab button {
-  background-color: inherit;
-  float: left;
-  border: none;
-  outline: none;
-  padding: 20px 20px;
-  cursor: pointer;
-  transition: 0.3s;
-  font-size: 30px;
-  font-weight: bold;
+.button_like:hover
+{
+  background-color: 	darkGray;
 }
 
-.tab div {
-  background-color: inherit;
-  float: left;
-  border: none;
-  outline: none;
-  padding: none;
-  cursor: pointer;
-  transition: 0.3s;
-  font-size: 30px;
-  font-weight: bold;
+
+
+
+
+/* --- Waiting/Action div --- */
+
+#waiting_div
+{
+  position:             absolute;
+  width:		60%;
+  z-index:		3000;
+  border: 		20px solid #600000;
+  border-radius:        25px;
+  background-color: 	rgba(200, 200, 200, 0.9);
+  text-align: 		center;
 }
 
-/* Change background color of buttons on hover */
-.tab button:hover {
-  background-color: #ddd;
+#waiting_message
+{
+  font-weight: 		bold;
+  font-size:		20px;
 }
 
-/* Create an active/current tablink class */
-.tab button.active {
-  background-color: #ccc;
+#waiting_gif
+{
+  visibility: 		hidden;
+  width: 		75px;
 }
 
-/* Style the tab content */
-.tabcontent {
-  min-height: 400px;
-  display: none;
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-top: none;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
+.waiting_div_buttons
+{
+  background-color: 	#404040;
+  color: 		white;
+  border: 		2px solid black;
+  border-radius:        2px;
+  font-weight: 		bold;
+  font-size:		15px;
 }
+
+#waiting_div button:hover
+{
+  background-color: 	darkGray;
+}
+
+#terminal_output
+{
+  width:		100%;
+  background:		black;
+  color:		white;
+  text-align:		left;
+  overflow-wrap: 	normal;
+}
+
+
+
+
+/* --- Style of working tabs ---  */
+
+.tab
+{
+  overflow: 		hidden;
+  border: 		1px solid #ccc;
+  border-radius: 	10px;
+  background-color: 	#f1f1f1;
+}
+
+.tab button
+{
+  background-color: 	inherit;
+  float: 		left;
+  border: 		none;
+  outline: 		none;
+  padding: 		20px 20px;
+  cursor: 		pointer;
+  transition: 		0.3s;
+  font-size: 		30px;
+  font-weight: 		bold;
+}
+
+.tab div
+{
+  background-color: 	inherit;
+  float: 		left;
+  border: 		none;
+  outline: 		none;
+  padding: 		none;
+  cursor: 		pointer;
+  transition: 		0.3s;
+  font-size: 		30px;
+  font-weight: 		bold;
+}
+
+
+.tab button:hover
+{
+  background-color: 	#ddd;
+}
+
+.tab button.active
+{
+  background-color: 	#ccc;
+}
+
+.tabcontent
+{
+  min-height: 		400px;
+  display: 		none;
+  padding: 		6px 12px;
+  border: 		1px solid #ccc;
+  border-radius: 	10px;
+  border-top: 		none;
+  background-color: 	rgba(0, 0, 0, 0.7);
+  color: 		white;
+}
+
+
 

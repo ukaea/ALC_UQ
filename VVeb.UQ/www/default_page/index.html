@@ -27,14 +27,14 @@
   <body>
 
     <!-- Waiting div on top of the rest to confirm actions and make user patient... -->
-    <div id="waiting_div" style="position:absolute; width:60%; z-index:3000; border: 20px solid #600000; background-color: rgba(200, 200, 200, 0.9); text-align: center;">
+    <div id="waiting_div">
       <span>
-        <p><br/><br/><br/></p>
-        <p id="waiting_message" style="font-weight: bold;"></p>
-        <img id="waiting_gif" src="../Logos/giphy.gif" alt="waiting-gif" style="visibility: hidden; width: 50px; "><br/>
-        <button onclick="action_wrapper();" id="action_wrapper_button" style="background-color: #404040; color: white; border: 2px solid black;">action</button>
-        <button onclick="hide_waiting_div();" id="button_hide_waiting_div_upload" style="background-color: #404040; color: white; border: 2px solid black;">exit</button><br/>
-        <div id="terminal_output" style="width:100%; background:black; color:white; text-align:left; overflow-wrap: normal;"></div>
+        <p><br/></p>
+        <p id="waiting_message"></p>
+	<img id="waiting_gif" src="../Logos/VVebUQ_waiting_gif.gif" alt="waiting-gif"><br/><br/>
+        <button class="waiting_div_buttons" id="action_wrapper_button" onclick="action_wrapper();">action</button>
+        <button class="waiting_div_buttons" id="button_hide_waiting_div_upload" onclick="hide_waiting_div();">close</button><br/>
+        <div id="terminal_output"></div>
       <span>
     </div>
 
@@ -61,26 +61,26 @@
               <!-- VVUQ-app container launcher -->
               <div style="width: 20%; display: table-cell; text-align: left;">
                 <p>Choose VVUQ software</p>
-                <select id="vvuq_selector" onchange="vvuq_select(this)">
+                <select class="button_like" id="vvuq_selector" onchange="vvuq_select(this)">
                   <option value="dakota">Dakota</option>
                   <option value="easyvvuq">VECMA's easyvvuq</option>
                 </select>
                 <p>Launch VVUQ app</p>
                 <form id="vvuq_form" action="../php/launch_vvuq.php" method="post">
-                  <input type="button" value="launch" onclick="launch_vvuq_container();"><br/>
+                  <input class="button_like" type="button" value="launch" onclick="launch_vvuq_container();"><br/>
                   <p id="vvuq_comments"></p>
                 </form>
               </div>
               <!-- Code-container launcher -->
               <div style="width: 40%; display: table-cell; text-align: left;">
                 <p>Choose code image.</p>
-                <select id="image_selector" onchange="image_select(this)">
+                <select class="button_like" id="image_selector" onchange="image_select(this)">
                   <option value="select_image">Select image</option>
                   <option value="new_image">New image</option>
                 </select>
                 <form id="new_image_form" action="../php/pull_image.php" method="post" style="visibility: hidden;">
                   Docker image: <input type="text" name="docker_image" id="docker_image" size="30" value="eg. username/repository:tag"><br>
-                  <input type="button" value="launch" onclick="pull_code_image();"><br/>
+                  <input class="button_like" type="button" value="launch" onclick="pull_code_image();"><br/>
                 </form>
                 <p id="image_comments"></p>
               </div>
@@ -90,7 +90,7 @@
                    Particularly, the WORKDIR must be called /tmp/work_dir/ and it must be left empty (because it will be mounted externally).
                    Here is a very simple example of a Docker image with the correct configuration:
                 </p>
-                <button onclick="download_user_example();">user example</button>
+                <button class="button_like" onclick="download_user_example();">user example</button>
               </div>
             </div>
           </div>
@@ -103,7 +103,7 @@
               <!-- Cloud selector -->
               <div style="width: 30%; display: table-cell; text-align: left;">
                 <p>Choose where to run.</p>
-                <select id="cloud_selector" onchange="cloud_select(this)">
+                <select class="button_like" id="cloud_selector" onchange="cloud_select(this)">
                   <option value="run_locally">Run locally</option>
                   <option value="use_prominence">Use Prominence</option>
                 </select>
@@ -112,8 +112,8 @@
               <div style="display: table-cell; text-align: left;">
                 <p id="cloud_comments"></p>
               </div>
-	      <button id="prominence_token_button" onclick="request_prominence_token();">Request New<br/>Prominence Token</button><br/><br/>
-              <select id="cpu_selector" onchange="cpu_select(this)">
+	      <button class="button_like" id="prominence_token_button" onclick="request_prominence_token();">Request New<br/>Prominence Token</button><br/><br/>
+              <select class="button_like" id="cpu_selector" onchange="cpu_select(this)">
                 <option value="select_n_cpu">select # CPU/instance</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -124,7 +124,7 @@
                 <option value="64">64</option>
               </select>
 	      <br/>
-              <select id="RAM_selector" onchange="RAM_select(this)">
+              <select class="button_like" id="RAM_selector" onchange="RAM_select(this)">
                 <option value="select_RAM">select RAM/instance (GB)</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -146,7 +146,7 @@
               <!-- Input file -->
               <div style="width: 35%; display: table-cell; text-align: left;">
                 <p>Choose an input file.</p>
-                <select id="file_selector" onchange="file_select(this)">
+                <select class="button_like" id="file_selector" onchange="file_select(this)">
                   <option value="select_file">Select file</option>
                   <option value="new_file">New file</option>
                 </select><br/>
@@ -154,7 +154,6 @@
                 <form action="../php/upload.php" method="post" enctype="multipart/form-data" id="upload_form">
 		  <p>Upload a file with values and errors.<br/>The file must be either NETCDF (.nc) or CSV (.csv) format</p>
                   <div id="choose_files">
-                    choose files :
                     <input class="uploadForm"
                            type="file"
                            name="fileToUpload[]"
@@ -166,7 +165,7 @@
                   <p id="upload_comments"></p><br/>
                 </form>
                 <span id="upload_div" style="visibility: hidden;">
-                  <button id="upload_button" onclick="send_upload();"> upload </button><br/>
+                  <button class="button_like" id="upload_button" onclick="send_upload();"> upload </button><br/>
                   <progress id="progressBar" value="0" max="100" style="width:300px;"></progress>
                   <p id="progress_status"></p>
                 <span>
@@ -174,7 +173,7 @@
               <!-- Input data -->
               <div style="width: 35%; display: table-cell; text-align: left;">
                 <p>Choose additional data.</p>
-                <select id="data_file_selector" onchange="data_file_select(this)">
+                <select class="button_like" id="data_file_selector" onchange="data_file_select(this)">
                   <option value="select_data_file">Select file</option>
                   <option value="new_data_file">New file</option>
                 </select><br/>
@@ -182,7 +181,6 @@
                 <form action="../php/upload_data_file.php" method="post" enctype="multipart/form-data" id="upload_data_form">
 			<p>Upload a zip file that contains files and folders needed by your container.<br/>The file must be in ZIP (.zip) format.<br/>The file will be unzipped in the top directory of each of your runs.</p>
                   <div id="choose_data_files">
-                    choose files :
                     <input class="uploadForm"
                            type="file"
                            name="dataFileToUpload[]"
@@ -194,7 +192,7 @@
                   <p id="data_upload_comments"></p><br/>
                 </form>
                 <span id="data_upload_div" style="visibility: hidden;">
-                  <button id="data_upload_button" onclick="send_data_upload();"> upload </button><br/>
+                  <button class="button_like" id="data_upload_button" onclick="send_data_upload();"> upload </button><br/>
                   <progress id="data_progressBar" value="0" max="100" style="width:300px;"></progress>
                   <p id="data_progress_status"></p>
                 <span>
@@ -202,7 +200,7 @@
               <!-- Netcdf example -->
               <div style="display: table-cell; text-align: left;">
                 <p>The input file must contain data with corresponding errors and the number of samples to be run. Here is a simple example of how to generate such an input file.</p><br/>
-                <button onclick="download_user_example();">user example</button>
+                <button class="button_like" onclick="download_user_example();">user example</button>
                 <p>This will be the only thing passed to your container. Any other input you require must come from within the container itself.</p>
               </div>
             </div>
@@ -218,18 +216,18 @@
                 <p>Launch run</p>
                 <form id="main_run_form" action="../php/create_runs.php" method="post">
                   <input type="hidden" name="docker_image_run" id="docker_image_run" value="">
-                  <input type="button" value="launch" onclick="launch_main_run();">
+                  <input class="button_like" type="button" value="launch" onclick="launch_main_run();">
                 </form>
               </div>
               <!-- The run cases -->
               <div style="width: 80%; display: table-cell; text-align: left;">
                 <p>Run logs</p>
-                <select id="run_selector" onchange="run_select(this)">
+                <select class="button_like" id="run_selector" onchange="run_select(this)">
                   <option value="select_run">Select run</option>
                 </select><br/>
-                <button id="refresh_containers_log" onclick="refresh_containers_log()">refresh</button>
-                <button id="stop_containers" onclick="stop_containers()">stop containers</button>
-                <button id="purge_run" onclick="purge_run()">purge run</button>
+                <button class="button_like" id="refresh_containers_log" onclick="refresh_containers_log()">refresh</button>
+                <button class="button_like" id="stop_containers" onclick="stop_containers()">stop containers</button>
+                <button class="button_like" id="purge_run" onclick="purge_run()">purge run</button>
                 <p id="run_comments" style="font-weight:normal; font-size:70%; overflow-x:scroll; overflow-y:scroll;"></p>
               </div>
             </div>
@@ -243,19 +241,19 @@
               <!-- The run cases -->
               <div style="width: 50%; display: table-cell; text-align: left;">
                 <p>Result files</p>
-                <select id="result_selector" onchange="result_select(this)">
+                <select class="button_like" id="result_selector" onchange="result_select(this)">
                   <option value="select_result">Select run</option>
                 </select><br/>
-                <button id="refresh_result_list" onclick="refresh_result_list()">refresh</button>
-                <button id="purge_result" onclick="purge_result()">remove result</button>
+                <button class="button_like" id="refresh_result_list" onclick="refresh_result_list()">refresh</button>
+                <button class="button_like" id="purge_result" onclick="purge_result()">remove result</button>
                 <div id="result_comments" style="font-weight:normal; font-size:70%; overflow-x:scroll; overflow-y:scroll;"></div>
               </div>
               <!-- Retrieve data -->
               <div style="display: table-cell; text-align: left;">
                 <p>Retrieve files</p>
-                <button id="download_entire_run" onclick="download_entire_run()">download everything</button>
-                <button id="get_download_urls" onclick="get_download_urls()">get download URLs</button>
-                <button id="download_selected_files" onclick="download_selected_files()">download selected files</button>
+                <button class="button_like" id="download_entire_run" onclick="download_entire_run()">download everything</button>
+                <button class="button_like" id="get_download_urls" onclick="get_download_urls()">get download URLs</button>
+                <button class="button_like" id="download_selected_files" onclick="download_selected_files()">download selected files</button>
                 <div id="retrieve_comments" style="font-weight:normal; font-size:70%; overflow-x:scroll; overflow-y:scroll;">
                   <p>The following files were selected for download:</p><br/>
                   <ul id="retrieve_files_list"></ul>

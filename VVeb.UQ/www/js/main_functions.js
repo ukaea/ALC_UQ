@@ -378,7 +378,7 @@ function action_wrapper()
   {
     selected_image = document.getElementById('image_selector').value;
     document.getElementById("waiting_gif").style.visibility="visible";
-    document.getElementById("waiting_message").innerHTML="<br/>Please wait while containers are launched for your jobs.<br/>This may take a moment depending on the number of runs...<br/>";
+    document.getElementById("waiting_message").innerHTML="<br/>Please wait while containers are launched for your jobs.<br/>This may take a moment depending on the number of runs.<br/>You may close this window, the job will continue to be prepared in the background.<br/>";
     // --- Number of CPUs and memory available for the run
     n_cpu = execute_command('nproc'); // by default, we use however many processors we have on the machine when running locally
     RAM = 1; // in GB
