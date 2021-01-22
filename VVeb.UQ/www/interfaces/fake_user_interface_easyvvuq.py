@@ -4,6 +4,8 @@ import sys
 import json
 import argparse
 import numpy as np
+
+sys.path.insert(1, '/VVebUQ_user_interface/python/')
 from dakota_file import DakotaFile
 
 # Handle arguments
@@ -20,6 +22,9 @@ parser.add_argument("-t", "--type", default='netcdf', help=helpstr)
 
 helpstr = "Name of the output file to create"
 parser.add_argument("-o", "--output", default='easyvvuq_main.py', help=helpstr)
+
+helpstr = "Number of CPUs to use"
+parser.add_argument("-c", "--cpu", default=1, help=helpstr)
 
 args = parser.parse_args()
 
