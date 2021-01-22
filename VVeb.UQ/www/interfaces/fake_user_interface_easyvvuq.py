@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import argparse
+import numpy as np
 from dakota_file import DakotaFile
 
 # Handle arguments
@@ -27,8 +28,8 @@ user_file = DakotaFile( file_type = args.type )
 user_file.read( args.input )
 
 # Sample type setting is used to specify the kind of run
-if 'sample_type' in user_file.settings:
-    sample_type = user_file.settings['sample_type'] 
+if 'sample_type' in user_file.settings.attrs:
+    sample_type = user_file.settings.attrs['sample_type'] 
 else:
     raise Exception("No sample type set. ABORTING!")
 
@@ -100,8 +101,8 @@ all_strings = run_script + parameters + variations
 if sample_type is not 'pce':
 
     n_samples = 0
-    if 'samples' in user_file.settings:
-        n_samples = user_file.settings['samples'] 
+    if 'samples' in user_file.settings.attrs:
+        n_samples = user_file.settings.attrs['samples'] 
     else:
         raise Exception("Number of samples to take not specified. ABORTING!")
 
@@ -123,8 +124,8 @@ if sample_type is not 'pce':
 else:
 
     poly_order = 0
-    if 'poly_order' in user_file.settings:
-        poly_order = user_file.settings['poly_order'] 
+    if 'poly_order' in user_file.settings.attrs:
+        poly_order = user_file.settings.attrs['poly_order'] 
     else:
         raise Exception("PCE polynomial order not set. ABORTING!")
 
@@ -138,7 +139,7 @@ with open('easyvvuq_main.sample') as file_tmp:
     file_string = file_string.replace('#REPLACE_INPUTS_HERE',all_strings)
     file_string = file_string.replace('#FILENAME#',args.input )
     file_string = file_string.replace('#FILETYPE#',args.type  )
-    file_String = file_string.replace('#SAMPLER#' ,sampler    )
+    file_string = file_string.replace('#SAMPLER#' ,sampler    )
     file_string = file_string.replace('#DRAWARGS#',draw_args  )
 
 with open(args.output, 'w') as outfile:
