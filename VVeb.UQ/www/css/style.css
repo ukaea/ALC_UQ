@@ -25,7 +25,7 @@
 {
   margin:		0 auto;
   width:		60%;
-  text-align:		center;
+  text-align:		left;
   font-weight:		bold;
   color:		black;
 }
@@ -37,8 +37,8 @@
 
 a
 {
-  color:		white;
-  background-color:	black;
+  color:		black;
+  background-color:	lightblue;
 }
 
 body
