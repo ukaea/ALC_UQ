@@ -61,7 +61,7 @@ class VVebUQ_Encoder(BaseEncoder, encoder_name='VVebUQ_encoder'):
             # Add data to values data array
             dataset.data_vars['values'].data = values_data
 
-    def element_version():
+    def element_version(self):
 
         return 'v1.0'
 
