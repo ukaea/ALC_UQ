@@ -1,12 +1,11 @@
 import os
 import easyvvuq as uq
 import chaospy as cp
-from dakota_file import DakotaFile
 from easyvvuq.encoders import BaseEncoder
-from definitions import *
-
 import sys
 sys.path.insert(1, '/VVebUQ_user_interface/python/')
+from dakota_file import DakotaFile
+from definitions import
 
 # Define a custom encoder to use to write varied data back to DakotaFile
 class VVebUQ_Encoder(BaseEncoder, encoder_name='VVebUQ_encoder'):
@@ -62,6 +61,10 @@ class VVebUQ_Encoder(BaseEncoder, encoder_name='VVebUQ_encoder'):
             # Add data to values data array
             dataset.data_vars['values'].data = values_data
 
+    def element_version:
+
+        return 'v1.0'
+
 # This line is overwritten with input data by easyvvuq_main.sample
 # This sets the parameters, variations and n_smaples variables
 
@@ -71,7 +74,7 @@ class VVebUQ_Encoder(BaseEncoder, encoder_name='VVebUQ_encoder'):
 
 # --- Setup some variables describing app to be run
 cwd            = os.getcwd()
-run_script     = 'run_script_easyvvuq.py'
+run_script     = 'run_script.py'
 input_filename = 'easyvvuq_in.json'
 out_file       = "easyvvuq_out.csv"
 template       = f"{cwd}/easyvvuq_input.template"
@@ -81,10 +84,13 @@ cmd            = f"{cwd}/{run_script} {input_filename}"
 my_campaign = uq.Campaign(name='easyvvuq_campaign', work_dir=".")
 
 # --- Encoder for the input file
-encoder = VVebUQ_Encoder(template_fname=template, target_filename=input_filename)
+encoder = VVebUQ_Encoder()
+
+# --- Define a decoder
+decoder = uq.decoders.SimpleCSV(target_filename=out_file,output_columns=['Step','Value'])
 
 # --- Define campaign
-my_campaign.add_app(name="run_script_easyvvuq", params=parameters, encoder=encoder)
+my_campaign.add_app(name="run_script_easyvvuq", params=parameters, encoder=encoder, decoder=decoder)
 
 # --- Specify Sampler
 my_sampler = #SAMPLER#
