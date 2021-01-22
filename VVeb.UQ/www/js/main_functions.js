@@ -110,6 +110,13 @@ function show_waiting_div()
   document.getElementById("waiting_gif").style.visibility="hidden";
   document.getElementById("action_wrapper_button").style.visibility="visible";
 }
+function show_waiting_div_with_message(message)
+{
+  show_waiting_div();
+  document.getElementById("waiting_gif").style.visibility="visible";
+  document.getElementById("action_wrapper_button").style.visibility="hidden";
+  document.getElementById("waiting_message").innerHTML="<br/>"+message+"<br/>";
+}
 function hide_waiting_div()
 {
   document.getElementById("action_wrapper_button").style.visibility="hidden";
@@ -487,6 +494,92 @@ function action_wrapper()
       document.getElementById("waiting_message").innerHTML="<br/>The selected run is not valid!<br/>";
     }
   }
+
+  // --- Download all the data of a run
+  if (action_specification == "download_run")
+  {
+    // --- Get run name
+    selected_result = document.getElementById('result_selector').value;
+    run_name = selected_result.replace('workdir_','');
+    if ( (selected_result != "") && (selected_result != "select_run") && (selected_result != "select_result") )
+    {
+      show_waiting_div_with_message("Please wait while the data is being prepared and downloaded.<br/>This may take a moment depending on the size of the job...");
+      // --- Call php script
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.open("GET", "../php/download_run.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&get_back_to_js=true", true);
+      // --- We do this async because we want to catch the terminal output while the request runs...
+      xmlhttp.onreadystatechange = function ()
+      {
+        if(this.readyState == 4 && this.status == 200)
+        {
+	  hide_waiting_div();
+          empty_terminal_output();
+          // --- Create artificial link to download target
+          link = document.createElement("a");
+          link.download = run_name+'.zip';
+          link.href = '../VVebUQ_downloads/'+who_am_i().trim()+'/'+run_name+'.zip';
+          link.click();
+          return;
+        }
+      };
+      xmlhttp.send();
+    }else
+    {
+      document.getElementById("action_wrapper_button").style.visibility="hidden";
+      document.getElementById("waiting_message").innerHTML="<br/>The selected run is not valid!<br/>";
+      return;
+    }
+  }
+
+  // --- Download all the data of a run
+  if (action_specification == "get_download_urls")
+  {
+    selected_result = document.getElementById('result_selector').value;
+    if ( (selected_result != "") && (selected_result != "select_run") && (selected_result != "select_result") )
+    {
+      // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
+      use_prominence = false;
+      prominence_id = execute_command('cat /VVebUQ_runs/'+who_am_i().trim()+'/'+selected_result+'/prominence_workflow_id.txt');
+      prominence_id = prominence_id.trim();
+      if ( (! prominence_id.includes('No such file or directory')) && (prominence_id != '') ) {use_prominence = true;}
+      if (! use_prominence)
+      {
+        document.getElementById("waiting_message").innerHTML = "Getting download-URLs is reserved to Prominence runs.<br/>"
+                                                             + "If you are running locally, this is not necessary since files are local.";
+        document.getElementById("action_wrapper_button").style.visibility="hidden";
+        return;
+      }
+      // --- Create artificial link to download target
+      show_waiting_div_with_message("Please wait while the data is being prepared and downloaded.<br/>This may take a moment depending on the size of the job...");
+      // --- Get run name
+      run_name = selected_result.replace('workdir_','');
+      // --- Call php script
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.open("GET", "../php/get_download_urls.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&get_back_to_js=true", true);
+      // --- We do this async because we want to catch the terminal output while the request runs...
+      xmlhttp.onreadystatechange = function ()
+      {
+        if(this.readyState == 4 && this.status == 200)
+        {
+          hide_waiting_div();
+          empty_terminal_output();
+          // --- Create artificial link to download target
+          link = document.createElement("a");
+          link.download = run_name+'.zip';
+          link.href = '../VVebUQ_downloads/'+who_am_i().trim()+'/'+run_name+'.zip';
+          link.click();
+          return;
+        }
+      };
+      xmlhttp.send();
+    }else
+    {
+      document.getElementById("action_wrapper_button").style.visibility="hidden";
+      document.getElementById("waiting_message").innerHTML="<br/>The selected run is not valid!<br/>";
+      return;
+    }
+  }
+
 }
 
 
@@ -833,6 +926,7 @@ function cloud_select(selected_option)
     setCookie('selected_cloud','use_prominence',7);
   }else
   { 
+    document.getElementById("cpu_selector").style.visibility="visible";
     setCookie('selected_cloud','run_locally',7);
   }
 }
@@ -886,15 +980,18 @@ function cloud_select_change(optionValToSelect)
 }
 function check_for_existing_token()
 {
-  existing_token = '';
   // --- Which VVUQ software are we using?
   selected_vvuq = document.getElementById('vvuq_selector').value;
   container_running = check_vvuq_container();
   if (! container_running.includes(selected_vvuq))
   {
-    return existing_token;
+    return '';
   }
-  prominence_token = execute_command('docker exec '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'cat $HOME/.prominence/token\'');
+  show_waiting_div();
+  document.getElementById("waiting_gif").style.visibility="visible";
+  document.getElementById("waiting_message").innerHTML="<br/>Checking Prominence Token, please wait...<br/>";
+  command = 'docker exec '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'cat $HOME/.prominence/token\'';
+  prominence_token = execute_command(command);
   prominence_token = prominence_token.split('{"access_token": "');
   if (prominence_token.length == 2)
   {
@@ -902,12 +999,80 @@ function check_for_existing_token()
     command = 'docker exec -t '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'curl -i -H "Authorization: Bearer '+prominence_token+'" $PROMINENCE_OIDC_URL/userinfo\'';
     token_valid = execute_command(command);
     token_valid = token_valid.split('200 OK');
+    hide_waiting_div();
     if (token_valid.length == 2)
     {
-      existing_token = 'yes';
+      return 'yes';
+    }else
+    {
+      return '';
     }
+  }else
+  {
+    hide_waiting_div();
+    return '';
   }
-  return existing_token;
+}
+function check_for_existing_token_background()
+{
+  // --- Which VVUQ software are we using?
+  selected_vvuq = document.getElementById('vvuq_selector').value;
+  container_running = check_vvuq_container();
+  if (! container_running.includes(selected_vvuq))
+  {
+    print_expired_prominence_token_warning();
+    return;
+  }
+  show_waiting_div();
+  document.getElementById("waiting_gif").style.visibility="visible";
+  document.getElementById("waiting_message").innerHTML="<br/>Checking Prominence Token, please wait...<br/>";
+  command = 'docker exec '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'cat $HOME/.prominence/token\'';
+  // ===%%%=== is used as a replacement for spaces (which are not allowed in http request url...)
+  command = command.replace(' ','===%%%===');
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.open("GET", "../php/server_side_functions.php?input=" + command, true);
+  // --- We do this async because we want to catch the terminal output while the request runs...
+  xmlhttp.onreadystatechange = function ()
+  {
+    if(this.readyState == 4 && this.status == 200)
+    {
+      prominence_token = xmlhttp.responseText;
+      prominence_token = prominence_token.split('{"access_token": "');
+      if (prominence_token.length == 2)
+      {
+        prominence_token = prominence_token[1].split('"')[0];
+        command = 'docker exec -t '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'curl -i -H "Authorization: Bearer '+prominence_token+'" $PROMINENCE_OIDC_URL/userinfo\'';
+        // ===%%%=== is used as a replacement for spaces (which are not allowed in http request url...)
+        command = command.replace(' ','===%%%===');
+        var xmlhttp2 = new XMLHttpRequest();
+        xmlhttp2.open("GET", "../php/server_side_functions.php?input=" + command, true);
+        // --- We do this async because we want to catch the terminal output while the request runs...
+        xmlhttp2.onreadystatechange = function ()
+        {
+          if(this.readyState == 4 && this.status == 200)
+          {
+            token_valid = xmlhttp2.responseText;
+            token_valid = token_valid.split('200 OK');
+            if (token_valid.length == 2)
+            {
+              hide_waiting_div();
+              return;
+            }else
+            {
+              print_expired_prominence_token_warning();
+              return;
+	    }
+          }
+	};
+	xmlhttp2.send();
+      }else
+      {
+        print_expired_prominence_token_warning();
+        return;
+      }
+    }
+  };
+  xmlhttp.send();
 }
 function expired_prominence_token_warning()
 {
@@ -916,11 +1081,17 @@ function expired_prominence_token_warning()
   existing_token = check_for_existing_token();
   if (existing_token == '')
   {
+    print_expired_prominence_token_warning();
+    return "expired";
+  }
+}
+function print_expired_prominence_token_warning()
+{
     show_waiting_div();
     document.getElementById("waiting_message").innerHTML="<br/>Your Prominence Token has expired! (go to \"Cloud\" Tab)<br/>";
     document.getElementById("action_wrapper_button").style.visibility="hidden";
-    return "expired";
-  }
+    document.getElementById("waiting_gif").style.visibility="hidden";
+    return;
 }
 function request_prominence_token()
 {
@@ -943,14 +1114,7 @@ function request_prominence_token()
 function cpu_select(selected_option)
 { 
   // --- Check if Prominence Token already exists
-  existing_token = check_for_existing_token();
-  if (existing_token == '')
-  {
-    document.getElementById("cloud_comments").innerHTML="No Prominence Token Found, request new one!";
-  }else
-  {
-    document.getElementById("cloud_comments").innerHTML="Current Prominence Token still valid,<br/>no need for new token,<br/>proceed to following step...";
-  }
+  check_for_existing_token_background();
   setCookie('selected_cpu',selected_option.value,7);
 }
 function set_cpu_selector(selected_cpu)
@@ -984,14 +1148,7 @@ function cpu_select_change(optionValToSelect)
 function RAM_select(selected_option)
 { 
   // --- Check if Prominence Token already exists
-  existing_token = check_for_existing_token();
-  if (existing_token == '')
-  {
-    document.getElementById("cloud_comments").innerHTML="No Prominence Token Found, request new one!";
-  }else
-  {
-    document.getElementById("cloud_comments").innerHTML="Current Prominence Token still valid,<br/>no need for new token,<br/>proceed to following step...";
-  }
+  check_for_existing_token_background();
   setCookie('selected_RAM',selected_option.value,7);
 }
 function set_RAM_selector(selected_RAM)
@@ -1062,34 +1219,78 @@ function launch_main_run()
     return;
   }
   // --- Check Prominence Token is not expired (if using Prominence)
-  expired_token = expired_prominence_token_warning();
-  if (expired_token == 'expired') {return;}
-  // --- Go to run
-  show_waiting_div();
-  document.getElementById("waiting_message").innerHTML="<br/>This will launch the VVUQ job with your code.<br/>Are you sure you want to action this request?<br/>";
-  action_specification = "main_run";
+  show_waiting_div_with_message("Checking Prominence Token, please wait...");
+  var xmlhttp_check = new XMLHttpRequest();
+  xmlhttp_check.open("GET", "../php/check_prominence_token_before_run.php?VVebUQ_session_name="+who_am_i().trim()+"&selected_vvuq="+container_running, true);
+  xmlhttp_check.onreadystatechange = function ()
+  {
+    if(this.readyState == 4 && this.status == 200)
+    {
+      validity = xmlhttp_check.responseText;
+      if (validity != "expired")
+      {
+        hide_waiting_div();
+        // --- Go to run
+        show_waiting_div();
+        document.getElementById("waiting_message").innerHTML="<br/>This will launch the VVUQ job with your code.<br/>Are you sure you want to action this request?<br/>";
+        action_specification = "main_run";
+      }else
+      {
+        print_expired_prominence_token_warning();
+      }
+    }
+  };
+  xmlhttp_check.send();
 }
 function run_select(selected_option)
 {
   document.getElementById("run_comments").innerHTML="";
   if (selected_option.value != "select_run")
   {
-    // --- Check Prominence Token is not expired (if using Prominence)
-    expired_token = expired_prominence_token_warning();
-    if (expired_token == 'expired') {return;}
     // --- Get run name
     setCookie('selected_run',selected_option.value,7);
     dir_name = selected_option.value;
     run_name = dir_name.split("workdir_");
     run_name = run_name[1];
-    // --- Call php script
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", "../php/get_run_status.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, false);
-    xmlhttp.send();
-    containers = xmlhttp.responseText;
-    // --- print the docker containers corresponding to job
-    containers = "<pre>" + containers + "</pre>";
-    document.getElementById("run_comments").innerHTML = containers;
+    // --- Check Prominence Token is not expired (if using Prominence)
+    selected_result = document.getElementById('run_selector').value;
+    run_name = selected_result.replace('workdir_','');
+    show_waiting_div_with_message("Checking Prominence Token, please wait...");
+    var xmlhttp_check = new XMLHttpRequest();
+    xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+    xmlhttp_check.onreadystatechange = function ()
+    {
+      if(this.readyState == 4 && this.status == 200)
+      {
+        validity = xmlhttp_check.responseText;
+        if (validity != "expired")
+        {
+          hide_waiting_div();
+          // --- Call php script
+          show_waiting_div_with_message("Getting run status, please wait...");
+          var xmlhttp = new XMLHttpRequest();
+          xmlhttp.open("GET", "../php/get_run_status.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+          xmlhttp.onreadystatechange = function ()
+          {
+            if(this.readyState == 4 && this.status == 200)
+            {
+              hide_waiting_div();
+              // --- print the docker containers corresponding to job
+              containers = xmlhttp.responseText;
+              containers = "<pre>" + containers + "</pre>";
+              document.getElementById("run_comments").innerHTML = containers;
+              return;
+            }
+          };
+          xmlhttp.send();
+          return;
+        }else
+        {
+          print_expired_prominence_token_warning();
+        }
+      }
+    };
+    xmlhttp_check.send();
   }else
   {
     setCookie('selected_run','select_run',7);
@@ -1128,9 +1329,6 @@ function get_previous_runs()
 }
 function refresh_containers_log()
 {
-  // --- Check Prominence Token is not expired (if using Prominence)
-  expired_token = expired_prominence_token_warning();
-  if (expired_token == 'expired') {return;}
   // --- Refresh log
   selected_run = document.getElementById('run_selector').value;
   reload_run_selector();
@@ -1139,27 +1337,65 @@ function refresh_containers_log()
 function stop_containers()
 {
   // --- Check Prominence Token is not expired (if using Prominence)
-  expired_token = expired_prominence_token_warning();
-  if (expired_token == 'expired') {return;}
-  // --- Go to action wrapper
-  show_waiting_div();
-  document.getElementById("waiting_message").innerHTML="<br/>This will stop and remove all containers for this run.<br/>"
-                                                      +"Data from completed containers will still be retrievable,<br/>"
-                                                      +"but you might lose data from unfinished containers.<br/>"
-                                                      +"Are you sure you want to action this request?<br/>";
-  action_specification = "remove_containers";
+  selected_result = document.getElementById('run_selector').value;
+  run_name = selected_result.replace('workdir_','');
+  show_waiting_div_with_message("Checking Prominence Token, please wait...");
+  var xmlhttp_check = new XMLHttpRequest();
+  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+  xmlhttp_check.onreadystatechange = function ()
+  {
+    if(this.readyState == 4 && this.status == 200)
+    {
+      validity = xmlhttp_check.responseText;
+      if (validity != "expired")
+      {
+        hide_waiting_div();
+        // --- Go to action wrapper
+        show_waiting_div();
+        document.getElementById("waiting_message").innerHTML="<br/>This will stop and remove all containers for this run.<br/>"
+                                                            +"Data from completed containers will still be retrievable,<br/>"
+                                                            +"but you might lose data from unfinished containers.<br/>"
+                                                            +"Are you sure you want to action this request?<br/>";
+        action_specification = "remove_containers";
+        return;
+      }else
+      {
+        print_expired_prominence_token_warning();
+      }
+    }
+  };
+  xmlhttp_check.send();
 }
 function purge_run()
 {
   // --- Check Prominence Token is not expired (if using Prominence)
-  expired_token = expired_prominence_token_warning();
-  if (expired_token == 'expired') {return;}
-  // --- Go to action wrapper
-  show_waiting_div();
-  document.getElementById("waiting_message").innerHTML="<br/>This will stop and remove all containers for this run,<br/>"
-                                                      +"and remove all data associated with this run.<br/>"
-                                                      +"Are you sure you want to action this request?<br/>";
-  action_specification = "purge_run";
+  selected_result = document.getElementById('run_selector').value;
+  run_name = selected_result.replace('workdir_','');
+  show_waiting_div_with_message("Checking Prominence Token, please wait...");
+  var xmlhttp_check = new XMLHttpRequest();
+  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+  xmlhttp_check.onreadystatechange = function ()
+  {
+    if(this.readyState == 4 && this.status == 200)
+    {
+      validity = xmlhttp_check.responseText;
+      if (validity != "expired")
+      {
+        hide_waiting_div();
+        // --- Go to action wrapper
+        show_waiting_div();
+        document.getElementById("waiting_message").innerHTML="<br/>This will stop and remove all containers for this run,<br/>"
+                                                            +"and remove all data associated with this run.<br/>"
+                                                            +"Are you sure you want to action this request?<br/>";
+        action_specification = "purge_run";
+        return;
+      }else
+      {
+	print_expired_prominence_token_warning();
+      }
+    }
+  };
+  xmlhttp_check.send();
 }
 function reload_run_selector()
 {
@@ -1552,53 +1788,81 @@ function data_abortHandler(event)
 function result_select(selected_option)
 { 
   // --- Check Prominence Token is not expired (if using Prominence)
-  expired_token = expired_prominence_token_warning();
-  if (expired_token == 'expired') {return;}
-  // --- Get results
-  document.getElementById("retrieve_files_list").innerHTML = "";
-  document.getElementById("result_comments").innerHTML="";
-  if (selected_option.value != "select_result")
-  { 
-    setCookie('selected_result',selected_option.value,7);
-    // --- print the docker containers corresponding to job
-    run_name = selected_option.value;
-    run_name = run_name.replace("workdir_","");
-    // --- Call php script
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", "../php/list_run_files.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, false);
-    xmlhttp.send();
-    output = xmlhttp.responseText;
-    output_lines = output.split("\n");
-    count_runs = output_lines[0].split('This run contains ')[1];
-    count_runs = count_runs.split(' sub-tasks')[0];
-    fullcontent = '';
-    if (output.includes("At first sight, each sub-task contains"))
+  selected_result = document.getElementById('result_selector').value;
+  run_name = selected_result.replace('workdir_','');
+  show_waiting_div_with_message("Checking Prominence Token, please wait...");
+  var xmlhttp_check = new XMLHttpRequest();
+  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+  xmlhttp_check.onreadystatechange = function ()
+  {
+    if(this.readyState == 4 && this.status == 200)
     {
-      fullcontent = output.split("At first sight, each sub-task contains")[1];
-    }
-    split_content = fullcontent.split("\n");
-    new_list = document.createElement("ul");
-    for (i = 0; i<split_content.length; i++)
-    {
-      if (split_content[i].trim() != '')
+      validity = xmlhttp_check.responseText;
+      if (validity != "expired")
       {
-        new_file = document.createElement("li");
-        new_file.setAttribute("id",split_content[i].trim());
-        new_file.setAttribute("style","cursor: pointer;");
-        new_file.setAttribute("onclick","select_result_file(this.id);");
-        new_file.innerHTML = split_content[i].trim();
-        new_list.appendChild(new_file);
+        hide_waiting_div();
+        // --- Get results
+        document.getElementById("retrieve_files_list").innerHTML = "";
+        document.getElementById("result_comments").innerHTML="";
+        if (selected_option.value != "select_result")
+        { 
+          setCookie('selected_result',selected_option.value,7);
+          // --- print the docker containers corresponding to job
+          run_name = selected_option.value;
+          run_name = run_name.replace("workdir_","");
+          // --- Call php script
+          show_waiting_div_with_message("Getting run content, please wait...");
+          var xmlhttp = new XMLHttpRequest();
+          xmlhttp.open("GET", "../php/list_run_files.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+          xmlhttp.onreadystatechange = function ()
+          { 
+            if(this.readyState == 4 && this.status == 200)
+            { 
+              hide_waiting_div();
+              output = xmlhttp.responseText;
+              output_lines = output.split("\n");
+              count_runs = output_lines[0].split('This run contains ')[1];
+              count_runs = count_runs.split(' sub-tasks')[0];
+              fullcontent = '';
+              if (output.includes("At first sight, each sub-task contains"))
+              {
+                fullcontent = output.split("At first sight, each sub-task contains")[1];
+              }
+              split_content = fullcontent.split("\n");
+              new_list = document.createElement("ul");
+              for (i = 0; i<split_content.length; i++)
+              {
+                if (split_content[i].trim() != '')
+                {
+                  new_file = document.createElement("li");
+                  new_file.setAttribute("id",split_content[i].trim());
+                  new_file.setAttribute("style","cursor: pointer;");
+                  new_file.setAttribute("onclick","select_result_file(this.id);");
+                  new_file.innerHTML = split_content[i].trim();
+                  new_list.appendChild(new_file);
+                }
+              }
+              comments = document.createElement("div");
+              comments.innerHTML = "<p>This case contains "+count_runs+" run-directories each with content:</p><br/>";
+              result_div = document.getElementById("result_comments");
+              result_div.appendChild(comments);
+              result_div.appendChild(new_list);
+              return;
+            }
+          };
+          xmlhttp.send();
+        }else
+        {
+          setCookie('selected_result','select_result',7);
+        }
+        return;
+      }else
+      {
+        print_expired_prominence_token_warning();
       }
     }
-    comments = document.createElement("div");
-    comments.innerHTML = "<p>This case contains "+count_runs+" run-directories each with content:</p><br/>";
-    result_div = document.getElementById("result_comments");
-    result_div.appendChild(comments);
-    result_div.appendChild(new_list);
-  }else
-  {
-    setCookie('selected_result','select_result',7);
-  }
+  };
+  xmlhttp_check.send();
 }
 function result_select_change(optionValToSelect)
 {
@@ -1677,20 +1941,36 @@ function set_result_selector(selected_run)
 function purge_result()
 {
   // --- Check Prominence Token is not expired (if using Prominence)
-  expired_token = expired_prominence_token_warning();
-  if (expired_token == 'expired') {return;}
-  // --- Go to action wrapper
-  show_waiting_div();
-  document.getElementById("waiting_message").innerHTML="<br/>This will stop and remove all containers for this run,<br/>"
-                                                      +"and remove all data associated with this run.<br/>"
-                                                      +"Are you sure you want to action this request?<br/>";
-  action_specification = "purge_result";
+  selected_result = document.getElementById('result_selector').value;
+  run_name = selected_result.replace('workdir_','');
+  show_waiting_div_with_message("Checking Prominence Token, please wait...");
+  var xmlhttp_check = new XMLHttpRequest();
+  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+  xmlhttp_check.onreadystatechange = function ()
+  {
+    if(this.readyState == 4 && this.status == 200)
+    {
+      validity = xmlhttp_check.responseText;
+      if (validity != "expired")
+      {
+        hide_waiting_div();
+        // --- Go to action wrapper
+        show_waiting_div();
+        document.getElementById("waiting_message").innerHTML="<br/>This will stop and remove all containers for this run,<br/>"
+                                                            +"and remove all data associated with this run.<br/>"
+                                                            +"Are you sure you want to action this request?<br/>";
+        action_specification = "purge_result";
+        return;
+      }else
+      {
+        print_expired_prominence_token_warning();
+      }
+    }
+  };
+  xmlhttp_check.send();
 }
 function select_result_file(file_id)
 {
-  // --- Check Prominence Token is not expired (if using Prominence)
-  expired_token = expired_prominence_token_warning();
-  if (expired_token == 'expired') {return;}
   // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
   use_prominence = false;
   selected_result = document.getElementById('result_selector').value;
@@ -1748,57 +2028,71 @@ function unselect_result_file(file_id)
 function download_entire_run()
 {
   // --- Check Prominence Token is not expired (if using Prominence)
-  expired_token = expired_prominence_token_warning();
-  if (expired_token == 'expired') {return;}
-  // --- Get run name
   selected_result = document.getElementById('result_selector').value;
   run_name = selected_result.replace('workdir_','');
-  // --- Call php script
-  var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "../php/download_run.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&get_back_to_js=true", false);
-  xmlhttp.send();
-  // --- Create artificial link to download target
-  link = document.createElement("a");
-  link.download = run_name+'.zip';
-  link.href = '../VVebUQ_downloads/'+who_am_i().trim()+'/'+run_name+'.zip';
-  link.click();
+  show_waiting_div_with_message("Checking Prominence Token, please wait...");
+  var xmlhttp_check = new XMLHttpRequest();
+  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+  xmlhttp_check.onreadystatechange = function ()
+  {
+    if(this.readyState == 4 && this.status == 200)
+    {
+      validity = xmlhttp_check.responseText;
+      if (validity != "expired")
+      {
+        hide_waiting_div();
+        // --- Go to action wrapper
+        show_waiting_div();
+        document.getElementById("waiting_message").innerHTML="<br/>This will download the entire data associated,<br/>"
+                                                            +"to this run. Depending on the size of the data,<br/>"
+                                                            +"the number of runs, and your internet connection,<br/>"
+                                                            +"this may take a long time.<br/>"
+                                                            +"(Have you considered using \"get_download_URLs\" instead?)<br/>"
+                                                            +"Are you sure you want to action this request?<br/>";
+        action_specification = "download_run";
+        return;
+      }else
+      {
+        print_expired_prominence_token_warning();
+      }
+    }
+  };
+  xmlhttp_check.send();
 }
 function get_download_urls()
 {
-  // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
-  use_prominence = false;
-  selected_result = document.getElementById('result_selector').value;
-  prominence_id = execute_command('cat /VVebUQ_runs/'+who_am_i().trim()+'/'+selected_result+'/prominence_workflow_id.txt');
-  prominence_id = prominence_id.trim();
-  if ( (! prominence_id.includes('No such file or directory')) && (prominence_id != '') ) {use_prominence = true;}
-  if (! use_prominence)
-  {
-    document.getElementById("retrieve_files_list").innerHTML = "Getting download-URLs is reserved to Prominence runs.<br/>"
-                                                             + "If you are running locally, this is not necessary since files are local.";
-    return;
-  }
   // --- Check Prominence Token is not expired (if using Prominence)
-  expired_token = expired_prominence_token_warning();
-  if (expired_token == 'expired') {return;}
-  // --- Create artificial link to download target
-  document.getElementById("retrieve_files_list").innerHTML = "Please wait while the download is being prepared...";
-  // --- Get run name
+  selected_result = document.getElementById('result_selector').value;
   run_name = selected_result.replace('workdir_','');
-  // --- Call php script
-  var xmlhttp = new XMLHttpRequest();
-  xmlhttp.open("GET", "../php/get_download_urls.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&get_back_to_js=true", false);
-  xmlhttp.send();
-  // --- Create artificial link to download target
-  link = document.createElement("a");
-  link.download = run_name+'.zip';
-  link.href = '../VVebUQ_downloads/'+who_am_i().trim()+'/'+run_name+'.zip';
-  link.click();
+  show_waiting_div_with_message("Checking Prominence Token, please wait...");
+  var xmlhttp_check = new XMLHttpRequest();
+  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+  xmlhttp_check.onreadystatechange = function ()
+  {
+    if(this.readyState == 4 && this.status == 200)
+    {
+      validity = xmlhttp_check.responseText;
+      if (validity != "expired")
+      {
+        hide_waiting_div();
+        // --- Go to action wrapper
+        show_waiting_div();
+        document.getElementById("waiting_message").innerHTML="<br/>This will produce a list of URLs for each instance<br/>"
+                                                            +"of this run. Depending on the number of instances,<br/>"
+                                                            +"this may take some time.<br/>"
+                                                            +"Are you sure you want to action this request?<br/>";
+        action_specification = "get_download_urls";
+        return;
+      }else
+      {
+        print_expired_prominence_token_warning();
+      }
+    }
+  };
+  xmlhttp_check.send();
 }
 function download_selected_files()
 {
-  // --- Check Prominence Token is not expired (if using Prominence)
-  expired_token = expired_prominence_token_warning();
-  if (expired_token == 'expired') {return;}
   // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
   use_prominence = false;
   selected_result = document.getElementById('result_selector').value;
