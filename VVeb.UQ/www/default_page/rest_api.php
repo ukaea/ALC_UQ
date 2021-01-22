@@ -160,7 +160,7 @@ if ($ACTION == 'launch_run')
   $run_locally_forbidden = trim(shell_exec('cat config.in | grep -i LOCAL_RUNS_ALLOWED | grep -i FALSE'));
   if ( ($run_locally_forbidden != '') && ($_POST["use_prominence"] == 'false') )
   {
-    clean_exit("Local runs are forbidden".$run_locally_forbidden.", you need to use Prominence!");
+    clean_exit("Local runs are forbidden: ".$run_locally_forbidden.", you need to use Prominence!");
   }
   // --- Check that Docker image exists
   if ($run_locally_forbidden != '')
