@@ -110,9 +110,9 @@ body
 
 :root
 {
-  --leftmargin: 20%;
-  --leftmargin_space: 22%;
-  --rightmargin: 75%;
+  --leftmargin: 	20%;
+  --leftmargin_space: 	22%;
+  --rightmargin: 	75%;
 }
 
 .tab
@@ -140,7 +140,7 @@ body
   padding: 		20px 20px;
   cursor: 		pointer;
   transition: 		0.3s;
-  font-size: 		30px;
+  font-size: 		20px;
   font-weight: 		bold;
   text-align:           left;
   display: 		block;
@@ -155,7 +155,7 @@ body
   padding: 		5px 5px;
   cursor: 		pointer;
   transition: 		0.3s;
-  font-size: 		30px;
+  font-size: 		20px;
   font-weight: 		bold;
 }
 
@@ -181,7 +181,7 @@ body
   border-left: 		none;
   background-color: 	rgba(0, 0, 0, 0.7);
   color: 		white;
-  display:table;
+  display:		table;
 }
 
 
@@ -201,8 +201,8 @@ body
 #input_column_2{display: table-cell; text-align: left; width: 35%;}
 #input_column_3{display: table-cell; text-align: left;}
 
-#run_column_1{display: table-cell; text-align: left; width: 20%;}
-#run_column_2{display: table-cell; text-align: left; width: 80%;}
+#run_column_1{display: table-cell; text-align: left; width: 25%;}
+#run_column_2{display: table-cell; text-align: left; width: 75%;}
 
 #result_column_1{display: table-cell; text-align: left; width: 50%;}
 #result_column_2{display: table-cell; text-align: left;}

@@ -146,13 +146,13 @@
           </select><br/>
           <p id="file_comments"></p><br/>
           <form action="../php/upload.php" method="post" enctype="multipart/form-data" id="upload_form">
-        <p>Upload a file with values and errors.<br/>The file must be either NETCDF (.nc) or CSV (.csv) format</p>
+            <p>Upload a file with values and errors.<br/>The file must be either NETCDF (.nc) or CSV (.csv) format</p>
             <div id="choose_files">
               <input class="uploadForm"
                      type="file"
                      name="fileToUpload[]"
                      id="fileToUpload"
-      	   accept=".csv,.nc"
+      	             accept=".csv,.nc"
                      onchange="fileChosen()"
                      multiple="multiple">
             </div>
@@ -173,13 +173,13 @@
           </select><br/>
           <p id="data_file_comments"></p><br/>
           <form action="../php/upload_data_file.php" method="post" enctype="multipart/form-data" id="upload_data_form">
-      	<p>Upload a zip file that contains files and folders needed by your container.<br/>The file must be in ZIP (.zip) format.<br/>The file will be unzipped in the top directory of each of your runs.</p>
+      	    <p>Upload a zip file that contains files and folders needed by your container.<br/>The file must be in ZIP (.zip) format.<br/>The file will be unzipped in the top directory of each of your runs.</p>
             <div id="choose_data_files">
               <input class="uploadForm"
                      type="file"
                      name="dataFileToUpload[]"
                      id="dataFileToUpload"
-      	   accept=".zip"
+      	             accept=".zip"
                      onchange="dataFileChosen()"
                      multiple="multiple">
             </div>
@@ -204,7 +204,7 @@
     <div id="Run" class="tabcontent">
       <div style="display: table-row">
         <!-- The run button -->
-        <div id="run_column_1">
+        <div id="run_column_1" style="padding: 10px 0px;">
           <p>Launch run</p>
           <form id="main_run_form" action="../php/create_runs.php" method="post">
             <input type="hidden" name="docker_image_run" id="docker_image_run" value="">
@@ -220,7 +220,7 @@
           <button class="button_like" id="refresh_containers_log" onclick="refresh_containers_log()">refresh</button>
           <button class="button_like" id="stop_containers" onclick="stop_containers()">stop containers</button>
           <button class="button_like" id="purge_run" onclick="purge_run()">purge run</button>
-          <p id="run_comments" style="font-weight:normal; font-size:70%; overflow-x:scroll; overflow-y:scroll;"></p>
+          <p id="run_comments" style="font-weight:normal; font-size:70%; overflow-x:scroll; overflow-y:scroll; width=100%"></p>
         </div>
       </div>
     </div>
