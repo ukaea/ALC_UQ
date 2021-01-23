@@ -40,7 +40,7 @@ window.onload = function()
   }
 
   // --- Nice sizing of container and result logs
-  box_height = document.getElementById("wrapper").clientHeight;
+  box_height = $(window).height(); //document.getElementById("wrapper").clientHeight;
   document.getElementById("run_comments"   ).style.height = 0.6*box_height + "px";
   document.getElementById("result_comments").style.height = 0.6*box_height + "px";
 
@@ -110,12 +110,12 @@ window.onload = function()
 function show_waiting_div()
 {
   document.getElementById("waiting_div").style.position="absolute";
-  document.getElementById("waiting_div").style.visibility="visible";
+  document.getElementById("waiting_div").style.marginLeft="5%";
+  document.getElementById("waiting_div").style.width="90%";
+  document.getElementById("waiting_div").style.top="5%";
+  document.getElementById("waiting_div").style.height="80%";
   document.getElementById("waiting_div").style.zIndex=3000;
-  document.getElementById("waiting_div").style.marginLeft="20%";
-  document.getElementById("waiting_div").style.width="60%";
-  document.getElementById("waiting_div").style.top="20%";
-  document.getElementById("waiting_div").style.height="60%";
+  document.getElementById("waiting_div").style.visibility="visible";
   document.getElementById("waiting_gif").style.visibility="hidden";
   document.getElementById("action_wrapper_button").style.visibility="visible";
 }

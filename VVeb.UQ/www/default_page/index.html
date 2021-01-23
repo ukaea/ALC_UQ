@@ -14,6 +14,8 @@
     <script type="text/javascript" src="../js/main_functions.js"></script>
     <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
 
+    <!-- Icon Files -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css">
 
     <!-- Cookies approval THIS WILL NEED TO BE DONE!!!-->
     <!-- <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.css" /> -->
@@ -30,7 +32,7 @@
     <div id="waiting_div">
       <span>
         <p><br/></p>
-        <p id="waiting_message"></p>
+        <p id="waiting_message">Page loading, please wait...</p>
 	<img id="waiting_gif" src="../Logos/VVebUQ_waiting_gif.gif" alt="waiting-gif"><br/><br/>
         <button class="waiting_div_buttons" id="action_wrapper_button" onclick="action_wrapper();">action</button>
         <button class="waiting_div_buttons" id="button_hide_waiting_div_upload" onclick="hide_waiting_div();">close</button><br/>
@@ -38,244 +40,217 @@
       <span>
     </div>
 
-    <!-- Main wrapper that contains everything else -->
-    <div id="wrapper">
-
-      <!-- Work-desk that contains the Set-up, Inputs, and Results tabs -->
-      <div id="workdesk">
-
-        <!-- Tab links -->
-        <div class="tab">
-          <div    class="tablinks" onclick="location.href='../index.html'" id="Home"><img src="../Logos/VVebUQ_logo.png" style="height: 80px;"/></div>
-          <button class="tablinks" onclick="openTab(event, 'Set-up')"      id="TAB_Set-up">Set-up</button>
-          <button class="tablinks" onclick="openTab(event, 'Cloud')"       id="TAB_Cloud">Cloud</button>
-          <button class="tablinks" onclick="openTab(event, 'Inputs')"      id="TAB_Inputs">Inputs</button>
-          <button class="tablinks" onclick="openTab(event, 'Run')"         id="TAB_Run">Run</button>
-          <button class="tablinks" onclick="openTab(event, 'Results')"     id="TAB_Results">Results</button>
-        </div>
-        
-        <!-- Set-up Tab -->
-        <div id="Set-up" class="tabcontent">
-          <div style="width: 100%; display: table;">
-            <div style="display: table-row">
-              <!-- VVUQ-app container launcher -->
-              <div style="width: 20%; display: table-cell; text-align: left;">
-                <p>Choose VVUQ software</p>
-                <select class="button_like" id="vvuq_selector" onchange="vvuq_select(this)">
-                  <option value="dakota">Dakota</option>
-                  <option value="easyvvuq">VECMA's easyvvuq</option>
-                </select>
-                <p>Launch VVUQ app</p>
-                <form id="vvuq_form" action="../php/launch_vvuq.php" method="post">
-                  <input class="button_like" type="button" value="launch" onclick="launch_vvuq_container();"><br/>
-                  <p id="vvuq_comments"></p>
-                </form>
-              </div>
-              <!-- Code-container launcher -->
-              <div style="width: 40%; display: table-cell; text-align: left;">
-                <p>Choose code image.</p>
-                <select class="button_like" id="image_selector" onchange="image_select(this)">
-                  <option value="select_image">Select image</option>
-                  <option value="new_image">New image</option>
-                </select>
-                <form id="new_image_form" action="../php/pull_image.php" method="post" style="visibility: hidden;">
-                  Docker image: <input type="text" name="docker_image" id="docker_image" size="30" value="eg. username/repository:tag"><br>
-                  <input class="button_like" type="button" value="launch" onclick="pull_code_image();"><br/>
-                </form>
-                <p id="image_comments"></p>
-              </div>
-              <!-- Docker image example -->
-              <div style="display: table-cell; text-align: left;">
-                <p>The code image must be run in a certain way.
-                   Particularly, the WORKDIR must be called /tmp/work_dir/ and it must be left empty (because it will be mounted externally).
-                   Here is a very simple example of a Docker image with the correct configuration:
-                </p>
-                <button class="button_like" onclick="download_user_example();">user example</button>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Cloud Tab -->
-        <div id="Cloud" class="tabcontent">
-          <div style="width: 100%; display: table;">
-            <div style="display: table-row">
-              <!-- Cloud selector -->
-              <div style="width: 30%; display: table-cell; text-align: left;">
-                <p>Choose where to run.</p>
-                <select class="button_like" id="cloud_selector" onchange="cloud_select(this)">
-                  <option value="run_locally">Run locally</option>
-                  <option value="use_prominence">Use Prominence</option>
-                </select>
-              </div>
-              <!-- Docker image example -->
-              <div style="display: table-cell; text-align: left;">
-                <p id="cloud_comments"></p>
-              </div>
-	      <button class="button_like" id="prominence_token_button" onclick="request_prominence_token();">Request New<br/>Prominence Token</button><br/><br/>
-              <select class="button_like" id="cpu_selector" onchange="cpu_select(this)">
-                <option value="select_n_cpu">select # CPU/instance</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="4">4</option>
-                <option value="8">8</option>
-                <option value="16">16</option>
-                <option value="32">32</option>
-                <option value="64">64</option>
-              </select>
-	      <br/>
-              <select class="button_like" id="RAM_selector" onchange="RAM_select(this)">
-                <option value="select_RAM">select RAM/instance (GB)</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="4">4</option>
-                <option value="8">8</option>
-                <option value="16">16</option>
-                <option value="32">32</option>
-                <option value="64">64</option>
-                <option value="128">128</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Inputs Tab -->
-        <div id="Inputs" class="tabcontent">
-          <div style="width: 100%; display: table;">
-            <div style="display: table-row">
-              <!-- Input file -->
-              <div style="width: 35%; display: table-cell; text-align: left;">
-                <p>Choose an input file.</p>
-                <select class="button_like" id="file_selector" onchange="file_select(this)">
-                  <option value="select_file">Select file</option>
-                  <option value="new_file">New file</option>
-                </select><br/>
-                <p id="file_comments"></p><br/>
-                <form action="../php/upload.php" method="post" enctype="multipart/form-data" id="upload_form">
-		  <p>Upload a file with values and errors.<br/>The file must be either NETCDF (.nc) or CSV (.csv) format</p>
-                  <div id="choose_files">
-                    <input class="uploadForm"
-                           type="file"
-                           name="fileToUpload[]"
-                           id="fileToUpload"
-			   accept=".csv,.nc"
-                           onchange="fileChosen()"
-                           multiple="multiple">
-                  </div>
-                  <p id="upload_comments"></p><br/>
-                </form>
-                <span id="upload_div" style="visibility: hidden;">
-                  <button class="button_like" id="upload_button" onclick="send_upload();"> upload </button><br/>
-                  <progress id="progressBar" value="0" max="100" style="width:300px;"></progress>
-                  <p id="progress_status"></p>
-                <span>
-              </div>
-              <!-- Input data -->
-              <div style="width: 35%; display: table-cell; text-align: left;">
-                <p>Choose additional data.</p>
-                <select class="button_like" id="data_file_selector" onchange="data_file_select(this)">
-                  <option value="select_data_file">Select file</option>
-                  <option value="new_data_file">New file</option>
-                </select><br/>
-                <p id="data_file_comments"></p><br/>
-                <form action="../php/upload_data_file.php" method="post" enctype="multipart/form-data" id="upload_data_form">
-			<p>Upload a zip file that contains files and folders needed by your container.<br/>The file must be in ZIP (.zip) format.<br/>The file will be unzipped in the top directory of each of your runs.</p>
-                  <div id="choose_data_files">
-                    <input class="uploadForm"
-                           type="file"
-                           name="dataFileToUpload[]"
-                           id="dataFileToUpload"
-			   accept=".zip"
-                           onchange="dataFileChosen()"
-                           multiple="multiple">
-                  </div>
-                  <p id="data_upload_comments"></p><br/>
-                </form>
-                <span id="data_upload_div" style="visibility: hidden;">
-                  <button class="button_like" id="data_upload_button" onclick="send_data_upload();"> upload </button><br/>
-                  <progress id="data_progressBar" value="0" max="100" style="width:300px;"></progress>
-                  <p id="data_progress_status"></p>
-                <span>
-              </div>
-              <!-- Netcdf example -->
-              <div style="display: table-cell; text-align: left;">
-                <p>The input file must contain data with corresponding errors and the number of samples to be run. Here is a simple example of how to generate such an input file.</p><br/>
-                <button class="button_like" onclick="download_user_example();">user example</button>
-                <p>This will be the only thing passed to your container. Any other input you require must come from within the container itself.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Run Tab -->
-        <div id="Run" class="tabcontent">
-          <div style="width: 100%; display: table;">
-            <div style="display: table-row">
-              <!-- The run button -->
-              <div style="width: 20%; display: table-cell; text-align: left;">
-                <p>Launch run</p>
-                <form id="main_run_form" action="../php/create_runs.php" method="post">
-                  <input type="hidden" name="docker_image_run" id="docker_image_run" value="">
-                  <input class="button_like" type="button" value="launch" onclick="launch_main_run();">
-                </form>
-              </div>
-              <!-- The run cases -->
-              <div style="width: 80%; display: table-cell; text-align: left;">
-                <p>Run logs</p>
-                <select class="button_like" id="run_selector" onchange="run_select(this)">
-                  <option value="select_run">Select run</option>
-                </select><br/>
-                <button class="button_like" id="refresh_containers_log" onclick="refresh_containers_log()">refresh</button>
-                <button class="button_like" id="stop_containers" onclick="stop_containers()">stop containers</button>
-                <button class="button_like" id="purge_run" onclick="purge_run()">purge run</button>
-                <p id="run_comments" style="font-weight:normal; font-size:70%; overflow-x:scroll; overflow-y:scroll;"></p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Results Tab -->
-        <div id="Results" class="tabcontent">
-          <div style="width: 100%; display: table;">
-            <div style="display: table-row">
-              <!-- The run cases -->
-              <div style="width: 50%; display: table-cell; text-align: left;">
-                <p>Result files</p>
-                <select class="button_like" id="result_selector" onchange="result_select(this)">
-                  <option value="select_result">Select run</option>
-                </select><br/>
-                <button class="button_like" id="refresh_result_list" onclick="refresh_result_list()">refresh</button>
-                <button class="button_like" id="purge_result" onclick="purge_result()">remove result</button>
-                <div id="result_comments" style="font-weight:normal; font-size:70%; overflow-x:scroll; overflow-y:scroll;"></div>
-              </div>
-              <!-- Retrieve data -->
-              <div style="display: table-cell; text-align: left;">
-                <p>Retrieve files</p>
-                <button class="button_like" id="download_entire_run" onclick="download_entire_run()">download everything</button>
-                <button class="button_like" id="get_download_urls" onclick="get_download_urls()">get download URLs</button>
-                <button class="button_like" id="download_selected_files" onclick="download_selected_files()">download selected files</button>
-                <div id="retrieve_comments" style="font-weight:normal; font-size:70%; overflow-x:scroll; overflow-y:scroll;">
-                  <p>The following files were selected for download:</p><br/>
-                  <ul id="retrieve_files_list"></ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
+    <!-- Tab links -->
+    <div class="tab">
+      <div    class="tablinks" onclick="location.href='../index.html'" id="Home"><img id="VVebUQ_logo" src="../Logos/VVebUQ_logo.png"/></div>
+      <button class="tablinks" onclick="openTab(event, 'Set-up')"      id="TAB_Set-up"><i class="fa fa-cogs">&nbsp;</i>set-up</button>
+      <button class="tablinks" onclick="openTab(event, 'Cloud')"       id="TAB_Cloud"><i class="fa fa-cloud">&nbsp;</i>cloud</button>
+      <button class="tablinks" onclick="openTab(event, 'Inputs')"      id="TAB_Inputs"><i class="fa fa-dice">&nbsp;</i>inputs</button>
+      <button class="tablinks" onclick="openTab(event, 'Run')"         id="TAB_Run">&nbsp;<i class="fas fa-check-circle">&nbsp;</i>run</button>
+      <button class="tablinks" onclick="openTab(event, 'Results')"     id="TAB_Results"><i class="fas fa-download">&nbsp;</i>results</button>
     </div>
     
-    <!-- Debug-launcher -->
-    <!--
-    <div>
-      <button onclick='execute_command_from_html("ls","debug_div");'>debug...</button><br/>
-      <button onclick='debug();'>debug...</button><br/>
-      <p id="debug_div" style="background: white;"></p>
+    <!-- Set-up Tab -->
+    <div id="Set-up" class="tabcontent">
+      <div style="display: table-row">
+        <!-- VVUQ-app container launcher -->
+        <div id="setup_column_1">
+          <p>Choose VVUQ software</p>
+          <select class="button_like" id="vvuq_selector" onchange="vvuq_select(this)">
+            <option value="dakota">Dakota</option>
+            <option value="easyvvuq">VECMA's easyvvuq</option>
+          </select>
+          <p>Launch VVUQ app</p>
+          <form id="vvuq_form" action="../php/launch_vvuq.php" method="post">
+            <input class="button_like" type="button" value="launch" onclick="launch_vvuq_container();"><br/>
+            <p id="vvuq_comments"></p>
+          </form>
+        </div>
+        <!-- Code-container launcher -->
+        <div id="setup_column_2">
+          <p>Choose code image.</p>
+          <select class="button_like" id="image_selector" onchange="image_select(this)">
+            <option value="select_image">Select image</option>
+            <option value="new_image">New image</option>
+          </select>
+          <form id="new_image_form" action="../php/pull_image.php" method="post" style="visibility: hidden;">
+            Docker image: <input type="text" name="docker_image" id="docker_image" size="30" value="eg. username/repository:tag"><br>
+            <input class="button_like" type="button" value="launch" onclick="pull_code_image();"><br/>
+          </form>
+          <p id="image_comments"></p>
+        </div>
+        <!-- Docker image example -->
+        <div id="setup_column_3">
+          <p>The code image must be run in a certain way.
+             Particularly, the WORKDIR must be called /tmp/work_dir/ and it must be left empty (because it will be mounted externally).
+             Here is a very simple example of a Docker image with the correct configuration:
+          </p>
+          <button class="button_like" onclick="download_user_example();">user example</button>
+        </div>
+      </div>
     </div>
-    <p id="debug_div" style="background: white;"></p>
-    -->
+    
+    <!-- Cloud Tab -->
+    <div id="Cloud" class="tabcontent">
+      <div style="display: table-row">
+        <!-- Cloud selector -->
+        <div id="cloud_column_1">
+          <p>Choose where to run.</p>
+          <select class="button_like" id="cloud_selector" onchange="cloud_select(this)">
+            <option value="run_locally">Run locally</option>
+            <option value="use_prominence">Use Prominence</option>
+          </select>
+        </div>
+        <!-- Cloud comments -->
+        <div id="cloud_column_2">
+          <p id="cloud_comments"></p>
+        </div>
+        <!-- Cloud CPU + RAM -->
+        <div id="cloud_column_3">
+          <button class="button_like" id="prominence_token_button" onclick="request_prominence_token();">Request New<br/>Prominence Token</button><br/><br/>
+          <select class="button_like" id="cpu_selector" onchange="cpu_select(this)">
+            <option value="select_n_cpu">select # CPU/instance</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="4">4</option>
+            <option value="8">8</option>
+            <option value="16">16</option>
+            <option value="32">32</option>
+            <option value="64">64</option>
+          </select>
+          <br/>
+          <select class="button_like" id="RAM_selector" onchange="RAM_select(this)">
+            <option value="select_RAM">select RAM/instance (GB)</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="4">4</option>
+            <option value="8">8</option>
+            <option value="16">16</option>
+            <option value="32">32</option>
+            <option value="64">64</option>
+            <option value="128">128</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Inputs Tab -->
+    <div id="Inputs" class="tabcontent">
+      <div style="display: table-row">
+        <!-- Input file -->
+        <div id="input_column_1">
+          <p>Choose an input file.</p>
+          <select class="button_like" id="file_selector" onchange="file_select(this)">
+            <option value="select_file">Select file</option>
+            <option value="new_file">New file</option>
+          </select><br/>
+          <p id="file_comments"></p><br/>
+          <form action="../php/upload.php" method="post" enctype="multipart/form-data" id="upload_form">
+        <p>Upload a file with values and errors.<br/>The file must be either NETCDF (.nc) or CSV (.csv) format</p>
+            <div id="choose_files">
+              <input class="uploadForm"
+                     type="file"
+                     name="fileToUpload[]"
+                     id="fileToUpload"
+      	   accept=".csv,.nc"
+                     onchange="fileChosen()"
+                     multiple="multiple">
+            </div>
+            <p id="upload_comments"></p><br/>
+          </form>
+          <span id="upload_div" style="visibility: hidden;">
+            <button class="button_like" id="upload_button" onclick="send_upload();"> upload </button><br/>
+            <progress id="progressBar" value="0" max="100" style="width:300px;"></progress>
+            <p id="progress_status"></p>
+          <span>
+        </div>
+        <!-- Input data -->
+        <div id="input_column_2">
+          <p>Choose additional data.</p>
+          <select class="button_like" id="data_file_selector" onchange="data_file_select(this)">
+            <option value="select_data_file">Select file</option>
+            <option value="new_data_file">New file</option>
+          </select><br/>
+          <p id="data_file_comments"></p><br/>
+          <form action="../php/upload_data_file.php" method="post" enctype="multipart/form-data" id="upload_data_form">
+      	<p>Upload a zip file that contains files and folders needed by your container.<br/>The file must be in ZIP (.zip) format.<br/>The file will be unzipped in the top directory of each of your runs.</p>
+            <div id="choose_data_files">
+              <input class="uploadForm"
+                     type="file"
+                     name="dataFileToUpload[]"
+                     id="dataFileToUpload"
+      	   accept=".zip"
+                     onchange="dataFileChosen()"
+                     multiple="multiple">
+            </div>
+            <p id="data_upload_comments"></p><br/>
+          </form>
+          <span id="data_upload_div" style="visibility: hidden;">
+            <button class="button_like" id="data_upload_button" onclick="send_data_upload();"> upload </button><br/>
+            <progress id="data_progressBar" value="0" max="100" style="width:300px;"></progress>
+            <p id="data_progress_status"></p>
+          <span>
+        </div>
+        <!-- Netcdf example -->
+        <div id="input_column_3">
+          <p>The input file must contain data with corresponding errors and the number of samples to be run. Here is a simple example of how to generate such an input file.</p><br/>
+          <button class="button_like" onclick="download_user_example();">user example</button>
+          <p>This will be the only thing passed to your container. Any other input you require must come from within the container itself.</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Run Tab -->
+    <div id="Run" class="tabcontent">
+      <div style="display: table-row">
+        <!-- The run button -->
+        <div id="run_column_1">
+          <p>Launch run</p>
+          <form id="main_run_form" action="../php/create_runs.php" method="post">
+            <input type="hidden" name="docker_image_run" id="docker_image_run" value="">
+            <input class="button_like" type="button" value="launch" onclick="launch_main_run();">
+          </form>
+        </div>
+        <!-- The run cases -->
+        <div id="run_column_2">
+          <p>Run logs</p>
+          <select class="button_like" id="run_selector" onchange="run_select(this)">
+            <option value="select_run">Select run</option>
+          </select><br/>
+          <button class="button_like" id="refresh_containers_log" onclick="refresh_containers_log()">refresh</button>
+          <button class="button_like" id="stop_containers" onclick="stop_containers()">stop containers</button>
+          <button class="button_like" id="purge_run" onclick="purge_run()">purge run</button>
+          <p id="run_comments" style="font-weight:normal; font-size:70%; overflow-x:scroll; overflow-y:scroll;"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Tab -->
+    <div id="Results" class="tabcontent">
+      <div style="display: table-row">
+        <!-- The run cases -->
+        <div id="result_column_1">
+          <p>Result files</p>
+          <select class="button_like" id="result_selector" onchange="result_select(this)">
+            <option value="select_result">Select run</option>
+          </select><br/>
+          <button class="button_like" id="refresh_result_list" onclick="refresh_result_list()">refresh</button>
+          <button class="button_like" id="purge_result" onclick="purge_result()">remove result</button>
+          <div id="result_comments" style="font-weight:normal; font-size:70%; overflow-x:scroll; overflow-y:scroll;"></div>
+        </div>
+        <!-- Retrieve data -->
+        <div id="result_column_2">
+          <p>Retrieve files</p>
+          <button class="button_like" id="download_entire_run" onclick="download_entire_run()">download everything</button>
+          <button class="button_like" id="get_download_urls" onclick="get_download_urls()">get download URLs</button>
+          <button class="button_like" id="download_selected_files" onclick="download_selected_files()">download selected files</button>
+          <div id="retrieve_comments" style="font-weight:normal; font-size:70%; overflow-x:scroll; overflow-y:scroll;">
+            <p>The following files were selected for download:</p><br/>
+            <ul id="retrieve_files_list"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Email Contact -->
     <br/> <br/> <br/>

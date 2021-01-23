@@ -24,32 +24,28 @@
   <!-- The web page -->
   <body>
 
-    <!-- Main wrapper that contains everything else -->
-    <div id="wrapper">
+    <!-- Welcome -->
+    <img src="./Logos/VVebUQ_logo.png" style="height: 150px;"/>
 
-      <!-- Welcome -->
-      <img src="./Logos/VVebUQ_logo.png" style="height: 150px;"/>
-
-      <!-- Log-in form -->
-      <div style="width: 100%; display: table;">
-        <div style="display: table-row">
-          <p>Please enter your username to start a new session</p>
-          <form id="login_session_form" action="php/login_session.php" method="post">
-            username: <input type="text" name="username" id="username" size="30" value="username"><br>
-            <input type="button" value="start session" onclick="start_new_session();"><br/>
-          </form>
-          <p id="new_session_comments"></p>
-        </div>
+    <!-- Log-in form -->
+    <div style="width: 100%; display: table;">
+      <div style="display: table-row">
+        <p>Please enter your username to start a new session</p>
+        <form id="login_session_form" action="php/login_session.php" method="post">
+          username: <input type="text" name="username" id="username" size="30" value="username"><br>
+          <input type="button" value="start session" onclick="start_new_session();"><br/>
+        </form>
+        <p id="new_session_comments"></p>
       </div>
-      
-      <div id="wiki_link">
-        <br/><br/>
-        <a href="https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ">https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ</a>
-        <br/>
-        <img src="./Logos/VVebUQ_workflow.png" style="height: 300px;"/>
-      </div>
-
     </div>
+    
+    <div id="wiki_link">
+      <br/><br/>
+      <a href="https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ">https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ</a>
+      <br/>
+      <img src="./Logos/VVebUQ_workflow.png" style="height: 300px;"/>
+    </div>
+
     
     <!-- Email Contact -->
     <br/> <br/> <br/>
