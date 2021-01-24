@@ -123,12 +123,14 @@ function show_waiting_div()
   document.getElementById("waiting_div").style.visibility="visible";
   document.getElementById("waiting_gif").style.visibility="hidden";
   document.getElementById("action_wrapper_button").style.visibility="visible";
+  document.getElementById("button_hide_waiting_div_upload").style.visibility="visible";
 }
 function show_waiting_div_with_message(message)
 {
   show_waiting_div();
   document.getElementById("waiting_gif").style.visibility="visible";
   document.getElementById("action_wrapper_button").style.visibility="hidden";
+  document.getElementById("button_hide_waiting_div_upload").style.visibility="visible";
   document.getElementById("waiting_message").innerHTML="<br/>"+message+"<br/>";
 }
 function hide_waiting_div()
@@ -138,6 +140,7 @@ function hide_waiting_div()
   document.getElementById("waiting_div").style.visibility="hidden";
   document.getElementById("waiting_gif").style.visibility="hidden";
   document.getElementById("waiting_div").style.zIndex=-3000;
+  empty_terminal_output();
 }
 
 
