@@ -1103,6 +1103,7 @@ function print_expired_prominence_token_warning()
 {
     show_waiting_div();
     document.getElementById("waiting_message").innerHTML="<br/>Your Prominence Token has expired! (go to \"Cloud\" Tab)<br/>";
+    document.getElementById("cloud_comments").innerHTML="No Prominence Token Found, request new one!";
     document.getElementById("action_wrapper_button").style.visibility="hidden";
     document.getElementById("button_hide_waiting_div_upload").style.visibility="visible";
     document.getElementById("waiting_gif").style.visibility="hidden";
