@@ -41,8 +41,10 @@ window.onload = function()
 
   // --- Nice sizing of container and result logs
   box_height = $(window).height(); //document.getElementById("wrapper").clientHeight;
-  document.getElementById("run_comments"   ).style.height = 0.6*box_height + "px";
-  document.getElementById("result_comments").style.height = 0.6*box_height + "px";
+  box_width  = document.getElementById("Run").clientWidth;
+  document.getElementById("run_comments"   ).style.height = 0.60*box_height + "px";
+  document.getElementById("run_comments"   ).style.width  = 0.95*box_width  + "px";
+  document.getElementById("result_comments").style.height = 0.60*box_height + "px";
 
   // --- Hide all utility div's
   for (i = 0; i < div_to_hide.length; ++i)
