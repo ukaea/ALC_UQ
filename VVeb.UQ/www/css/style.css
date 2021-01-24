@@ -201,8 +201,7 @@ body
 #input_column_2{display: table-cell; text-align: left; width: 35%;}
 #input_column_3{display: table-cell; text-align: left;}
 
-#run_column_1{display: table-cell; text-align: left; width: 25%;}
-#run_column_2{display: table-cell; text-align: left; width: 75%;}
+#run_column_1{display: table-cell; text-align: left; width: 100%;}
 
 #result_column_1{display: table-cell; text-align: left; width: 50%;}
 #result_column_2{display: table-cell; text-align: left;}

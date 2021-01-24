@@ -204,16 +204,14 @@
     <div id="Run" class="tabcontent">
       <div style="display: table-row">
         <!-- The run button -->
-        <div id="run_column_1" style="padding: 10px 0px;">
-          <p>Launch run</p>
+        <div id="run_column_1">
           <form id="main_run_form" action="../php/create_runs.php" method="post">
+            Launch run:&nbsp;
             <input type="hidden" name="docker_image_run" id="docker_image_run" value="">
             <input class="button_like" type="button" value="launch" onclick="launch_main_run();">
           </form>
-        </div>
-        <!-- The run cases -->
-        <div id="run_column_2">
-          <p>Run logs</p>
+	  <br/>
+          Run logs:&nbsp;
           <select class="button_like" id="run_selector" onchange="run_select(this)">
             <option value="select_run">Select run</option>
           </select><br/>
