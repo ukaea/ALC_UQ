@@ -40,8 +40,11 @@ window.onload = function()
   }
 
   // --- Nice sizing of container and result logs
-  box_height = $(window).height(); //document.getElementById("wrapper").clientHeight;
-  box_width  = document.getElementById("Run").clientWidth;
+  current_tab = getCookie('last_selected_tab');
+  current_tab = current_tab.split("TAB_")[1];
+  current_tab = document.getElementById(current_tab);
+  box_width  = current_tab.clientWidth;
+  box_height = $(window).height();
   document.getElementById("run_comments"   ).style.height = 0.60*box_height + "px";
   document.getElementById("run_comments"   ).style.width  = 0.95*box_width  + "px";
   document.getElementById("result_comments").style.height = 0.60*box_height + "px";
