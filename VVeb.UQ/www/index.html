@@ -31,7 +31,7 @@
     <div style="width: 100%; display: table;">
       <div style="display: table-row">
         <p>Please enter your username to start a new session</p>
-        <form id="login_session_form" action="php/login_session.php" method="post">
+        <form id="login_session_form" action="php/login_session.php" method="post" onsubmit="return false; start_new_session();">
           username: <input type="text" name="username" id="username" size="30" value="username"><br>
           <input type="button" value="start session" onclick="start_new_session();"><br/>
         </form>

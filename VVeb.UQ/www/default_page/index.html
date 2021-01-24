@@ -73,7 +73,7 @@
             <option value="select_image">Select image</option>
             <option value="new_image">New image</option>
           </select>
-          <form id="new_image_form" action="../php/pull_image.php" method="post" style="visibility: hidden;">
+          <form id="new_image_form" action="../php/pull_image.php" method="post" style="visibility: hidden;" onsubmit="return false;">
             Docker image: <input type="text" name="docker_image" id="docker_image" size="30" value="eg. username/repository:tag"><br>
             <input class="button_like" type="button" value="launch" onclick="pull_code_image();"><br/>
           </form>
