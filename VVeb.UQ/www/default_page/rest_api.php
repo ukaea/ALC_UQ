@@ -197,7 +197,7 @@ if ($ACTION == 'check_app')
 {
   echo "Hello ".$username.".\n";
   echo "Welcome to VVebUQ.\n";
-  echo "Please visit https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ\n";
+  echo "Please visit https://github.com/ukaea/ALC_UQ/blob/master/VVeb.UQ/README.md\n";
   echo "for detailed instructions.\n";
   exit();
 }
@@ -509,7 +509,7 @@ function check_for_expired_prominence_token_before_run($session_name, $selected_
 function exit_with_prominence_token_warning()
 {
   echo "VVebUQ: Your Prominence Token has expired, you need to request a new one.\n";
-  echo "        please visit https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ\n";
+  echo "        please visit https://github.com/ukaea/ALC_UQ/blob/master/VVeb.UQ/README.md\n";
   echo "        for detailed instructions.\n";
   exit();
 }
@@ -524,7 +524,7 @@ function clean_exit($message)
 {
   echo 'VVebUQ: '.$message."\n";
   echo "        Maybe you used GET method instead of POST (or vice versa)?\n";
-  echo "        please visit https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ\n";
+  echo "        please visit https://github.com/ukaea/ALC_UQ/blob/master/VVeb.UQ/README.md\n";
   echo "        for detailed instructions.\n";
   exit();
 }
