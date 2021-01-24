@@ -1,7 +1,17 @@
+This work was co-funded by the UKRI grant SBS IT18160 UKRI "Ada Lovelace Centre" Software Development, in collaboration with STFC, using IRIS computing resources. This work was donc in collaboration with Prominence a H-2020 project, "EOSC-hub" (Horizon 2020 grant number 777536).<br/>
+https://www.digitalmarketplace.service.gov.uk/digital-outcomes-and-specialists/opportunities/7208 <br/>
+https://stfc.ukri.org/news-events-and-publications/features/ada-lovelace/ <br/>
+https://prominence-eosc.github.io/docs/
+
+
 # Installation of VVeb.UQ
 
 This App enables to run a Docker Apache2-PHP server that can deploy other Docker containers.<br/>
 We embed Dakota as a container, which then deploys other containers for each job (instead of just parallelising with MPI).<br/>
+
+VVeb.UQ workflow:<br/>
+<img src="https://github.com/ukaea/ALC_UQ/blob/master/VVeb.UQ/www/Logos/VVebUQ_workflow.png" width="1200">
+<br/>
 
 The `Dockerfile` of the main app was built by combining two other different cases, namely Apache2-PHP and Docker-in-Docker. The original Dockerfiles can be found in
 * Apache2-PHP from: [https://github.com/jpetazzo/dind.git](https://github.com/jpetazzo/dind.git)
@@ -15,11 +25,12 @@ https://github.com/ukaea/ALC_UQ/raw/master/VVeb.UQ/mini_presentation_slides.pdf
 There are several areas where developments are desirable:<br/>
 
 1. Alternative UQ software:<br/>
-At the moment, the app only uses Dakota and VECMA's EasyVVUQ, but the user-interface for EasyVVUQ still needs to be fully developped like it is for Dakota.
+At the moment, the app gives a choice between Dakota and VECMA's EasyVVUQ, but the user-interface for EasyVVUQ still needs to be fully developped like it is for Dakota.
 
 2. Meta-data record:<br/>
 At the moment, the data is saved on a directory where the app is run. Once the app is stopped, the data stays. However, the user may remove the data within the app. In all cases the meta data should be saved for each job, at least recording the name of the docker container, the Dakota input file, etc.
 
+3. Embedded post-processing. It would be nice to allow the user to run post-processing on all instances of a job. Either directly at the end of a job, or even after the job has finished and return. In particular, it would be good to allow specific post-processing from Dakota and EasyVVUQ themselves.
 
 ### Install Docker
 Installation on Ubuntu-19.04 is a bit shifty because Docker is only up to 18.04 at the moment, but it is definitely possible, using:
@@ -110,12 +121,13 @@ You can access the web-page by going to:
 ```
 Once on the login page, you can request a new session with your username, and you will be given a link to your session. If you close the app and come back later, you can recover your session if using the same username. Here is a screenshot of what the web-front should look like:
 
-<img src="https://github.com/ukaea/ALC_UQ/blob/master/VVeb.UQ/www/Logos/VVebUQ_screenshot.png" width="1200">
+<img src="https://github.com/ukaea/ALC_UQ/blob/master/VVeb.UQ/www/Logos/VVebUQ_screenshot3.png" width="1200">
 
 
 
 
 <br/><br/><br/><br/><br/>
+
 
 
 
@@ -193,6 +205,7 @@ curl $VVEBUQ_RESTAPI -POST -d \
 &docker_image_run=username/vvuq_example:latest\
 &selected_vvuq=dakota\
 &n_cpu=3\
+&RAM=2\
 &input_file_name=input_mc.csv\
 &input_file_type=csv\
 &input_data_file_name=data_input.zip\
@@ -201,7 +214,8 @@ curl $VVEBUQ_RESTAPI -POST -d \
 where you will need to replace the corresponding entries for the parameters:<br/>
 `docker_image_run`: name of the user-code docker image<br/>
 `selected_vvuq`: name of the VVUQ app you want to use (either "dakota" or "easyvvuq")<br/>
-`n_cpu`: number of cores available on your machine (to launch many containers at once)<br/>
+`n_cpu`: number of cores for each instance of your workflow.<br/>
+`RAM`: size of RAM of each instance (only for Prominence)<br/>
 `input_file_name`: name of the input file containing the values and errors to be sampled<br/>
 `input_file_type`: can be either `csv` or `nc` (for netcdf).<br/>
 `input_data_file_name`: (optional) name of the zipped data input file containing additional inputs for your run (default="none").<br/>
@@ -232,12 +246,20 @@ curl $VVEBUQ_RESTAPI -GET -d "action=list_run_files"
 ```
 Here as well, as above, you can view older runs by using the optional tag <code>run_name</code>
 
-### Download run data
+### Get Download URLs for run data
+Specific to Prominence, this will retrieve URLs for each individual instance of a run, together with a bash script that loops through these URLs and executes the downloads. This enables the user to choose which instances to download, instead of retrieving 100's or 1000's of jobs at once, which can take a long time when running on remote clouds with Prominence. To get the URLs for the latest run, into a file named `run_URLs.zip`, use the command:
+```
+curl $VVEBUQ_RESTAPI -GET --output run_URLs.zip -d "action=download_run_urls"
+```
+Again, as above, you can download older runs by using the optional tag <code>run_name</code>
+
+### Download entire run data
 To download the entire data produced by the latest run, into a file named `run_data.zip`, use the command:
 ```
 curl $VVEBUQ_RESTAPI -GET --output run_data.zip -d "action=download_run"
 ```
-Again, as above, you can download older runs by using the optional tag <code>run_name</code>
+Again, as above, you can download older runs by using the optional tag <code>run_name</code><br/>
+Be aware that when using remote Clouds through Prominence, this can take a long time, depending on the size of your workflow and the amount of data. It is strongly recommended to use the <code>download_run_urls</code> option instead when using Prominence.
 
 ### Download selected files from run
 If you do not want to download the entire run, you can download only specific files and/or folders, using the following command:
@@ -265,3 +287,134 @@ Similarly, to remove all the data corresponding to a run, simply:
 curl $VVEBUQ_RESTAPI -GET -d 'action=delete_run_data'
 ```
 Note that deleting data from a run automatically deletes the corresponding containers, which will not be retrievable.
+
+
+
+
+<br/><br/><br/><br/><br/>
+
+
+
+
+# Running VVeb.UQ at UKAEA
+An instance of the app is running at CCFE:<br/>
+http://vvebuq.apps.l:8080<br/>
+You will need to be inside the CCFE network to access it, ie. either through VPN or through NoMachine connection.<br/>
+There is no specific port, so a session request would look like:
+```
+curl http://vvebuq.apps.l:8080/php/login_session.php -GET -d "username=johnsmith"
+```
+Local runs are not allowed on this server, so all runs need to be done through Prominence.
+
+
+
+
+<br/><br/><br/><br/><br/>
+
+
+
+
+# Some more use-cases
+Additional use-cases are available in <code>ALC_UQ/VVeb.UQ/www/example_user_workflow/</code><br/>
+
+
+### OpenMC
+An example of an OpenMC workshop has been adapted from<br/>
+https://github.com/ukaea/openmc_workshop<br/>
+To build the image, use these commands:
+```
+cd www/example_user_workflow/OpenMC/
+docker build -t username/vvuq_openmc:latest .
+docker login -u username
+docker push username/vvuq_openmc:latest
+cd -
+```
+Then, you can run a VVebUQ job using the input file <code>ALC_UQ/VVeb.UQ/www/example_user_workflow/OpenMC/input_mc.csv</code><br/>
+This will run the Task-4 of the OpenMC-workshop, while varying:<br/>
+- the number of mesh points in the simulations
+- the energy of the neutrons from the main neutron source
+- the number of particles in the simulation
+
+After retrieving the data, you can compare the output files and the <code>tally_on_mesh.vtk</code> files.<br/>
+Here is a presentation showing how to view the vtk files on Paraview:<br/>
+https://slides.com/openmc_workshop/neutronics_workshop#/16
+
+
+### Nektar++
+An example of a Nektar++ tutorial (the Advection-Diffusion) has been adapted from<br/>
+https://www.nektar.info/community/tutorials/<br/>
+To build the image, use these commands:
+```
+cd www/example_user_workflow/NektarPP/
+docker build -t username/vvuq_nektar:latest .
+docker login -u username
+docker push username/vvuq_nektar:latest
+cd -
+```
+Then, you can run a VVebUQ job using the input file <code>ALC_UQ/VVeb.UQ/www/example_user_workflow/NektarPP/input_mc.csv</code><br/>
+This will run the tutorial, while varying:<br/>
+- the advection speed of the blobs
+- the polynomial order (p) of the spectral-hp finite elements
+
+After retrieving the data, you can compare the output files and the last file simulation file <code>ADR_mesh_aligned_9.vtu</code> in Paraview or Vizit.
+
+
+<br/>
+For convenience, we provide here a full sequence of the commands to follow for this use-case:
+
+```
+[ stan@my-pc:~/Work ]$ mkdir VVebUQ_use_cases
+[ stan@my-pc:~/Work ]$ cd VVebUQ_use_cases/
+[ stan@my-pc:~/Work/VVebUQ_use_cases ]$ git clone https://github.com/ukaea/ALC_UQ.git
+[ stan@my-pc:~/Work/VVebUQ_use_cases ]$ cd ALC_UQ/VVeb.UQ/www/example_user_workflow/NektarPP/
+[ stan@my-pc:~/Work/VVebUQ_use_cases/ALC_UQ/VVeb.UQ/www/example_user_workflow/NektarPP ]$ docker build -t your_username/vvuq_nektar:latest .
+[ stan@my-pc:~/Work/VVebUQ_use_cases/ALC_UQ/VVeb.UQ/www/example_user_workflow/NektarPP ]$ docker login -u your_username
+[ stan@my-pc:~/Work/VVebUQ_use_cases/ALC_UQ/VVeb.UQ/www/example_user_workflow/NektarPP ]$ docker push your_username/vvuq_nektar:latest
+[ stan@my-pc:~/Work/VVebUQ_use_cases/ALC_UQ/VVeb.UQ/www/example_user_workflow/NektarPP ]$ cd -
+[ stan@my-pc:~/Work/VVebUQ_use_cases ]$ curl http://vvebuq.apps.l:8080/php/login_session.php -GET -d "username=your_username"
+You now have a new session running, please use this link for you rest-API calls:
+http://vvebuq.apps.l:8080/1c103a3b7481d504e8d2ead811dac588/rest_api.php
+[ stan@my-pc:~/Work/VVebUQ_use_cases ]$ export VVEBUQ_RESTAPI=http://vvebuq.apps.l:8080/1c103a3b7481d504e8d2ead811dac588/rest_api.php
+[ stan@my-pc:~/Work/VVebUQ_use_cases ]$ curl $VVEBUQ_RESTAPI -POST -d "action=launch_vvuq&selected_vvuq=dakota"
+[ stan@my-pc:~/Work/VVebUQ_use_cases ]$ curl $VVEBUQ_RESTAPI -POST -d "action=request_prominence_token&selected_vvuq=dakota"
+Client registration successful
+To obtain a token, use a web browser to open the page https://host-130-246-215-158.nubes.stfc.ac.uk/device and enter the code XXYYZZ when requested
+Successfully retrieved token
+[ stan@my-pc:~/Work/VVebUQ_use_cases ]$ curl $VVEBUQ_RESTAPI -F 'fileToUpload[]=@./ALC_UQ/VVeb.UQ/www/example_user_workflow/NektarPP/input_mc.csv'
+[ stan@my-pc:~/Work/VVebUQ_use_cases ]$ curl $VVEBUQ_RESTAPI -POST -d \
+> "action=launch_run\
+> &docker_image_run=your_username/vvuq_nektar:latest\
+> &selected_vvuq=dakota\
+> &n_cpu=1\
+> &input_file_name=input_mc.csv\
+> &input_file_type=csv\
+> &use_prominence=false"
+Your job is being prepared for submission...
+[ stan@my-pc:~/Work/VVebUQ_use_cases ]$ curl $VVEBUQ_RESTAPI -GET -d "action=get_run_status"
+ID      NAME               CREATED               STATUS   ELAPSED      IMAGE                              CMD
+40657   workdir_VVebUQ_1   2020-09-25 15:17:43   idle                  your_username/vvuq_nektar:latest      
+40658   workdir_VVebUQ_2   2020-09-25 15:17:43   idle                  your_username/vvuq_nektar:latest      
+40659   workdir_VVebUQ_3   2020-09-25 15:17:45   idle                  your_username/vvuq_nektar:latest      
+40660   workdir_VVebUQ_4   2020-09-25 15:17:45   idle                  your_username/vvuq_nektar:latest      
+40661   workdir_VVebUQ_5   2020-09-25 15:17:47   idle                  your_username/vvuq_nektar:latest      
+40662   workdir_VVebUQ_6   2020-09-25 15:17:47   idle                  your_username/vvuq_nektar:latest      
+```
+
+Then, you'll need to wait until Prominence deploys and runs the jobs.<br/>
+After completion, you'll be able to download the run results.
+```
+[ stan@my-pc:~/Work/VVebUQ_use_cases ]$ curl $VVEBUQ_RESTAPI -GET -d "action=get_run_status"
+ID      NAME               CREATED               STATUS      ELAPSED      IMAGE                              CMD
+40657   workdir_VVebUQ_1   2020-09-25 15:17:43   completed   0+00:04:01   your_username/vvuq_nektar:latest      
+40658   workdir_VVebUQ_2   2020-09-25 15:17:43   completed   0+00:04:01   your_username/vvuq_nektar:latest      
+40659   workdir_VVebUQ_3   2020-09-25 15:17:45   completed   0+00:04:01   your_username/vvuq_nektar:latest      
+40660   workdir_VVebUQ_4   2020-09-25 15:17:45   completed   0+00:04:01   your_username/vvuq_nektar:latest      
+40661   workdir_VVebUQ_5   2020-09-25 15:17:47   completed   0+00:04:01   your_username/vvuq_nektar:latest      
+40662   workdir_VVebUQ_6   2020-09-25 15:17:47   completed   0+00:04:01   your_username/vvuq_nektar:latest      
+[ stan@my-pc:~/Work/VVebUQ_use_cases ]$ curl $VVEBUQ_RESTAPI -GET --output run_data.zip -d "action=download_run"
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  640k    0  640k    0     0  40959      0 --:--:--  0:00:16 --:--:--  169k
+[ stan@my-pc:~/Work/VVebUQ_use_cases ]$ 
+```
+
