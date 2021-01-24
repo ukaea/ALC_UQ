@@ -996,9 +996,7 @@ function check_for_existing_token()
   {
     return '';
   }
-  show_waiting_div();
-  document.getElementById("waiting_gif").style.visibility="visible";
-  document.getElementById("waiting_message").innerHTML="<br/>Checking Prominence Token, please wait...<br/>";
+  show_waiting_div_with_message("Checking Prominence Token, please wait...");
   command = 'docker exec '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'cat $HOME/.prominence/token\'';
   prominence_token = execute_command(command);
   prominence_token = prominence_token.split('{"access_token": "');
@@ -1032,9 +1030,7 @@ function check_for_existing_token_background()
     print_expired_prominence_token_warning();
     return;
   }
-  show_waiting_div();
-  document.getElementById("waiting_gif").style.visibility="visible";
-  document.getElementById("waiting_message").innerHTML="<br/>Checking Prominence Token, please wait...<br/>";
+  show_waiting_div_with_message("Checking Prominence Token, please wait...");
   command = 'docker exec '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'cat $HOME/.prominence/token\'';
   // ===%%%=== is used as a replacement for spaces (which are not allowed in http request url...)
   command = command.replace(' ','===%%%===');
