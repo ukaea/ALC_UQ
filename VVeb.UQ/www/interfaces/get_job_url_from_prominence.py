@@ -2,6 +2,7 @@
 import subprocess
 import sys
 import json
+import re
 
 
 # --- Extract arguments
@@ -19,8 +20,9 @@ try:
     outputDirs = described_json["outputDirs"][0]
     outputDirs = str(outputDirs).replace("\'","\"")
     outputDirs = json.loads(outputDirs)
-    url = outputDirs["url"]
-    print(url)
+    url  = outputDirs["url"]
+    size = outputDirs["size"]
+    print(str(size)+" "+url)
 except Exception as exc:
     sys.exit()
 

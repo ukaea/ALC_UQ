@@ -133,6 +133,11 @@ function show_waiting_div_with_message(message)
   document.getElementById("button_hide_waiting_div_upload").style.visibility="visible";
   document.getElementById("waiting_message").innerHTML="<br/>"+message+"<br/>";
 }
+function show_waiting_div_with_warning(message)
+{
+  show_waiting_div_with_message(message);
+  document.getElementById("waiting_gif").style.visibility="hidden";
+}
 function hide_waiting_div()
 {
   document.getElementById("action_wrapper_button").style.visibility="hidden";
@@ -2045,6 +2050,11 @@ function download_entire_run()
 {
   // --- Check Prominence Token is not expired (if using Prominence)
   selected_result = document.getElementById('result_selector').value;
+  if (selected_result == "select_result")
+  {
+    show_waiting_div_with_warning("<br/>You need to select a run to be downloaded (see left panel).<br/>");
+    return;
+  }
   run_name = selected_result.replace('workdir_','');
   show_waiting_div_with_message("Checking Prominence Token, please wait...");
   var xmlhttp_check = new XMLHttpRequest();
@@ -2079,6 +2089,11 @@ function get_download_urls()
 {
   // --- Check Prominence Token is not expired (if using Prominence)
   selected_result = document.getElementById('result_selector').value;
+  if (selected_result == "select_result")
+  {
+    show_waiting_div_with_warning("<br/>You need to select a run to be downloaded (see left panel).<br/>");
+    return;
+  }
   run_name = selected_result.replace('workdir_','');
   show_waiting_div_with_message("Checking Prominence Token, please wait...");
   var xmlhttp_check = new XMLHttpRequest();
@@ -2112,6 +2127,11 @@ function download_selected_files()
   // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
   use_prominence = false;
   selected_result = document.getElementById('result_selector').value;
+  if (selected_result == "select_result")
+  {
+    show_waiting_div_with_warning("<br/>You need to select a run to be downloaded (see left panel).<br/>");
+    return;
+  }
   prominence_id = execute_command('cat /VVebUQ_runs/'+who_am_i().trim()+'/'+selected_result+'/prominence_workflow_id.txt');
   prominence_id = prominence_id.trim();
   if ( (! prominence_id.includes('No such file or directory')) && (prominence_id != '') ) {use_prominence = true;}
