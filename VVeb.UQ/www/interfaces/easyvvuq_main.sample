@@ -12,7 +12,7 @@ class VVebUQ_Encoder(BaseEncoder, encoder_name='VVebUQ_encoder'):
 
     def encode(self, params={}, target_dir=''):
 
-        input_file = './files_for_easyvvuq/#FILENAME#'
+        input_file = '#FULLFILENAME#'
 
         # Read existing data file (need shapes)
         user_file = DakotaFile( file_type = '#FILETYPE#' )

@@ -12,7 +12,7 @@ from dakota_file import DakotaFile
 parser = argparse.ArgumentParser()
 
 helpstr = "Name of the analysis driver to execute"
-parser.add_argument("-d", "--driver", default='run_script_easyvvuq.py', help=helpstr)
+parser.add_argument("-d", "--driver", default='run_script.py', help=helpstr)
 
 helpstr = "Name of the input file to use"
 parser.add_argument("-i", "--input", default='DAKOTA.nc', help=helpstr)
@@ -31,6 +31,9 @@ args = parser.parse_args()
 # Read user provided file
 user_file = DakotaFile( file_type = args.type )
 user_file.read( args.input )
+
+# Get just file name (not path)
+shortname = args.input.split('/')[-1].strip()
 
 # Sample type setting is used to specify the kind of run
 if 'sample_type' in user_file.settings.attrs:
@@ -138,7 +141,8 @@ else:
 with open('easyvvuq_main.sample') as file_tmp:
     file_string = file_tmp.read()
     file_string = file_string.replace('#REPLACE_INPUTS_HERE',all_strings)
-    file_string = file_string.replace('#FILENAME#',args.input )
+    file_string = file_string.replace('#FULLFILENAME#',args.input )
+    file_string = file_string.replace('#FILENAME#',shortname )
     file_string = file_string.replace('#FILETYPE#',args.type  )
     file_string = file_string.replace('#SAMPLER#' ,sampler    )
     file_string = file_string.replace('#DRAWARGS#',draw_args  )
