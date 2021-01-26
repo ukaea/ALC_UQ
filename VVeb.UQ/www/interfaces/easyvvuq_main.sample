@@ -12,7 +12,7 @@ class VVebUQ_Encoder(BaseEncoder, encoder_name='VVebUQ_encoder'):
 
     def encode(self, params={}, target_dir=''):
 
-        input_file = '#FILENAME#'
+        input_file = './files_for_easyvvuq/#FILENAME#'
 
         # Read existing data file (need shapes)
         user_file = DakotaFile( file_type = '#FILETYPE#' )
@@ -22,7 +22,7 @@ class VVebUQ_Encoder(BaseEncoder, encoder_name='VVebUQ_encoder'):
         self.parse_data( user_file, params )
  
         # Write new data file with varied data in the target directory
-        user_file.write( target_dir+'/'+input_file )
+        user_file.write( target_dir+'/'+'#FILENAME#' )
         
     def parse_data( self, user_file, params ):
 
@@ -65,8 +65,12 @@ class VVebUQ_Encoder(BaseEncoder, encoder_name='VVebUQ_encoder'):
 
         return 'v1.0'
 
+    def is_restartable(self):
+
+        return False
+
 # This line is overwritten with input data by easyvvuq_main.sample
-# This sets the parameters, variations and n_smaples variables
+# This sets the run_script, parameters, variations and n_smaples variables
 
 #REPLACE_INPUTS_HERE
 
@@ -74,11 +78,8 @@ class VVebUQ_Encoder(BaseEncoder, encoder_name='VVebUQ_encoder'):
 
 # --- Setup some variables describing app to be run
 cwd            = os.getcwd()
-run_script     = 'run_script.py'
-input_filename = 'easyvvuq_in.json'
 out_file       = "easyvvuq_out.csv"
-template       = f"{cwd}/easyvvuq_input.template"
-cmd            = f"{cwd}/{run_script} {input_filename}"
+cmd            = f"{cwd}/{run_script}"
 
 # --- Create campaign
 my_campaign = uq.Campaign(name='easyvvuq_campaign', work_dir=".")

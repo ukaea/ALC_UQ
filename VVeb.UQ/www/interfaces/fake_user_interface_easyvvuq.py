@@ -39,7 +39,6 @@ else:
     raise Exception("No sample type set. ABORTING!")
 
 all_vars = {}
-out_vars = {}
 
 variations = "{"
 
@@ -65,7 +64,6 @@ for name, dataset in user_file.uncertain.items():
 
             all_vars[val_name] = val_tmp
             variations = variations+"\""+val_name+"\": cp.Uniform("+str(val_min)+","+str(val_max)+"),"
-            out_vars[val_name] = "$"+val_name
 
     elif( dataset.attrs['type'] == 'normal' ):
 
@@ -85,14 +83,12 @@ for name, dataset in user_file.uncertain.items():
 
             all_vars[val_name] = val_tmp
             variations = variations+"\""+val_name+"\": cp.Normal(mu="+str(val_mean)+",sigma="+str(val_sd)+"),"
-            out_vars[val_name] = "$"+val_name
 
     else:
         raise Exception("Unknown probability distribution selected. ABORTING!")
 
 variations = variations+"}"
 
-out_vars["outfile"]             = "$out_file"
 all_vars["out_file"]            = {}
 all_vars["out_file"]["type"]    = "string"
 all_vars["out_file"]["default"] = "easyvvuq_out.csv"
@@ -149,7 +145,3 @@ with open('easyvvuq_main.sample') as file_tmp:
 
 with open(args.output, 'w') as outfile:
     outfile.write(file_string)
-
-# GENERATES TEMPLATE FILE
-with open('easyvvuq_input.template', 'w') as outfile:
-    json.dump(out_vars,outfile)
