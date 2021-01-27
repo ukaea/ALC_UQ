@@ -37,7 +37,7 @@ shortname = args.input.split('/')[-1].strip()
 
 # Sample type setting is used to specify the kind of run
 if 'sample_type' in user_file.settings.attrs:
-    sample_type = user_file.settings.attrs['sample_type'] 
+    sample_type = user_file.settings.attrs['sample_type'].strip().lower()
 else:
     raise Exception("No sample type set. ABORTING!")
 
@@ -106,7 +106,7 @@ variations = "variations = "+variations+"\n"
 
 all_strings = run_script + parameters + variations
 
-if sample_type is not 'pce':
+if sample_type /= 'pce':
 
     n_samples = 0
     if 'samples' in user_file.settings.attrs:
@@ -118,11 +118,11 @@ if sample_type is not 'pce':
     all_strings = all_strings + n_samples
 
     # Set sampler
-    if sample_type is 'random':
+    if   sample_type == 'mc':
         sampler = 'uq.sampling.RandomSampler(vary=variations)'
-    elif sample_type is 'lhs':
+    elif sample_type == 'lhs':
         sampler = 'uq.sampling.quasirandom.LHCSampler(vary=variations)'
-    elif sample_type is 'halton':
+    elif sample_type == 'halton':
         sampler = 'uq.sampling.quasirandom.HaltonSampler(vary=variations)'
     else:
         raise Exception("Unsupported sampler set. App currently supports: random, lhs, halton, pce. ABORTING!")
