@@ -3,71 +3,6 @@ import easyvvuq as uq
 import chaospy as cp
 from easyvvuq.encoders import BaseEncoder
 import sys
-sys.path.insert(1, '/VVebUQ_user_interface/python/')
-from dakota_file import DakotaFile
-from definitions import *
-
-# Define a custom encoder to use to write varied data back to DakotaFile
-class VVebUQ_Encoder(BaseEncoder, encoder_name='VVebUQ_encoder'):
-
-    def encode(self, params={}, target_dir=''):
-
-        input_file = '#FULLFILENAME#'
-
-        # Read existing data file (need shapes)
-        user_file = DakotaFile( file_type = '#FILETYPE#' )
-        user_file.read( input_file )
-
-        # Format data in params into correct shapes and add values entries to file
-        self.parse_data( user_file, params )
- 
-        # Write new data file with varied data in the target directory
-        user_file.write( target_dir+'/'+'#FILENAME#' )
-        
-    def parse_data( self, user_file, params ):
-
-        # This is basically the same as in interface.py for DAKOTA
-
-        # Loop over uncertain variables and reconstruct data arrays
-        for key in user_file.uncertain.keys():
-
-            # Get the dataset for this variable
-            dataset = user_file.get_variable_as_dataset(key)
-
-            # Get the type of this variable
-            var_type = dataset.attrs['type']
-
-            # Get one of the required entries
-            var_name = allowed_variable_types[var_type]['required'][0]
-
-            var = dataset[var_name]
-
-            # Add new values variable to data array
-            dataset['values'] = deepcopy(var)
-
-            # Get size and shape of the data array
-            size  = var.size
-            shape = var.shape
-
-            data  = np.zeros( size )
-
-            for i in range( size ):
-
-                varname = key+'_'+str(i)
-                data[i] = params[varname]
-
-            values_data = data.reshape( shape )
-
-            # Add data to values data array
-            dataset.data_vars['values'].data = values_data
-
-    def element_version(self):
-
-        return 'v1.0'
-
-    def is_restartable(self):
-
-        return False
 
 # This line is overwritten with input data by easyvvuq_main.sample
 # This sets the run_script, parameters, variations and n_smaples variables
@@ -78,14 +13,16 @@ class VVebUQ_Encoder(BaseEncoder, encoder_name='VVebUQ_encoder'):
 
 # --- Setup some variables describing app to be run
 cwd            = os.getcwd()
+input_filename = "easyvvuq_in.json"
 out_file       = "easyvvuq_out.csv"
-cmd            = f"{cwd}/{run_script}"
+template       = f"{cwd}/easyvvuq_input.template"
+cmd            = f"{cwd}/{run_script} {input_filename}"
 
 # --- Create campaign
 my_campaign = uq.Campaign(name='easyvvuq_campaign', work_dir=".")
 
 # --- Encoder for the input file
-encoder = VVebUQ_Encoder()
+encoder = uq.encoders.GenericEncoder(template_fname=template,target_filename=input_filename)
 
 # --- Define a decoder
 decoder = uq.decoders.SimpleCSV(target_filename=out_file,output_columns=['Step','Value'])
