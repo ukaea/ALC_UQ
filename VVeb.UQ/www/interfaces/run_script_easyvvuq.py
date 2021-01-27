@@ -4,6 +4,7 @@ import sys
 import os
 import json
 import subprocess
+import numpy as np
 
 sys.path.insert(1, '/VVebUQ_user_interface/python/')
 from dakota_file import DakotaFile
