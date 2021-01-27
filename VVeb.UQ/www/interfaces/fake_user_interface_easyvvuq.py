@@ -106,7 +106,7 @@ variations = "variations = "+variations+"\n"
 
 all_strings = run_script + parameters + variations
 
-if sample_type /= 'pce':
+if sample_type != 'pce':
 
     n_samples = 0
     if 'samples' in user_file.settings.attrs:
