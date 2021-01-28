@@ -17,6 +17,15 @@ var action_specification = "";
 // --- Loading functions
 window.onload = function()
 {
+  // --- It's important that "index.html" is not in the url!!!
+  href_url = window.location.href.split("/");
+  href_url = href_url[href_url.length-1];
+  if (href_url.trim() == "index.html")
+  {
+    href_url = window.location.href.split("index.html")[0];
+    window.location.href = href_url;
+  }
+
   // --- This checks for the terminal log-file to give a live-update to the user
   setInterval(function(){get_terminal_output();}, 1000);
 
@@ -31,9 +40,14 @@ window.onload = function()
   }
 
   // --- Nice sizing of container and result logs
-  box_height = document.getElementById("wrapper").clientHeight;
-  document.getElementById("run_comments"   ).style.height = 0.6*box_height + "px";
-  document.getElementById("result_comments").style.height = 0.6*box_height + "px";
+  current_tab = getCookie('last_selected_tab');
+  current_tab = current_tab.split("TAB_")[1];
+  current_tab = document.getElementById(current_tab);
+  box_width  = current_tab.clientWidth;
+  box_height = $(window).height();
+  document.getElementById("run_comments"   ).style.height = 0.60*box_height + "px";
+  document.getElementById("run_comments"   ).style.width  = 0.95*box_width  + "px";
+  document.getElementById("result_comments").style.height = 0.60*box_height + "px";
 
   // --- Hide all utility div's
   for (i = 0; i < div_to_hide.length; ++i)
@@ -101,28 +115,37 @@ window.onload = function()
 function show_waiting_div()
 {
   document.getElementById("waiting_div").style.position="absolute";
-  document.getElementById("waiting_div").style.visibility="visible";
+  document.getElementById("waiting_div").style.marginLeft="5%";
+  document.getElementById("waiting_div").style.width="90%";
+  document.getElementById("waiting_div").style.top="5%";
+  document.getElementById("waiting_div").style.height="80%";
   document.getElementById("waiting_div").style.zIndex=3000;
-  document.getElementById("waiting_div").style.marginLeft="20%";
-  document.getElementById("waiting_div").style.width="60%";
-  document.getElementById("waiting_div").style.top="20%";
-  document.getElementById("waiting_div").style.height="60%";
+  document.getElementById("waiting_div").style.visibility="visible";
   document.getElementById("waiting_gif").style.visibility="hidden";
   document.getElementById("action_wrapper_button").style.visibility="visible";
+  document.getElementById("button_hide_waiting_div_upload").style.visibility="visible";
 }
 function show_waiting_div_with_message(message)
 {
   show_waiting_div();
   document.getElementById("waiting_gif").style.visibility="visible";
   document.getElementById("action_wrapper_button").style.visibility="hidden";
+  document.getElementById("button_hide_waiting_div_upload").style.visibility="visible";
   document.getElementById("waiting_message").innerHTML="<br/>"+message+"<br/>";
+}
+function show_waiting_div_with_warning(message)
+{
+  show_waiting_div_with_message(message);
+  document.getElementById("waiting_gif").style.visibility="hidden";
 }
 function hide_waiting_div()
 {
   document.getElementById("action_wrapper_button").style.visibility="hidden";
+  document.getElementById("button_hide_waiting_div_upload").style.visibility="hidden";
   document.getElementById("waiting_div").style.visibility="hidden";
   document.getElementById("waiting_gif").style.visibility="hidden";
   document.getElementById("waiting_div").style.zIndex=-3000;
+  empty_terminal_output();
 }
 
 
@@ -369,7 +392,7 @@ function action_wrapper()
   {
     selected_image = document.getElementById('image_selector').value;
     document.getElementById("waiting_gif").style.visibility="visible";
-    document.getElementById("waiting_message").innerHTML="<br/>Please wait while containers are launched for your jobs.<br/>This may take a moment depending on the number of runs...<br/>";
+    document.getElementById("waiting_message").innerHTML="<br/>Please wait while containers are launched for your jobs.<br/>This may take a moment depending on the number of runs.<br/>You may close this window, the job will continue to be prepared in the background.<br/>";
     // --- Number of CPUs and memory available for the run
     n_cpu = execute_command('nproc'); // by default, we use however many processors we have on the machine when running locally
     RAM = 1; // in GB
@@ -987,9 +1010,7 @@ function check_for_existing_token()
   {
     return '';
   }
-  show_waiting_div();
-  document.getElementById("waiting_gif").style.visibility="visible";
-  document.getElementById("waiting_message").innerHTML="<br/>Checking Prominence Token, please wait...<br/>";
+  show_waiting_div_with_message("Checking Prominence Token, please wait...");
   command = 'docker exec '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'cat $HOME/.prominence/token\'';
   prominence_token = execute_command(command);
   prominence_token = prominence_token.split('{"access_token": "');
@@ -1023,9 +1044,7 @@ function check_for_existing_token_background()
     print_expired_prominence_token_warning();
     return;
   }
-  show_waiting_div();
-  document.getElementById("waiting_gif").style.visibility="visible";
-  document.getElementById("waiting_message").innerHTML="<br/>Checking Prominence Token, please wait...<br/>";
+  show_waiting_div_with_message("Checking Prominence Token, please wait...");
   command = 'docker exec '+selected_vvuq+'_container_'+who_am_i()+' bash -c \'cat $HOME/.prominence/token\'';
   // ===%%%=== is used as a replacement for spaces (which are not allowed in http request url...)
   command = command.replace(' ','===%%%===');
@@ -1089,7 +1108,9 @@ function print_expired_prominence_token_warning()
 {
     show_waiting_div();
     document.getElementById("waiting_message").innerHTML="<br/>Your Prominence Token has expired! (go to \"Cloud\" Tab)<br/>";
+    document.getElementById("cloud_comments").innerHTML="No Prominence Token Found, request new one!";
     document.getElementById("action_wrapper_button").style.visibility="hidden";
+    document.getElementById("button_hide_waiting_div_upload").style.visibility="visible";
     document.getElementById("waiting_gif").style.visibility="hidden";
     return;
 }
@@ -2029,6 +2050,11 @@ function download_entire_run()
 {
   // --- Check Prominence Token is not expired (if using Prominence)
   selected_result = document.getElementById('result_selector').value;
+  if (selected_result == "select_result")
+  {
+    show_waiting_div_with_warning("<br/>You need to select a run to be downloaded (see left panel).<br/>");
+    return;
+  }
   run_name = selected_result.replace('workdir_','');
   show_waiting_div_with_message("Checking Prominence Token, please wait...");
   var xmlhttp_check = new XMLHttpRequest();
@@ -2063,6 +2089,11 @@ function get_download_urls()
 {
   // --- Check Prominence Token is not expired (if using Prominence)
   selected_result = document.getElementById('result_selector').value;
+  if (selected_result == "select_result")
+  {
+    show_waiting_div_with_warning("<br/>You need to select a run to be downloaded (see left panel).<br/>");
+    return;
+  }
   run_name = selected_result.replace('workdir_','');
   show_waiting_div_with_message("Checking Prominence Token, please wait...");
   var xmlhttp_check = new XMLHttpRequest();
@@ -2096,6 +2127,11 @@ function download_selected_files()
   // --- When using Prominence, this cannot be done yet (because result is in ECHO as a tarball)
   use_prominence = false;
   selected_result = document.getElementById('result_selector').value;
+  if (selected_result == "select_result")
+  {
+    show_waiting_div_with_warning("<br/>You need to select a run to be downloaded (see left panel).<br/>");
+    return;
+  }
   prominence_id = execute_command('cat /VVebUQ_runs/'+who_am_i().trim()+'/'+selected_result+'/prominence_workflow_id.txt');
   prominence_id = prominence_id.trim();
   if ( (! prominence_id.includes('No such file or directory')) && (prominence_id != '') ) {use_prominence = true;}
