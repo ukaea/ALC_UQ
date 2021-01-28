@@ -35,6 +35,8 @@ if (! $use_prominence)
 }else
 {
   $download_dir = '/VVebUQ_downloads/'.$session_name.'/';
+  $command = 'docker exec -w '.$download_dir.' -t '.$vvuq_container.' bash -c \'rm -f '.$run_name.'.zip\'';
+  $success = shell_exec($command);
   $arguments_update_id = $prominence_id_file.' '.$run_name.' '.$vvuq_container;
   shell_exec('php ../php/update_prominence_id.php '.$arguments_update_id.' > /dev/null &');
   $prominence_id = shell_exec('cat '.$prominence_id_file);

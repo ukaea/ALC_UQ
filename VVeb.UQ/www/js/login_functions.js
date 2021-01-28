@@ -6,5 +6,7 @@ function start_new_session()
   xmlhttp.send();
   reply = xmlhttp.responseText;
   document.getElementById("new_session_comments").innerHTML = reply;
+  document.getElementById("wiki_link").style.display="none";
+  document.getElementById("wiki_link").style.visibility="hidden";
 }
 

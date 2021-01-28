@@ -77,7 +77,7 @@ if ($user_already_has_session)
     echo 'You already have a session running, please follow this link:<br/><a href="'.$session_address.'">'.$session_address.'</a>';
     echo '<br/><br/>Note you can also use the command-line rest-API with the link<br/>'.$session_address.'rest_api.php';
     echo '<br/><br/>please visit';
-    echo '<br/><a href="https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ">https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ</a>';
+    echo '<br/><a href="https://github.com/ukaea/ALC_UQ/blob/master/VVeb.UQ/README.md">https://github.com/ukaea/ALC_UQ/blob/master/VVeb.UQ/README.md</a>';
     echo '<br/>for detailed instructions.';
     echo '</div>';
   }else
@@ -108,7 +108,7 @@ if ($user_already_has_session)
     echo 'You now have a new session running, please follow this link:<br/><a href="'.$session_address.'">'.$session_address.'</a>';
     echo '<br/><br/>Note you can also use the command-line rest-API with the link<br/>'.$session_address.'rest_api.php';
     echo '<br/><br/>please visit';
-    echo '<br/><a href="https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ">https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ</a>';
+    echo '<br/><a href="https://github.com/ukaea/ALC_UQ/blob/master/VVeb.UQ/README.md">https://github.com/ukaea/ALC_UQ/blob/master/VVeb.UQ/README.md</a>';
     echo '<br/>for detailed instructions.';
     echo '</div>';
   }else

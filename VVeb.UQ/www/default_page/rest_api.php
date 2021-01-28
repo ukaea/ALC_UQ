@@ -29,7 +29,7 @@ for ($i=0; $i<count($workdirs); $i++)
       $session_name = trim($workdirs[$i]);
       $username = explode('VVebUQ_user_',trim($workdirs[$i]));
       $username = $username[1];
-      $username = explode('_id_'.$user_hash,trim($workdirs[$i]));
+      $username = explode('_id_'.$user_hash,trim($username));
       $username = $username[0];
     }
   }
@@ -53,6 +53,7 @@ $_GET['VVebUQ_session_name'] = $session_name;
 // --- input-file-upload
 if (isset($_FILES["fileToUpload"]["name"][0]))
 {
+  if ($_FILES["fileToUpload"]["name"][0] == '') {clean_exit("Your filename is empty");}
   include('../php/upload.php');
   exit();
 }
@@ -60,6 +61,7 @@ if (isset($_FILES["fileToUpload"]["name"][0]))
 // --- data-file-upload
 if (isset($_FILES["dataFileToUpload"]["name"][0]))
 {
+  if ($_FILES["dataFileToUpload"]["name"][0] == '') {clean_exit("Your filename is empty");}
   include('../php/upload_data_file.php');
   exit();
 }
@@ -87,10 +89,13 @@ if ($ACTION == 'launch_vvuq')
   {
     $_POST["docker_image"] = 'dakota_image';
     $_POST["container_name"] = 'dakota_container_'.$session_name;
-  }else
+  }elseif (strtolower($_POST["selected_vvuq"]) == 'easyvvuq')
   {
     $_POST["docker_image"] = 'easyvvuq_image';
     $_POST["container_name"] = 'easyvvuq_container_'.$session_name;
+  }else
+  {
+    clean_exit("Variable \"selected_vvuq\" unknown (choose either \"dakota\" or \"easyvvuq\")");
   }
   include('../php/launch_vvuq.php');
   exit();
@@ -100,8 +105,12 @@ if ($ACTION == 'launch_vvuq')
 if ($ACTION == 'request_prominence_token')
 {
   if (! isset($_POST["selected_vvuq"]))       {clean_exit("Variable \"selected_vvuq\" required (either dakota or easyvvuq)");}
+  if ( (strtolower($_POST["selected_vvuq"]) != "dakota") && (strtolower($_POST["selected_vvuq"]) != "easyvvuq") )
+  {
+    clean_exit("Variable \"selected_vvuq\" unknown (choose either \"dakota\" or \"easyvvuq\")");
+  }
   // --- Check that the vvuq container is running
-  $vvuq_container = shell_exec('docker ps -aqf name='.$_POST["selected_vvuq"].'_container_'.$session_name.' --filter status=running');
+  $vvuq_container = shell_exec('docker ps -aqf name='.strtolower($_POST["selected_vvuq"]).'_container_'.$session_name.' --filter status=running');
   if (trim($vvuq_container) == '') {clean_exit("Before requesting a Prominence Token, you need to launch a VVUQ container");}
   // --- Proceed to request
   include('../php/request_prominence_token.php');
@@ -114,20 +123,44 @@ if ($ACTION == 'launch_run')
   // --- Check all inputs are here
   if (! isset($_POST["docker_image_run"]))     {clean_exit("Variable \"docker_image_run\" required");}
   if (! isset($_POST["selected_vvuq"]))        {clean_exit("Variable \"selected_vvuq\" required");}
-  if (! isset($_POST["n_cpu"]))                {clean_exit("Variable \"n_cpu\" required");}
   if (! isset($_POST["input_file_name"]))      {clean_exit("Variable \"input_file_name\" required");}
   if (! isset($_POST["input_file_type"]))      {clean_exit("Variable \"input_file_type\" required");}
   if (! isset($_POST["input_data_file_name"])) {$_POST["input_data_file_name"] = "none";}
-  if (! isset($_POST["use_prominence"]))       {$_POST["use_prominence"] = "false";}
-  if (! isset($_POST["RAM"]))                  {$_POST["RAM"] = "1";}
+  if (! isset($_POST["use_prominence"]))
+  {
+    echo "Warning: \"use_prominence\" option not set, running locally if allowed.\n";
+    $_POST["use_prominence"] = "false";
+  }else
+  {
+    $_POST["use_prominence"] = strtolower($_POST["use_prominence"]);
+    if ( ($_POST["use_prominence"] != "true") && ($_POST["use_prominence"] != "false") )
+    {
+      clean_exit("Variable \"use_prominence\" unknown (choose either \"true\" or \"false\")");
+    }
+  }
+  if (! isset($_POST["RAM"]))
+  {
+    if ($_POST["use_prominence"] == 'true') {echo "Warning: \"RAM\" option not set, setting RAM requirement to 1GB.\n";}
+    $_POST["RAM"] = "1";
+  }
+  if (! isset($_POST["n_cpu"]))
+  {
+    echo "Warning: \"n_cpu\" option not set, setting n_cpu to 1.\n";
+    $_POST["n_cpu"] = "1";
+  }
   // --- Check that the vvuq container is running
+  $_POST["selected_vvuq"] = strtolower($_POST["selected_vvuq"]);
+  if ( ($_POST["selected_vvuq"] != "dakota") && ($_POST["selected_vvuq"] != "easyvvuq") )
+  {
+    clean_exit("Variable \"selected_vvuq\" unknown (choose either \"dakota\" or \"easyvvuq\")");
+  }
   $vvuq_container = shell_exec('docker ps -aqf name='.$_POST["selected_vvuq"].'_container_'.$session_name.' --filter status=running');
   if (trim($vvuq_container) == '') {clean_exit("Before launching a run, you need to launch a VVUQ container");}
   // --- Check that local runs are allowed
   $run_locally_forbidden = trim(shell_exec('cat config.in | grep -i LOCAL_RUNS_ALLOWED | grep -i FALSE'));
   if ( ($run_locally_forbidden != '') && ($_POST["use_prominence"] == 'false') )
   {
-    clean_exit("Local runs are forbidden".$run_locally_forbidden.", you need to use Prominence!");
+    clean_exit("Local runs are forbidden: ".$run_locally_forbidden.", you need to use Prominence!");
   }
   // --- Check that Docker image exists
   if ($run_locally_forbidden != '')
@@ -164,7 +197,7 @@ if ($ACTION == 'check_app')
 {
   echo "Hello ".$username.".\n";
   echo "Welcome to VVebUQ.\n";
-  echo "Please visit https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ\n";
+  echo "Please visit https://github.com/ukaea/ALC_UQ/blob/master/VVeb.UQ/README.md\n";
   echo "for detailed instructions.\n";
   exit();
 }
@@ -198,11 +231,12 @@ if ($ACTION == 'list_run_files')
     $_GET["run_name"] = get_latest_run($session_name);
   }
   check_for_expired_prominence_token($session_name, $_GET["run_name"]);
+  echo "This may take a while, please wait...\n";
   include("../php/list_run_files.php");
   exit();
 }
 
-// --- List files inside run tasks
+// --- Download entire run
 if ($ACTION == 'download_run')
 {
   // --- If the user did not specify a run-name, we use the most recent one
@@ -211,11 +245,27 @@ if ($ACTION == 'download_run')
     $_GET["run_name"] = get_latest_run($session_name);
   }
   check_for_expired_prominence_token($session_name, $_GET["run_name"]);
+  echo "This may take a while, please wait...\n";
+  echo "If running remotely through Prominence, please consider \"download_run_urls\" option.\n";
   include("../php/download_run.php");
   exit();
 }
 
-// --- List files inside run tasks
+// --- Download run URLs for user to use directly
+if ($ACTION == 'download_run_urls')
+{
+  // --- If the user did not specify a run-name, we use the most recent one
+  if (! isset($_GET["run_name"]))
+  {
+    $_GET["run_name"] = get_latest_run($session_name);
+  }
+  check_for_expired_prominence_token($session_name, $_GET["run_name"]);
+  echo "This may take a while, please wait...\n";
+  include("../php/get_download_urls.php");
+  exit();
+}
+
+// --- Download only selected files
 if ($ACTION == 'download_run_files')
 {
   // --- If the user did not specify a run-name, we use the most recent one
@@ -224,11 +274,13 @@ if ($ACTION == 'download_run_files')
     $_GET["run_name"] = get_latest_run($session_name);
   }
   check_for_expired_prominence_token($session_name, $_GET["run_name"]);
+  echo "This may take a while, please wait...\n";
+  echo "If running remotely through Prominence, please consider \"download_run_urls\" option.\n";
   include("../php/download_run_files.php");
   exit();
 }
 
-// --- List files inside run tasks
+// --- Delete run containers
 if ($ACTION == 'delete_run')
 {
   // --- If the user did not specify a run-name, we use the most recent one
@@ -241,7 +293,7 @@ if ($ACTION == 'delete_run')
   exit();
 }
 
-// --- List files inside run tasks
+// --- Delete whole data associated to a run
 if ($ACTION == 'delete_run_data')
 {
   // --- If the user did not specify a run-name, we use the most recent one
@@ -255,6 +307,13 @@ if ($ACTION == 'delete_run_data')
   exit();
 }
 
+
+
+
+
+
+// --- If we've reached that far, it means the ACTION was not known
+clean_exit("Action unknown, please check your command is correct.");
 
 exit();
 
@@ -450,7 +509,7 @@ function check_for_expired_prominence_token_before_run($session_name, $selected_
 function exit_with_prominence_token_warning()
 {
   echo "VVebUQ: Your Prominence Token has expired, you need to request a new one.\n";
-  echo "        please visit https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ\n";
+  echo "        please visit https://github.com/ukaea/ALC_UQ/blob/master/VVeb.UQ/README.md\n";
   echo "        for detailed instructions.\n";
   exit();
 }
@@ -465,7 +524,7 @@ function clean_exit($message)
 {
   echo 'VVebUQ: '.$message."\n";
   echo "        Maybe you used GET method instead of POST (or vice versa)?\n";
-  echo "        please visit https://github.com/ukaea/ALC_UQ/wiki/VVeb.UQ\n";
+  echo "        please visit https://github.com/ukaea/ALC_UQ/blob/master/VVeb.UQ/README.md\n";
   echo "        for detailed instructions.\n";
   exit();
 }

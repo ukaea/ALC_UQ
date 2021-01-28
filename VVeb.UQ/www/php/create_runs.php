@@ -50,6 +50,10 @@ $RAM   = (int)trim($arguments["RAM"]);
 // --- By default we use however many processes are available to do this (minus 1 for the app itself)
 $n_cpu_dakota = intval(shell_exec('nproc')) - 1;
 $n_cpu_dakota = max(1,$n_cpu_dakota);
+if ($arguments["use_prominence"] == "false")
+{
+  $n_cpu_dakota = 1;
+}
 
 // --- Get the file name
 $filename = trim($arguments["input_file_name"]);

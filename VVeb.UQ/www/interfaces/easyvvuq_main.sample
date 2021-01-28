@@ -80,8 +80,9 @@ my_campaign = uq.Campaign(name='easyvvuq_campaign', work_dir=".")
 # --- Encoder for the input file
 encoder = VVebUQ_Encoder(template_fname=template, target_filename=input_filename)
 
+decoder = uq.decoders.SimpleCSV(target_filename=out_file, output_columns=['Step','Value'])
 # --- Define campaign
-my_campaign.add_app(name="run_script_easyvvuq", params=parameters, encoder=encoder)
+my_campaign.add_app(name="run_script_easyvvuq", params=parameters, encoder=encoder, decoder=decoder)
 
 # FIXME - WOULD BE GOOD TO HANDLE MORE THAN RANDOM SAMPLING
 # This would need to be handled in easyvvuq_main.sample in a similar replace way as above
