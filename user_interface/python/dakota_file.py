@@ -205,7 +205,7 @@ class DakotaFile:
 
                         # May specify sampling type
                         if len(row) > 2:
-                            settings['sample_type'] = row[2]
+                            settings['sample_type'] = row[2].strip().lower()
                         else:
                             settings['sample_type'] = 'lhs'
 
