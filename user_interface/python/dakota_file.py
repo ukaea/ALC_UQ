@@ -209,6 +209,13 @@ class DakotaFile:
                         else:
                             settings['sample_type'] = 'lhs'
 
+                        # If using PCE sampling interpret the samples variable as a polynomial order instead of the number of samples
+                        # Slightly hacky but the easiest way to support PCE in the CSV format. In this case the seed variable
+                        # is redundant and can be set to any value
+                        if settings['sample_type'] == 'pce':
+                            settings['poly_order'] = settings['samples']
+                            settings['samples']    = 0
+
                         self.add_settings( settings )
 
                     elif run_type.upper() == 'MC':
