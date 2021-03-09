@@ -1003,6 +1003,8 @@ function cloud_select_change(optionValToSelect)
 }
 function check_for_existing_token()
 {
+  selected_cloud = document.getElementById('cloud_selector').value;
+  if (selected_cloud != 'use_prominence') {return "n/a";}
   // --- Which VVUQ software are we using?
   selected_vvuq = document.getElementById('vvuq_selector').value;
   container_running = check_vvuq_container();
@@ -1036,6 +1038,8 @@ function check_for_existing_token()
 }
 function check_for_existing_token_background()
 {
+  selected_cloud = document.getElementById('cloud_selector').value;
+  if (selected_cloud != 'use_prominence') {return "n/a";}
   // --- Which VVUQ software are we using?
   selected_vvuq = document.getElementById('vvuq_selector').value;
   container_running = check_vvuq_container();
@@ -1239,10 +1243,12 @@ function launch_main_run()
     document.getElementById("action_wrapper_button").style.visibility="hidden";
     return;
   }
+  // --- Check which cloud we are using
+  selected_cloud = document.getElementById('cloud_selector').value;
   // --- Check Prominence Token is not expired (if using Prominence)
   show_waiting_div_with_message("Checking Prominence Token, please wait...");
   var xmlhttp_check = new XMLHttpRequest();
-  xmlhttp_check.open("GET", "../php/check_prominence_token_before_run.php?VVebUQ_session_name="+who_am_i().trim()+"&selected_vvuq="+container_running, true);
+  xmlhttp_check.open("GET", "../php/check_prominence_token_before_run.php?VVebUQ_session_name="+who_am_i().trim()+"&selected_vvuq="+container_running+"&selected_cloud="+selected_cloud, true);
   xmlhttp_check.onreadystatechange = function ()
   {
     if(this.readyState == 4 && this.status == 200)
@@ -1273,12 +1279,14 @@ function run_select(selected_option)
     dir_name = selected_option.value;
     run_name = dir_name.split("workdir_");
     run_name = run_name[1];
+    // --- Check which cloud we are using
+    selected_cloud = document.getElementById('cloud_selector').value;
     // --- Check Prominence Token is not expired (if using Prominence)
     selected_result = document.getElementById('run_selector').value;
     run_name = selected_result.replace('workdir_','');
     show_waiting_div_with_message("Checking Prominence Token, please wait...");
     var xmlhttp_check = new XMLHttpRequest();
-    xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+    xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&selected_cloud="+selected_cloud, true);
     xmlhttp_check.onreadystatechange = function ()
     {
       if(this.readyState == 4 && this.status == 200)
@@ -1357,12 +1365,14 @@ function refresh_containers_log()
 }
 function stop_containers()
 {
+  // --- Check which cloud we are using
+  selected_cloud = document.getElementById('cloud_selector').value;
   // --- Check Prominence Token is not expired (if using Prominence)
   selected_result = document.getElementById('run_selector').value;
   run_name = selected_result.replace('workdir_','');
   show_waiting_div_with_message("Checking Prominence Token, please wait...");
   var xmlhttp_check = new XMLHttpRequest();
-  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&selected_cloud="+selected_cloud, true);
   xmlhttp_check.onreadystatechange = function ()
   {
     if(this.readyState == 4 && this.status == 200)
@@ -1389,12 +1399,14 @@ function stop_containers()
 }
 function purge_run()
 {
+  // --- Check which cloud we are using
+  selected_cloud = document.getElementById('cloud_selector').value;
   // --- Check Prominence Token is not expired (if using Prominence)
   selected_result = document.getElementById('run_selector').value;
   run_name = selected_result.replace('workdir_','');
   show_waiting_div_with_message("Checking Prominence Token, please wait...");
   var xmlhttp_check = new XMLHttpRequest();
-  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&selected_cloud="+selected_cloud, true);
   xmlhttp_check.onreadystatechange = function ()
   {
     if(this.readyState == 4 && this.status == 200)
@@ -1808,12 +1820,14 @@ function data_abortHandler(event)
 // --- Result functions
 function result_select(selected_option)
 { 
+  // --- Check which cloud we are using
+  selected_cloud = document.getElementById('cloud_selector').value;
   // --- Check Prominence Token is not expired (if using Prominence)
   selected_result = document.getElementById('result_selector').value;
   run_name = selected_result.replace('workdir_','');
   show_waiting_div_with_message("Checking Prominence Token, please wait...");
   var xmlhttp_check = new XMLHttpRequest();
-  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&selected_cloud="+selected_cloud, true);
   xmlhttp_check.onreadystatechange = function ()
   {
     if(this.readyState == 4 && this.status == 200)
@@ -1961,12 +1975,14 @@ function set_result_selector(selected_run)
 }
 function purge_result()
 {
+  // --- Check which cloud we are using
+  selected_cloud = document.getElementById('cloud_selector').value;
   // --- Check Prominence Token is not expired (if using Prominence)
   selected_result = document.getElementById('result_selector').value;
   run_name = selected_result.replace('workdir_','');
   show_waiting_div_with_message("Checking Prominence Token, please wait...");
   var xmlhttp_check = new XMLHttpRequest();
-  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&selected_cloud="+selected_cloud, true);
   xmlhttp_check.onreadystatechange = function ()
   {
     if(this.readyState == 4 && this.status == 200)
@@ -2048,6 +2064,8 @@ function unselect_result_file(file_id)
 }
 function download_entire_run()
 {
+  // --- Check which cloud we are using
+  selected_cloud = document.getElementById('cloud_selector').value;
   // --- Check Prominence Token is not expired (if using Prominence)
   selected_result = document.getElementById('result_selector').value;
   if (selected_result == "select_result")
@@ -2058,7 +2076,7 @@ function download_entire_run()
   run_name = selected_result.replace('workdir_','');
   show_waiting_div_with_message("Checking Prominence Token, please wait...");
   var xmlhttp_check = new XMLHttpRequest();
-  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&selected_cloud="+selected_cloud, true);
   xmlhttp_check.onreadystatechange = function ()
   {
     if(this.readyState == 4 && this.status == 200)
@@ -2087,6 +2105,8 @@ function download_entire_run()
 }
 function get_download_urls()
 {
+  // --- Check which cloud we are using
+  selected_cloud = document.getElementById('cloud_selector').value;
   // --- Check Prominence Token is not expired (if using Prominence)
   selected_result = document.getElementById('result_selector').value;
   if (selected_result == "select_result")
@@ -2097,7 +2117,7 @@ function get_download_urls()
   run_name = selected_result.replace('workdir_','');
   show_waiting_div_with_message("Checking Prominence Token, please wait...");
   var xmlhttp_check = new XMLHttpRequest();
-  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name, true);
+  xmlhttp_check.open("GET", "../php/check_prominence_token.php?VVebUQ_session_name="+who_am_i().trim()+"&run_name="+run_name+"&selected_cloud="+selected_cloud, true);
   xmlhttp_check.onreadystatechange = function ()
   {
     if(this.readyState == 4 && this.status == 200)

@@ -3,6 +3,10 @@
 // --- Get input
 $session_name = $_REQUEST["VVebUQ_session_name"];
 $selected_vvuq = $_REQUEST["selected_vvuq"];
+$selected_cloud = $_REQUEST["selected_cloud"];
+
+// --- Straight-forward if running locally
+if ($selected_cloud != "use_prominence") { exit(); }
 
 // --- The VVUQ container name depends on the user
 $vvuq_container = $selected_vvuq.'_container_'.$session_name;

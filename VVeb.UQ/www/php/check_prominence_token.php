@@ -4,6 +4,10 @@
 // --- Inputs
 $session_name = $_REQUEST["VVebUQ_session_name"];
 $run_name = $_REQUEST["run_name"];
+$selected_cloud = $_REQUEST["selected_cloud"];
+
+// --- Straight-forward if running locally
+if ($selected_cloud != "use_prominence") { exit(); }
 
 // --- Check if we are using Prominence
 $dir_name = $run_name;
