@@ -10,14 +10,15 @@ def interactive_command(it,cmd,session_name,n_cpu):
     # Evaluate cpuset to use for job 
     pstart = it * n_cpu
     pend   = (it + 1) * n_cpu - 1
-    print( f'Assigning iteration {iteration} to processor range {pstart} : {pend}' )
+    print( f'Assigning iteration {it} to processor range {pstart} : {pend}' )
 
     procs = np.linspace( pstart, pend, n_cpu )
     procs = [ str( int(x) ) for x in procs ]
     cpuset = ",".join(procs)
 
-    print( f'Assigning iteration {iteration} to cpuset: '+cpuset )
+    print( f'Assigning iteration {it} to cpuset: '+cpuset )
     cmd = cmd + ' --cpuset=' + cpuset
+    print('Executing command: '+cmd)
 
     # --- Execute command
     try:
