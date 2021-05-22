@@ -17,7 +17,7 @@ def interactive_command(it,cmd,session_name,n_cpu):
     cpuset = ",".join(procs)
 
     print( f'Assigning iteration {it} to cpuset: '+cpuset )
-    cmd = cmd + ' --cpuset=' + cpuset
+    cmd = cmd + ' --cpuset-cpus=' + cpuset
     print('Executing command: '+cmd)
 
     # --- Execute command
