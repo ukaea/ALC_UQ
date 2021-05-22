@@ -2,11 +2,23 @@
 import os
 import subprocess
 import sys
-
-
+import numpy as np
 
 # --- Function to execute command with interactive printout sent to web-terminal in real-time
-def interactive_command(cmd,session_name):
+def interactive_command(it,cmd,session_name,n_cpu):
+
+    # Evaluate cpuset to use for job 
+    pstart = it * n_cpu
+    pend   = (it + 1) * n_cpu - 1
+    print( f'Assigning iteration {iteration} to processor range {pstart} : {pend}' )
+
+    procs = np.linspace( pstart, pend, n_cpu )
+    procs = [ str( int(x) ) for x in procs ]
+    cpuset = ",".join(procs)
+
+    print( f'Assigning iteration {iteration} to cpuset: '+cpuset )
+    cmd = cmd + ' --cpuset=' + cpuset
+
     # --- Execute command
     try:
         cmd2 = 'printf "' + cmd + '" > /VVebUQ_runs/'+session_name+'/terminal_command.txt'
@@ -18,6 +30,7 @@ def interactive_command(cmd,session_name):
         print('Failed to execute command:\n%s' % (cmd))
         print('due to exception:', exc)
         sys.exit()
+
     # --- Get output to web-terminal printout
     try:
         output = str(process.stdout.read(),'utf-8')
@@ -29,23 +42,19 @@ def interactive_command(cmd,session_name):
         print('due to exception:', exc)
         sys.exit()
 
-
-
-
-
 # ---------------
 # --- Main script
 # ---------------
 
-
-
 # --- Extract arguments
 with open('arguments_for_vvuq_script.txt') as args_file:
     data = args_file.read()
+
 my_args = data.strip().split(' ')
 if (len(my_args) != 12):
     print('run_script: not enough arguments in arguments_for_vvuq_script.txt')
     sys.exit()
+
 container_name = my_args[0]
 run_dir        = my_args[1]
 image_name     = my_args[2]
@@ -72,10 +81,10 @@ except  Exception as exc:
     sys.exit()
 
 # --- Run container for each dir
-for my_dir in subdirs:
+for idir, my_dir in enumerate(subdirs):
     if (my_dir.strip() != ''):
         cmd = 'docker container run --privileged --name ' + container_name + '_' + my_dir + ' -v ' + run_dir + '/' + my_dir + ':/tmp/work_dir/ -v ' + user_inter_dir + ':/VVebUQ_user_interface/ -d ' + image_name
-        interactive_command(cmd,session_name)
+        interactive_command(idir,cmd,session_name,n_cpu)
 
 
 
