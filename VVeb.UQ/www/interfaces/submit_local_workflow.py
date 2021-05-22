@@ -27,6 +27,12 @@ def interactive_command(it,cmd,session_name,n_cpu):
         process.wait()
         process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process.wait()
+
+        # Force change in core affinity
+        cmd3 = 'taskset -cp '+cpuset+' '+process.pid
+        process = subprocess.Popen(cmd3, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process.wait()
+
     except  Exception as exc:
         print('Failed to execute command:\n%s' % (cmd))
         print('due to exception:', exc)
