@@ -84,7 +84,7 @@ except  Exception as exc:
 for idir, my_dir in enumerate(subdirs):
     if (my_dir.strip() != ''):
         cmd = 'docker container run --privileged --name ' + container_name + '_' + my_dir + ' -v ' + run_dir + '/' + my_dir + ':/tmp/work_dir/ -v ' + user_inter_dir + ':/VVebUQ_user_interface/ -d ' + image_name
-        interactive_command(idir,cmd,session_name,n_cpu)
+        interactive_command(idir,cmd,session_name,int(n_cpu))
 
 
 
